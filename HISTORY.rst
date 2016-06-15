@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.1.0.dev0
+0.1.0 (2016-06-15)
 ---------------------
 
 * Setup project, pull in scripts from `ansible-galaxy-tools

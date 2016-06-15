@@ -1,0 +1,20 @@
+language: python
+sudo: false
+python: 2.7
+env:
+  - TOX_ENV=py27-lint
+  - TOX_ENV=py34-lint
+  - TOX_ENV=py27-lint-readme
+  - TOX_ENV=py27
+  - TOX_ENV=py34
+
+install:
+  # Setup git to allow git operations.
+  - git config --global user.name "Travis Test User"
+  - git config --global user.email "galaxy_test@galaxyproject.org"
+  - pip install tox coveralls
+
+script: tox -e $TOX_ENV
+
+after_success:
+  - coveralls

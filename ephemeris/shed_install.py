@@ -458,7 +458,7 @@ def run_data_managers(options):
                         time.sleep(10)
                     log.debug("\tDbkey '{0}' installed successfully in '{1}'".format(
                               dbkey.get('dbkey'), dt.datetime.now() - start))
-            except ConnectionError, e:
+            except ConnectionError as e:
                 response = None
                 end = dt.datetime.now()
                 log.error("\t* Error installing dbkey {0} for DM {1} (after {2}): {3}"
@@ -627,7 +627,7 @@ def install_tools(
                 end = dt.datetime.now()
                 log_tool_install_success(tool=tool, start=start, end=end,
                                          installed_tools=installed_tools)
-            except ConnectionError, e:
+            except ConnectionError as e:
                 response = None
                 end = dt.datetime.now()
                 if default_err_msg in e.body:

@@ -47,14 +47,16 @@ def translate_workflow_dictionary_to_tool_list(tool_dictionary, panel_label):
     tool_list = []
     for tool in starting_tool_list:
         sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revision': tool['changeset_revision'],
-                      'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed']}
+                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed']}
         tool_list.append(sub_dic)
     return tool_list
+
 
 def print_yaml_tool_list(tool_dictionary, output_file):
     with open(output_file, 'w') as F:
         F.write(yaml.safe_dump(tool_dictionary, default_flow_style=False))
     return
+
 
 def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     """
@@ -63,8 +65,8 @@ def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     """
     intermediate_tool_list = []
     for workflow in workflow_files:
-        workflow_dictionary = get_workflow_dictionary (workflow)
-        intermediate_tool_list += translate_workflow_dictionary_to_tool_list (workflow_dictionary, panel_label)
+        workflow_dictionary = get_workflow_dictionary(workflow)
+        intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)
     reduced_tool_list = list({v['revision']: v for v in intermediate_tool_list}.values())
     convert_dic = {}
     convert_dic['tools'] = reduced_tool_list

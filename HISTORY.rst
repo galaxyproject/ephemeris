@@ -6,10 +6,13 @@ History
 .. to_doc
 
 ---------------------
-0.1.1.dev0
+0.2.0.dev0
 ---------------------
 
-    
+* Add tool generate a tool list from a Galaxy workflow file
+  (thanks to @drosofff).
+* Fix various code quality issues including adding beta support
+  for Python 3 (thanks in part to @mvdbeek).
 
 ---------------------
 0.1.0 (2016-06-15)

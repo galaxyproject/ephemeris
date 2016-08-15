@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-import yaml
 import json
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
+import yaml
 
 
 def _parse_cli_options():

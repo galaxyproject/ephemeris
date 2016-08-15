@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 import json
+
+from argparse import ArgumentDefaultsHelpFormatter
+from argparse import ArgumentParser
+
 import requests
 import yaml
-
-from argparse import ArgumentParser
-from argparse import ArgumentDefaultsHelpFormatter
 
 
 class GiToToolYaml:

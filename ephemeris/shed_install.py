@@ -32,13 +32,15 @@ Required libraries:
 import datetime as dt
 import logging
 import time
-import yaml
+
 from argparse import ArgumentParser
 
+import yaml
+
 from bioblend.galaxy import GalaxyInstance
+from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
-from bioblend.galaxy.client import ConnectionError
 
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import argparse
-from bioblend import galaxy
 import json
+
+from bioblend import galaxy
 
 
 def main():

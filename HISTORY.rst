@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.2.0.dev0
+0.2.0 (2016-08-15)
 ---------------------
 
 * Add tool generate a tool list from a Galaxy workflow file

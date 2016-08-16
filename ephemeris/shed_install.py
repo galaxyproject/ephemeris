@@ -69,7 +69,7 @@ class ProgressConsoleHandler(logging.StreamHandler):
             self.flush()
         except (KeyboardInterrupt, SystemExit):
             raise
-        except:
+        except Exception:
             self.handleError(record)
 
 
@@ -289,9 +289,7 @@ def installed_tools(gi, omit=None):
                                      'owner': tid[2],
                                      'name': tid[3],
                                      'tool_panel_section_id': ts['id']})
-                # print "\t%s, %s, %s" % (tid[0], tid[2], tid[3])
             else:
-                # print "\t%s" % t['id']
                 custom_tools.append(t['id'])
 
     # Match tp_tools with the tool list available from the Tool Shed Clients on
@@ -353,11 +351,28 @@ def _parse_cli_options():
                         help="Galaxy tool panel section ID where the tool will "
                              "be installed (the section must exist in Galaxy; "
                              "only applicable if the tools file is not provided).")
+    parser.add_argument("--section_label",
+                        default=None,
+                        dest="tool_panel_section_label",
+                        help="Galaxy tool panel section label where tool will be installed "
+                             "(if the section does not exist, it will be created; "
+                             "only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",
                         help="The Tool Shed URL where to install the tool from. "
                              "This is applicable only if the tool info is "
                              "provided as an option vs. in the tools file.")
+    parser.add_argument("--install_tool_dependencies",
+                        action="store_true",
+                        dest="install_tool_dependencies",
+                        help="Install tool dependencies using classic toolshed packages. "
+                             "Can be overwritten on a per-tool basis in the tools file")
+    parser.add_argument("--install_resolver_dependencies",
+                        action="store_true",
+                        dest="install_resolver_dependencies",
+                        help="Install tool dependencies through resolver (e.g. conda). "
+                             "Will be ignored on galaxy releases older than 16.07. "
+                             "Can be overwritten on a per-tool basis in the tools file")
     return parser.parse_args()
 
 
@@ -480,6 +495,7 @@ def install_repository_revision(tool, tsc):
         tool['tool_shed_url'], tool['name'], tool['owner'],
         tool['revision'], tool['install_tool_dependencies'],
         tool['install_repository_dependencies'],
+        tool['install_resolver_dependencies'],
         tool['tool_panel_section_id'],
         tool['tool_panel_section_label'])
     if isinstance(response, dict) and response.get('status', None) == 'ok':
@@ -518,7 +534,7 @@ def wait_for_install(tool, tsc, timeout=3600):
         return False
 
 
-def handle_tool_options(options):
+def get_install_tool_manager(options):
     """
     Parse the default input file and proceed to install listed tools.
     :type options: OptionParser object
@@ -535,45 +551,116 @@ def handle_tool_options(options):
         tools_info = [{"owner": options.owner,
                        "name": options.name,
                        "tool_panel_section_id": options.tool_panel_section_id,
+                       "tool_panel_section_label": options.tool_panel_section_label,
                        "tool_shed_url": options.tool_shed_url or MTS}]
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
     gi = galaxy_instance(galaxy_url, api_key)
-    return install_tools(
-        tools_info,
-        gi,
-        tool_list_file,
-    )
+    return InstallToolManager(tools_info=tools_info,
+                              gi=gi,
+                              default_install_tool_dependencies=options.install_tool_dependencies,
+                              default_install_resolver_dependencies=options.install_resolver_dependencies
+                              )
 
 
-def install_tools(
-    tools_info,
-    gi,
-    tools_source_label,
-    require_tool_panel_info=True,
-    default_install_tool_dependencies=True,
-):
-    """
-    """
-    _ensure_log_configured()
-    istart = dt.datetime.now()
-    tsc = tool_shed_client(gi)
-    itl = installed_tool_revisions(gi)  # installed tools list
+class InstallToolManager(object):
 
-    responses = []
-    errored_tools = []
-    skipped_tools = []
-    installed_tools = []
-    counter = 0
-    tools_info = _flatten_tools_info(tools_info)
-    total_num_tools = len(tools_info)
-    default_err_msg = ('All repositories that you are attempting to install '
-                       'have been previously installed.')
+    def __init__(self,
+                 tools_info,
+                 gi,
+                 default_install_tool_dependencies=True,
+                 default_install_resolver_dependencies=False,
+                 require_tool_panel_info=True):
+        self.tools_info = tools_info
+        self.gi = gi
+        self.tsc = tool_shed_client(self.gi)
+        self.require_tool_panel_info = require_tool_panel_info
+        self.install_tool_dependencies = default_install_tool_dependencies
+        self.install_resolver_dependencies = default_install_resolver_dependencies
 
-    # Process each tool/revision: check if it's already installed or install it
-    for tool_info in tools_info:
-        counter += 1
-        already_installed = False  # Reset the flag
+    def install_tools(self):
+        """
+        """
+        _ensure_log_configured()
+        istart = dt.datetime.now()
+        itl = installed_tool_revisions(self.gi)  # installed tools list
+
+        responses = []
+        errored_tools = []
+        skipped_tools = []
+        installed_tools = []
+        counter = 0
+        tools_info = _flatten_tools_info(self.tools_info)
+        total_num_tools = len(tools_info)
+        default_err_msg = ('All repositories that you are attempting to install '
+                           'have been previously installed.')
+
+        # Process each tool/revision: check if it's already installed or install it
+        for tool_info in tools_info:
+            counter += 1
+            already_installed = False  # Reset the flag
+            tool = self.create_tool_install_payload(tool_info)
+            # Check if the tool@revision is already installed
+            for installed in itl:
+                if the_same_tool(installed, tool) and tool['revision'] in installed['revisions']:
+                    log.debug("({0}/{1}) Tool {2} already installed at revision {3}. Skipping."
+                              .format(counter, total_num_tools, tool['name'], tool['revision']))
+                    skipped_tools.append({'name': tool['name'], 'owner': tool['owner'],
+                                          'revision': tool['revision']})
+                    already_installed = True
+                    break
+            if not already_installed:
+                # Initate tool installation
+                start = dt.datetime.now()
+                log.debug('(%s/%s) Installing tool %s from %s to section "%s" at '
+                          'revision %s (TRT: %s)' %
+                          (counter, total_num_tools, tool['name'], tool['owner'],
+                           tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
+                           tool['revision'], dt.datetime.now() - istart))
+                try:
+                    response = install_repository_revision(tool, self.tsc)
+                    end = dt.datetime.now()
+                    log_tool_install_success(tool=tool, start=start, end=end,
+                                             installed_tools=installed_tools)
+                except ConnectionError as e:
+                    response = None
+                    end = dt.datetime.now()
+                    if default_err_msg in e.body:
+                        log.debug("\tTool %s already installed (at revision %s)" %
+                                  (tool['name'], tool['revision']))
+                    else:
+                        if e.message == "Unexpected response from galaxy: 504":
+                            log.debug("Timeout during install of %s, extending wait to 1h"
+                                      % ((tool['name'])))
+                            success = wait_for_install(tool=tool, tsc=self.tsc, timeout=3600)
+                            if success:
+                                log_tool_install_success(tool=tool, start=start, end=end,
+                                                         installed_tools=installed_tools)
+                                response = e.body  # TODO: find a better response message
+                            else:
+                                log_tool_install_error(tool=tool, start=start, end=end,
+                                                       e=e, errored_tools=errored_tools)
+                        else:
+                            log_tool_install_error(tool=tool, start=start, end=end,
+                                                   e=e, errored_tools=errored_tools)
+                outcome = {'tool': tool, 'response': response, 'duration': str(end - start)}
+                responses.append(outcome)
+
+        log.info("Installed tools ({0}): {1}".format(
+                 len(installed_tools), [(t['name'], t['revision']) for t in installed_tools]))
+        log.info("Skipped tools ({0}): {1}".format(
+                 len(skipped_tools), [(t['name'], t['revision']) for t in skipped_tools]))
+        log.info("Errored tools ({0}): {1}".format(
+                 len(errored_tools), [(t['name'], t['revision']) for t in errored_tools]))
+        log.info("All tools have been processed.")
+        log.info("Total run time: {0}".format(dt.datetime.now() - istart))
+
+    def create_tool_install_payload(self, tool_info):
+        """
+        For each listed tool (tool_info) we generate a payload that contains all
+        required parameters, filling up missing parameters with user-defined and/or default settings.
+        Return `None` if a required parameter is missing
+        """
         tool = {}  # Payload for the tool we are installing
         # Copy required `tool_info` keys into the `tool` dict
         tool['name'] = tool_info.get('name', None)
@@ -584,83 +671,32 @@ def install_tools(
         # the installation of this tool. Note that data managers are an exception
         # but they must contain string `data_manager` within the tool name.
         missing_required = not tool['name'] or not tool['owner']
-        if not missing_required and require_tool_panel_info:
+        if not missing_required and self.require_tool_panel_info:
             if not (tool['tool_panel_section_id'] or tool['tool_panel_section_label']) and 'data_manager' not in tool.get('name', ''):
-                missing_required = True
+                return None
 
         if not tool['name'] or not tool['owner']:
             log.error("Missing required tool info field; skipping [name: '{0}'; "
                       "owner: '{1}'; tool_panel_section_id: '{2}']; tool_panel_section_label: '{3}'"
                       .format(tool['name'], tool['owner'], tool['tool_panel_section_id'],
                               tool['tool_panel_section_label']))
-            continue
+            return None
         # Populate fields that can optionally be provided (if not provided, set
         # defaults).
         tool['install_tool_dependencies'] = \
-            tool_info.get('install_tool_dependencies', default_install_tool_dependencies)
+            tool_info.get('install_tool_dependencies', self.install_tool_dependencies)
         tool['install_repository_dependencies'] = \
-            tool_info.get('install_repository_dependencies', True)
+            tool_info.get('install_repository_dependencies', self.install_tool_dependencies)
+        tool['install_resolver_dependencies'] = \
+            tool_info.get('install_resolver_dependencies', self.install_resolver_dependencies)
         tool['tool_shed_url'] = \
             tool_info.get('tool_shed_url', MTS)
         ts = ToolShedInstance(url=tool['tool_shed_url'])
         # Get the set revision or set it to the latest installable revision
-        tool['revision'] = tool_info.get('revision', ts.repositories.
-                                         get_ordered_installable_revisions
-                                         (tool['name'], tool['owner'])[-1])
-        # Check if the tool@revision is already installed
-        for installed in itl:
-            if the_same_tool(installed, tool) and tool['revision'] in installed['revisions']:
-                log.debug("({0}/{1}) Tool {2} already installed at revision {3}. Skipping."
-                          .format(counter, total_num_tools, tool['name'], tool['revision']))
-                skipped_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                                      'revision': tool['revision']})
-                already_installed = True
-                break
-        if not already_installed:
-            # Initate tool installation
-            start = dt.datetime.now()
-            log.debug('(%s/%s) Installing tool %s from %s to section "%s" at '
-                      'revision %s (TRT: %s)' %
-                      (counter, total_num_tools, tool['name'], tool['owner'],
-                       tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
-                       tool['revision'], dt.datetime.now() - istart))
-            try:
-                response = install_repository_revision(tool, tsc)
-                end = dt.datetime.now()
-                log_tool_install_success(tool=tool, start=start, end=end,
-                                         installed_tools=installed_tools)
-            except ConnectionError as e:
-                response = None
-                end = dt.datetime.now()
-                if default_err_msg in e.body:
-                    log.debug("\tTool %s already installed (at revision %s)" %
-                              (tool['name'], tool['revision']))
-                else:
-                    if e.message == "Unexpected response from galaxy: 504":
-                        log.debug("Timeout during install of %s, extending wait to 1h"
-                                  % ((tool['name'])))
-                        success = wait_for_install(tool=tool, tsc=tsc, timeout=3600)
-                        if success:
-                            log_tool_install_success(tool=tool, start=start, end=end,
-                                                     installed_tools=installed_tools)
-                            response = e.body  # TODO: find a better response message
-                        else:
-                            log_tool_install_error(tool=tool, start=start, end=end,
-                                                   e=e, errored_tools=errored_tools)
-                    else:
-                        log_tool_install_error(tool=tool, start=start, end=end,
-                                               e=e, errored_tools=errored_tools)
-            outcome = {'tool': tool, 'response': response, 'duration': str(end - start)}
-            responses.append(outcome)
-
-    log.info("Installed tools ({0}): {1}".format(
-             len(installed_tools), [(t['name'], t['revision']) for t in installed_tools]))
-    log.info("Skipped tools ({0}): {1}".format(
-             len(skipped_tools), [(t['name'], t['revision']) for t in skipped_tools]))
-    log.info("Errored tools ({0}): {1}".format(
-             len(errored_tools), [(t['name'], t['revision']) for t in errored_tools]))
-    log.info("All tools listed in '{0}' have been processed.".format(tools_source_label))
-    log.info("Total run time: {0}".format(dt.datetime.now() - istart))
+        tool['revision'] = tool_info.get('revision',
+                                         ts.repositories.get_ordered_installable_revisions(tool['name'],
+                                                                                           tool['owner'])[-1])
+        return tool
 
 
 def script_main():
@@ -668,9 +704,10 @@ def script_main():
     _disable_external_library_logging()
     log = setup_global_logger(include_file=True)
     options = _parse_cli_options()
-    if options.tool_list_file or (options.name and options.owner and
-       options.tool_panel_section_id) or (options.tool_yaml):
-        handle_tool_options(options)
+    if options.tool_list_file or options.tool_yaml or \
+            options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
+        itm = get_install_tool_manager(options)
+        itm.install_tools()
     elif options.dbkeys_list_file:
         run_data_managers(options)
     else:

@@ -691,9 +691,9 @@ class InstallToolManager(object):
             tool_info.get('tool_shed_url', MTS)
         ts = ToolShedInstance(url=tool['tool_shed_url'])
         # Get the set revision or set it to the latest installable revision
-        tool['revision'] = tool_info.get('revision', ts.repositories.
-                                         get_ordered_installable_revisions
-        (tool['name'], tool['owner'])[-1])
+        tool['revision'] = tool_info.get('revision',
+                                         ts.repositories.get_ordered_installable_revisions(tool['name'],
+                                                                                           tool['owner'])[-1])
         return tool
 
 
@@ -703,7 +703,7 @@ def script_main():
     log = setup_global_logger(include_file=True)
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \
-                options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
+            options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
         itm = get_install_tool_manager(options)
         itm.install_tools()
     elif options.dbkeys_list_file:

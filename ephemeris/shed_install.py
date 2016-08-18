@@ -443,6 +443,7 @@ def run_data_managers(options):
         for dm in dms:
             dm_counter += 1
             dm_tool = dm.get('id')
+            data_tables = dm.get('data_tables', [])
             # Initate tool installation
             start = dt.datetime.now()
             log.debug('[dbkey {0}/{1}; DM: {2}/{3}] Installing dbkey {4} with '
@@ -473,6 +474,7 @@ def run_data_managers(options):
                                 errored_dms.append({'dbkey': dbkey_name, 'DM': dm_tool})
                         log.debug("", extra={'same_line': True})
                         time.sleep(10)
+                    reload_data_tables(gi, data_tables)
                     log.debug("\tDbkey '{0}' installed successfully in '{1}'".format(
                               dbkey.get('dbkey'), dt.datetime.now() - start))
             except ConnectionError as e:
@@ -484,6 +486,9 @@ def run_data_managers(options):
     log.info("All dbkeys & DMs listed in '{0}' have been processed.".format(dbkeys_list_file))
     log.info("Errored DMs: {0}".format(errored_dms))
     log.info("Total run time: {0}".format(dt.datetime.now() - istart))
+
+def reload_data_tables(gi, data_tables):
+    [gi.tool_data.reload_data_table(data_table) for data_table in data_tables]
 
 
 def install_repository_revision(tool, tsc):

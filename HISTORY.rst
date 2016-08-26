@@ -6,10 +6,11 @@ History
 .. to_doc
 
 ---------------------
-0.2.1.dev0
+0.3.0.dev0
 ---------------------
 
-    
+* More robust shed-install script, install dependencies by default, improve logging
+  (thanks to @mvdbeek).
 
 ---------------------
 0.2.0 (2016-08-15)

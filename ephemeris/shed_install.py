@@ -488,16 +488,12 @@ def run_data_managers(options):
 
 def install_repository_revision(tool, tsc):
     """
-    Installs single tool
+    Adjusts tool dictionary to bioblend signature and installs single tool
     """
     _ensure_log_configured()
-    response = tsc.install_repository_revision(
-        tool['tool_shed_url'], tool['name'], tool['owner'],
-        tool['revision'], tool['install_tool_dependencies'],
-        tool['install_repository_dependencies'],
-        tool['install_resolver_dependencies'],
-        tool['tool_panel_section_id'],
-        tool['tool_panel_section_label'])
+    tool['new_tool_panel_section_label'] = tool.pop('tool_panel_section_label')
+    tool['changeset_revision'] = tool.pop('revision')
+    response = tsc.install_repository_revision(**tool)
     if isinstance(response, dict) and response.get('status', None) == 'ok':
         # This rare case happens if a tool is already installed but
         # was not recognised as such in the above check. In such a

@@ -31,6 +31,7 @@ Required libraries:
 """
 import datetime as dt
 import logging
+import sys
 import time
 
 from argparse import ArgumentParser
@@ -106,29 +107,35 @@ def setup_global_logger(include_file=False):
     return logger
 
 
-def log_tool_install_error(tool, start, end, e, errored_tools):
+def log_tool_install_error(tool, start, msg, errored_tools):
     """
     Log failed tool installations
     """
     _ensure_log_configured()
-    log.error("\t* Error installing a tool (after %s)! Name: %s," "owner: %s, "
-              "revision: %s, error: %s" % (tool['name'], str(end - start),
-                                           tool['owner'], tool['revision'],
-                                           e.body))
-    errored_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                          'revision': tool['revision'], 'error': e.body})
+    end = dt.datetime.now()
+    log.error("\t* Error installing a tool (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
+              str(end - start),
+              tool.get('name', ""),
+              tool.get('owner', ""),
+              tool.get('changeset_revision', ""),
+              msg)
+    errored_tools.append({'name': tool.get('name', ""),
+                          'owner': tool.get('owner', ""),
+                          'revision': tool.get('changeset_revision', ""),
+                          'error': msg})
 
 
-def log_tool_install_success(tool, start, end, installed_tools):
+def log_tool_install_success(tool, start, installed_tools):
     """
     Log successfull tool installation.
     Tools that finish in error still count as successfull installs currently.
     """
     _ensure_log_configured()
+    end = dt.datetime.now()
     installed_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                           'revision': tool['revision']})
+                           'revision': tool['changeset_revision']})
     log.debug("\tTool %s installed successfully (in %s) at revision %s" %
-              (tool['name'], str(end - start), tool['revision']))
+              (tool['name'], str(end - start), tool['changeset_revision']))
 
 
 def load_input_file(tool_list_file='tool_list.yaml'):
@@ -362,11 +369,11 @@ def _parse_cli_options():
                         help="The Tool Shed URL where to install the tool from. "
                              "This is applicable only if the tool info is "
                              "provided as an option vs. in the tools file.")
-    parser.add_argument("--install_tool_dependencies",
+    parser.add_argument("--skip_install_tool_dependencies",
                         action="store_true",
-                        dest="install_tool_dependencies",
-                        help="Install tool dependencies using classic toolshed packages. "
-                             "Can be overwritten on a per-tool basis in the tools file")
+                        dest="skip_tool_dependencies",
+                        help="Skip the installation of tool dependencies using classic toolshed packages. "
+                             "Can be overwritten on a per-tool basis in the tools file.")
     parser.add_argument("--install_resolver_dependencies",
                         action="store_true",
                         dest="install_resolver_dependencies",
@@ -406,11 +413,11 @@ def _flatten_tools_info(tools_info):
         if len(revisions) > 1:
             for revision in revisions:
                 ti = _copy_dict(tool_info)
-                ti['revision'] = revision
+                ti['changeset_revision'] = revision
                 flattened_list.append(ti)
         elif revisions:  # A single revisions was defined so keep it
             ti = _copy_dict(tool_info)
-            ti['revision'] = revisions[0]
+            ti['changeset_revision'] = revisions[0]
             flattened_list.append(ti)
         else:  # Revision was not defined at all
             flattened_list.append(tool_info)
@@ -443,7 +450,7 @@ def run_data_managers(options):
         for dm in dms:
             dm_counter += 1
             dm_tool = dm.get('id')
-            # Initate tool installation
+            # Initiate tool installation
             start = dt.datetime.now()
             log.debug('[dbkey {0}/{1}; DM: {2}/{3}] Installing dbkey {4} with '
                       'DM {5}'.format(dbkey_counter, len(dbkeys), dm_counter,
@@ -488,16 +495,11 @@ def run_data_managers(options):
 
 def install_repository_revision(tool, tsc):
     """
-    Installs single tool
+    Adjusts tool dictionary to bioblend signature and installs single tool
     """
     _ensure_log_configured()
-    response = tsc.install_repository_revision(
-        tool['tool_shed_url'], tool['name'], tool['owner'],
-        tool['revision'], tool['install_tool_dependencies'],
-        tool['install_repository_dependencies'],
-        tool['install_resolver_dependencies'],
-        tool['tool_panel_section_id'],
-        tool['tool_panel_section_label'])
+    tool['new_tool_panel_section_label'] = tool.pop('tool_panel_section_label')
+    response = tsc.install_repository_revision(**tool)
     if isinstance(response, dict) and response.get('status', None) == 'ok':
         # This rare case happens if a tool is already installed but
         # was not recognised as such in the above check. In such a
@@ -525,7 +527,7 @@ def wait_for_install(tool, tsc, timeout=3600):
 
     finished = install_done(tool, tsc)
     while (not finished) and (timeout > 0):
-        timeout = timeout - 10
+        timeout -= 10
         time.sleep(10)
         finished = install_done(tool, tsc)
     if timeout > 0:
@@ -555,10 +557,11 @@ def get_install_tool_manager(options):
                        "tool_shed_url": options.tool_shed_url or MTS}]
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
+    install_tool_dependencies = not options.skip_tool_dependencies
     gi = galaxy_instance(galaxy_url, api_key)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
-                              default_install_tool_dependencies=options.install_tool_dependencies,
+                              default_install_tool_dependencies=install_tool_dependencies,
                               default_install_resolver_dependencies=options.install_resolver_dependencies
                               )
 
@@ -577,6 +580,9 @@ class InstallToolManager(object):
         self.require_tool_panel_info = require_tool_panel_info
         self.install_tool_dependencies = default_install_tool_dependencies
         self.install_resolver_dependencies = default_install_resolver_dependencies
+        self.errored_tools = []
+        self.skipped_tools = []
+        self.installed_tools = []
 
     def install_tools(self):
         """
@@ -584,11 +590,6 @@ class InstallToolManager(object):
         _ensure_log_configured()
         istart = dt.datetime.now()
         itl = installed_tool_revisions(self.gi)  # installed tools list
-
-        responses = []
-        errored_tools = []
-        skipped_tools = []
-        installed_tools = []
         counter = 0
         tools_info = _flatten_tools_info(self.tools_info)
         total_num_tools = len(tools_info)
@@ -600,58 +601,51 @@ class InstallToolManager(object):
             counter += 1
             already_installed = False  # Reset the flag
             tool = self.create_tool_install_payload(tool_info)
+            if not tool:
+                continue
+            tool = self.get_changeset_revision(tool)
+            if not tool:
+                continue
             # Check if the tool@revision is already installed
             for installed in itl:
-                if the_same_tool(installed, tool) and tool['revision'] in installed['revisions']:
+                if the_same_tool(installed, tool) and tool['changeset_revision'] in installed['revisions']:
                     log.debug("({0}/{1}) Tool {2} already installed at revision {3}. Skipping."
-                              .format(counter, total_num_tools, tool['name'], tool['revision']))
-                    skipped_tools.append({'name': tool['name'], 'owner': tool['owner'],
-                                          'revision': tool['revision']})
+                              .format(counter, total_num_tools, tool['name'], tool['changeset_revision']))
+                    self.skipped_tools.append({'name': tool['name'], 'owner': tool['owner'],
+                                               'changeset_revision': tool['changeset_revision']})
                     already_installed = True
                     break
             if not already_installed:
-                # Initate tool installation
+                # Initiate tool installation
                 start = dt.datetime.now()
                 log.debug('(%s/%s) Installing tool %s from %s to section "%s" at '
                           'revision %s (TRT: %s)' %
                           (counter, total_num_tools, tool['name'], tool['owner'],
                            tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
-                           tool['revision'], dt.datetime.now() - istart))
+                           tool['changeset_revision'], dt.datetime.now() - istart))
                 try:
-                    response = install_repository_revision(tool, self.tsc)
-                    end = dt.datetime.now()
-                    log_tool_install_success(tool=tool, start=start, end=end,
-                                             installed_tools=installed_tools)
+                    install_repository_revision(tool, self.tsc)
+                    log_tool_install_success(tool=tool, start=start, installed_tools=self.installed_tools)
                 except ConnectionError as e:
-                    response = None
-                    end = dt.datetime.now()
                     if default_err_msg in e.body:
                         log.debug("\tTool %s already installed (at revision %s)" %
-                                  (tool['name'], tool['revision']))
+                                  (tool['name'], tool['changeset_revision']))
                     else:
                         if e.message == "Unexpected response from galaxy: 504":
-                            log.debug("Timeout during install of %s, extending wait to 1h"
-                                      % ((tool['name'])))
+                            log.debug("Timeout during install of %s, extending wait to 1h", tool['name'])
                             success = wait_for_install(tool=tool, tsc=self.tsc, timeout=3600)
                             if success:
-                                log_tool_install_success(tool=tool, start=start, end=end,
-                                                         installed_tools=installed_tools)
-                                response = e.body  # TODO: find a better response message
+                                log_tool_install_success(tool=tool, start=start, installed_tools=self.installed_tools)
                             else:
-                                log_tool_install_error(tool=tool, start=start, end=end,
-                                                       e=e, errored_tools=errored_tools)
+                                log_tool_install_error(tool=tool, start=start, msg=e.body, errored_tools=self.errored_tools)
                         else:
-                            log_tool_install_error(tool=tool, start=start, end=end,
-                                                   e=e, errored_tools=errored_tools)
-                outcome = {'tool': tool, 'response': response, 'duration': str(end - start)}
-                responses.append(outcome)
-
+                            log_tool_install_error(tool=tool, start=start, msg=e.body, errored_tools=self.errored_tools)
         log.info("Installed tools ({0}): {1}".format(
-                 len(installed_tools), [(t['name'], t['revision']) for t in installed_tools]))
+                 len(self.installed_tools), [(t['name'], t.get('changeset_revision')) for t in self.installed_tools]))
         log.info("Skipped tools ({0}): {1}".format(
-                 len(skipped_tools), [(t['name'], t['revision']) for t in skipped_tools]))
+                 len(self.skipped_tools), [(t['name'], t.get('changeset_revision')) for t in self.skipped_tools]))
         log.info("Errored tools ({0}): {1}".format(
-                 len(errored_tools), [(t['name'], t['revision']) for t in errored_tools]))
+                 len(self.errored_tools), [(t['name'], t.get('changeset_revision', "")) for t in self.errored_tools]))
         log.info("All tools have been processed.")
         log.info("Total run time: {0}".format(dt.datetime.now() - istart))
 
@@ -661,7 +655,7 @@ class InstallToolManager(object):
         required parameters, filling up missing parameters with user-defined and/or default settings.
         Return `None` if a required parameter is missing
         """
-        tool = {}  # Payload for the tool we are installing
+        tool = dict()  # Payload for the tool we are installing
         # Copy required `tool_info` keys into the `tool` dict
         tool['name'] = tool_info.get('name', None)
         tool['owner'] = tool_info.get('owner', None)
@@ -670,16 +664,15 @@ class InstallToolManager(object):
         # Check if all required tool sections have been provided; if not, skip
         # the installation of this tool. Note that data managers are an exception
         # but they must contain string `data_manager` within the tool name.
+        now = dt.datetime.now()
         missing_required = not tool['name'] or not tool['owner']
         if not missing_required and self.require_tool_panel_info:
             if not (tool['tool_panel_section_id'] or tool['tool_panel_section_label']) and 'data_manager' not in tool.get('name', ''):
+                log_tool_install_error(tool, start=now, msg='Tool panel section or tool panel name required',
+                                       errored_tools=self.errored_tools)
                 return None
-
         if not tool['name'] or not tool['owner']:
-            log.error("Missing required tool info field; skipping [name: '{0}'; "
-                      "owner: '{1}'; tool_panel_section_id: '{2}']; tool_panel_section_label: '{3}'"
-                      .format(tool['name'], tool['owner'], tool['tool_panel_section_id'],
-                              tool['tool_panel_section_label']))
+            log_tool_install_error(tool, start=now, msg="Missing required field", errored_tools=self.errored_tools)
             return None
         # Populate fields that can optionally be provided (if not provided, set
         # defaults).
@@ -691,11 +684,24 @@ class InstallToolManager(object):
             tool_info.get('install_resolver_dependencies', self.install_resolver_dependencies)
         tool['tool_shed_url'] = \
             tool_info.get('tool_shed_url', MTS)
+        tool['changeset_revision'] = tool_info.get('changeset_revision', None)
+        return tool
+
+    def get_changeset_revision(self, tool):
+        """
+        Select the correct changeset revision for a tool,
+        and make sure the tool exists (i.e a request to the tool shed with name and owner returns a list of revisions).
+        Return tool or None, if the tool could not be found on the specified tool shed.
+        """
         ts = ToolShedInstance(url=tool['tool_shed_url'])
         # Get the set revision or set it to the latest installable revision
-        tool['revision'] = tool_info.get('revision',
-                                         ts.repositories.get_ordered_installable_revisions(tool['name'],
-                                                                                           tool['owner'])[-1])
+        installable_revisions = ts.repositories.get_ordered_installable_revisions(tool['name'], tool['owner'])
+        if not installable_revisions:  # Repo does not exist in tool shed
+            now = dt.datetime.now()
+            log_tool_install_error(tool, start=now, msg="Repository does not exist in tool shed", errored_tools=self.errored_tools)
+            return None
+        if not tool['changeset_revision']:
+            tool['changeset_revision'] = installable_revisions[-1]
         return tool
 
 
@@ -708,12 +714,13 @@ def script_main():
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
         itm = get_install_tool_manager(options)
         itm.install_tools()
+        if itm.errored_tools:
+            sys.exit(1)
     elif options.dbkeys_list_file:
         run_data_managers(options)
     else:
-        log.error("Must provide the tool list file or individual tools info; "
-                  "look at usage.")
-
+        sys.exit("Must provide a tool list file, individual tools info or a list of data manager tasks. "
+                 "Look at usage.")
 
 if __name__ == "__main__":
     script_main()

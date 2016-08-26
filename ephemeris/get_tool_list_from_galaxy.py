@@ -13,15 +13,17 @@ class GiToToolYaml:
     def __init__(self, url,
                  output_file,
                  include_tool_panel_section_id=False,
-                 skip_tool_panel_section_name=True):
+                 skip_tool_panel_section_name=True,
+                 skip_changeset_revision=False):
 
         self.url = url
         self.output_file = output_file
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
+        self.skip_changeset_revision = skip_changeset_revision
         self.repository_list = self.get_repositories()
         self.merge_tool_changeset_revisions()
-        self.filter_section_name_or_id()
+        self.filter_section_name_or_id_or_changeset()
         self.write_to_yaml()
 
     @property
@@ -87,13 +89,15 @@ class GiToToolYaml:
                     tool_list.remove(tool)
             current_tool['revisions'] = list(set(current_tool['revisions']))
 
-    def filter_section_name_or_id(self):
+    def filter_section_name_or_id_or_changeset(self):
         repo_list = []
         for repo in self.repository_list:
             if self.skip_tool_panel_section_name:
                 del repo['tool_panel_section_name']
             if not self.include_tool_panel_section_id:
                 del repo['tool_panel_section_id']
+            if self.skip_changeset_revision:
+                del repo['revisions']
             repo_list.append(repo)
         self.repository_list = repo_list
 
@@ -121,14 +125,18 @@ def _parse_cli_options():
                         help="tool_list.yml output file")
     parser.add_argument("-include_id", "--include_tool_panel_id",
                         action="store_true",
-                        default=False,
                         help="Include tool_panel_id in tool_list.yml ? "
                              "Use this only if the tool panel id already exists. See "
                              "https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample")
     parser.add_argument("-skip_name", "--skip_tool_panel_name",
                         action="store_true",
-                        default=False,
                         help="Do not include tool_panel_name in tool_list.yml ?")
+    parser.add_argument("-skip_changeset", "--skip_changeset_revision",
+                        action="store_true",
+                        help="Do not include the changeset revision when generating the tool list."
+                             "Use this if you would like to use the list to update all the tools in"
+                             "your galaxy instance using shed-install."
+                        )
     return parser.parse_args()
 
 
@@ -137,4 +145,5 @@ if __name__ == "__main__":
     GiToToolYaml(url=options.galaxy_url,
                  output_file=options.output,
                  include_tool_panel_section_id=options.include_tool_panel_id,
-                 skip_tool_panel_section_name=options.skip_tool_panel_name)
+                 skip_tool_panel_section_name=options.skip_tool_panel_name,
+                 skip_changeset_revision=options.skip_changeset_revision)

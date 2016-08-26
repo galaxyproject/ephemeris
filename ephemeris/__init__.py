@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-__version__ = '0.3.0'
+__version__ = '0.3.1.dev0'
 
 PROJECT_NAME = "ephemeris"
 PROJECT_OWNER = PROJECT_USERAME = "galaxyproject"

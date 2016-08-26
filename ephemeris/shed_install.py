@@ -369,11 +369,11 @@ def _parse_cli_options():
                         help="The Tool Shed URL where to install the tool from. "
                              "This is applicable only if the tool info is "
                              "provided as an option vs. in the tools file.")
-    parser.add_argument("--install_tool_dependencies",
+    parser.add_argument("--skip_install_tool_dependencies",
                         action="store_true",
-                        dest="install_tool_dependencies",
-                        help="Install tool dependencies using classic toolshed packages. "
-                             "Can be overwritten on a per-tool basis in the tools file")
+                        dest="skip_tool_dependencies",
+                        help="Skip the installation of tool dependencies using classic toolshed packages. "
+                             "Can be overwritten on a per-tool basis in the tools file.")
     parser.add_argument("--install_resolver_dependencies",
                         action="store_true",
                         dest="install_resolver_dependencies",
@@ -557,10 +557,11 @@ def get_install_tool_manager(options):
                        "tool_shed_url": options.tool_shed_url or MTS}]
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
+    install_tool_dependencies = not options.skip_tool_dependencies
     gi = galaxy_instance(galaxy_url, api_key)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
-                              default_install_tool_dependencies=options.install_tool_dependencies,
+                              default_install_tool_dependencies=install_tool_dependencies,
                               default_install_resolver_dependencies=options.install_resolver_dependencies
                               )
 

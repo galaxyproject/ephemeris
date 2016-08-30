@@ -93,7 +93,7 @@ class GiToToolYaml:
         repo_list = []
         for repo in self.repository_list:
             if self.skip_tool_panel_section_name:
-                del repo['tool_panel_section_name']
+                del repo['tool_panel_section_label']
             if not self.include_tool_panel_section_id:
                 del repo['tool_panel_section_id']
             if self.skip_changeset_revision:

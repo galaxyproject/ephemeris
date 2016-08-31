@@ -140,10 +140,14 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
-if __name__ == "__main__":
+def main():
     options = _parse_cli_options()
     GiToToolYaml(url=options.galaxy_url,
                  output_file=options.output,
                  include_tool_panel_section_id=options.include_tool_panel_id,
                  skip_tool_panel_section_name=options.skip_tool_panel_name,
                  skip_changeset_revision=options.skip_changeset_revision)
+
+
+if __name__ == "__main__":
+    main()

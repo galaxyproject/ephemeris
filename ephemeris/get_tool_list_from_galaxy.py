@@ -59,7 +59,7 @@ class GiToToolYaml:
                 'tool_shed_url': tsr['tool_shed'],
                 'revisions': [tsr['changeset_revision']],
                 'tool_panel_section_id': tool['panel_section_id'],
-                'tool_panel_section_name': tool['panel_section_name']}
+                'tool_panel_section_label': tool['panel_section_name']}
         return repo
 
     def get_repos_from_section(self, section):
@@ -93,7 +93,7 @@ class GiToToolYaml:
         repo_list = []
         for repo in self.repository_list:
             if self.skip_tool_panel_section_name:
-                del repo['tool_panel_section_name']
+                del repo['tool_panel_section_label']
             if not self.include_tool_panel_section_id:
                 del repo['tool_panel_section_id']
             if self.skip_changeset_revision:

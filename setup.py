@@ -35,6 +35,7 @@ PACKAGES = [
 ]
 ENTRY_POINTS = '''
         [console_scripts]
+        get-tool-list=ephemeris.get_tool_list_from_galaxy:main
         shed-install=ephemeris.shed_install:script_main
         workflow-install=ephemeris.workflow_install:main
 '''

@@ -685,6 +685,8 @@ class InstallToolManager(object):
         tool_shed = tool_info.get('tool_shed_url', MTS)
         if not tool_shed.endswith('/'):
             tool_shed += '/'
+        if not tool_shed.startswith('http'):
+            tool_shed = 'https://' + tool_shed
         tool['tool_shed_url'] = tool_shed
         tool['changeset_revision'] = tool_info.get('changeset_revision', None)
         return tool

@@ -682,8 +682,10 @@ class InstallToolManager(object):
             tool_info.get('install_repository_dependencies', self.install_tool_dependencies)
         tool['install_resolver_dependencies'] = \
             tool_info.get('install_resolver_dependencies', self.install_resolver_dependencies)
-        tool['tool_shed_url'] = \
-            tool_info.get('tool_shed_url', MTS)
+        tool_shed = tool_info.get('tool_shed_url', MTS)
+        if not tool_shed.endswith('/'):
+            tool_shed += '/'
+        tool['tool_shed_url'] = tool_shed
         tool['changeset_revision'] = tool_info.get('changeset_revision', None)
         return tool
 

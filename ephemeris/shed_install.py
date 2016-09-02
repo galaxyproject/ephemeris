@@ -631,7 +631,7 @@ class InstallToolManager(object):
                         log.debug("\tTool %s already installed (at revision %s)" %
                                   (tool['name'], tool['changeset_revision']))
                     else:
-                        if e.message == "Unexpected response from galaxy: 504":
+                        if "504" in e.message:
                             log.debug("Timeout during install of %s, extending wait to 1h", tool['name'])
                             success = wait_for_install(tool=tool, tsc=self.tsc, timeout=3600)
                             if success:

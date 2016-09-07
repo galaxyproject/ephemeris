@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.4.0.dev0
+0.4.0 (2016-09-07)
 ---------------------
 
 * Be more generic in determining a server time-out (thanks to @afgane).

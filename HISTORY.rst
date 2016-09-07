@@ -6,10 +6,14 @@ History
 .. to_doc
 
 ---------------------
-0.3.1.dev0
+0.4.0.dev0
 ---------------------
 
-    
+* Be more generic in determining a server time-out (thanks to @afgane).
+* Get tool list entrypoint and improvements (thank to @mvdbeek).
+* Rename ``tool_panel_section_name`` to ``tool_panel_section_label`` like
+  ansible-galaxy-tools (thanks to @nturaga).
+* Add missing file ``tool_list.yaml.sample`` (thanks to @nturaga).
 
 ---------------------
 0.3.0 (2016-08-26)

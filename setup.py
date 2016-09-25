@@ -38,6 +38,7 @@ ENTRY_POINTS = '''
         get-tool-list=ephemeris.get_tool_list_from_galaxy:main
         shed-install=ephemeris.shed_install:script_main
         workflow-install=ephemeris.workflow_install:main
+        setup-data-libraries=ephemeris.setup_data_libraries:main
 '''
 PACKAGE_DATA = {
     # Be sure to update MANIFEST.in for source dist.

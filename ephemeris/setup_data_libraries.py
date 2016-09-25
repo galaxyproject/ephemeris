@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import os
-import time
-import yaml
 import argparse
 import logging as log
+import os
+import time
+
+import yaml
 from bioblend import galaxy
 
 

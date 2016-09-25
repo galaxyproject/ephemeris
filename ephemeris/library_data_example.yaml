@@ -1,0 +1,9 @@
+libraries:
+    - name: library_name_test_1
+      files:
+        - https://zenodo.org/record/60520/files/dbSNP_138.hg19.vcf
+    - name: library_name_test_2
+      files:
+        - https://zenodo.org/record/60520/files/mother.bam
+        - https://zenodo.org/record/60520/files/father.bam
+        - https://zenodo.org/record/60520/files/patient.bam

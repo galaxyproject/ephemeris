@@ -4,13 +4,11 @@ import os
 import time
 import yaml
 import argparse
-import subprocess
 import logging as log
 from bioblend import galaxy
-from subprocess import CalledProcessError
 
 
-def main( data ):
+def main(data):
     """
     Load files into a Galaxy data library.
     By default all test-data tools from all installed tools
@@ -42,14 +40,14 @@ def main( data ):
 
         for fname, urls in folders.items():
             log.info("Creating folder: %s" % fname)
-            folder = gi.libraries.create_folder( lib_id, fname )
+            folder = gi.libraries.create_folder(lib_id, fname)
             for url in urls:
                 gi.libraries.upload_file_from_url(
                     lib_id,
                     url,
-                    folder_id = folder[0]['id'],
+                    folder_id=folder[0]['id'],
                 )
-        
+
         no_break = True
         while True:
             no_break = False
@@ -60,7 +58,6 @@ def main( data ):
                 break
             time.sleep(3)
 
-
         time.sleep(20)
         log.info("Finished importing test data.")
 
@@ -70,14 +67,14 @@ if __name__ == '__main__':
         description='Populate the Galaxy data library with test data.'
     )
     parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
-                    action="store_true")
+                        action="store_true")
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'))
 
-    #TODO:  Add options to override the admin_user and admin_password + specify 
-    #       files to upload via command line interface.
+    # TODO: Add options to override the admin_user and admin_password + specify
+    #      files to upload via command line interface.
 
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 
-    main( args.infile )
+    main(args.infile)

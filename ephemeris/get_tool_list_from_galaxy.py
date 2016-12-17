@@ -4,6 +4,7 @@ import json
 
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
+from distutils.version import StrictVersion
 
 import requests
 import yaml
@@ -140,8 +141,15 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
+def check_galaxy_version(galaxy_url):
+    version = requests.get("{url}/api/version".format(url=galaxy_url)).json()
+    if StrictVersion(version['version_major']) < StrictVersion('16.04'):
+        raise Exception('This script needs galaxy version 16.04 or newer')
+
+
 def main():
     options = _parse_cli_options()
+    check_galaxy_version(options.galaxy_url)
     GiToToolYaml(url=options.galaxy_url,
                  output_file=options.output,
                  include_tool_panel_section_id=options.include_tool_panel_id,

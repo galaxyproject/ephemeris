@@ -726,5 +726,6 @@ def script_main():
         sys.exit("Must provide a tool list file, individual tools info or a list of data manager tasks. "
                  "Look at usage.")
 
+
 if __name__ == "__main__":
     script_main()

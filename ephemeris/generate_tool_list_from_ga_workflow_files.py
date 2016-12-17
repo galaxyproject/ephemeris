@@ -12,7 +12,8 @@ def _parse_cli_options():
     """
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                             usage="python %(prog)s <options>",
-                            epilog="example:\n"
+                            epilog="Workflow files must have been exported from Galaxy release 16.04 or newer.\n\n"
+                                   "example:\n"
                                    "python %(prog)s -w workflow1 workflow2 -o mytool_list.yml -l my_panel_label\n"
                                    "Christophe Antoniewski <drosofff@gmail.com>\n"
                                    "https://github.com/ARTbio/ansible-artimed/tree/master/extra-files/generate_tool_list_from_ga_workflow_files.py")
@@ -72,6 +73,7 @@ def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     convert_dic = {}
     convert_dic['tools'] = reduced_tool_list
     print_yaml_tool_list(convert_dic, output_file)
+
 
 if __name__ == "__main__":
     options = _parse_cli_options()

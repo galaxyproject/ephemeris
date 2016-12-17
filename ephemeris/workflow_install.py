@@ -29,5 +29,6 @@ def main():
     if import_uuid not in existing_uuids:
         gi.workflows.import_workflow_from_local_path(args.workflow_path)
 
+
 if __name__ == '__main__':
     main()

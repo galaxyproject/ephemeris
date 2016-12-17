@@ -142,7 +142,7 @@ def _parse_cli_options():
 
 
 def check_galaxy_version(galaxy_url):
-    version = requests.get("{url}/api/version".format(url = galaxy_url)).json()
+    version = requests.get("{url}/api/version".format(url=galaxy_url)).json()
     if StrictVersion(version['version_major']) < StrictVersion('16.04'):
         raise Exception('This script needs galaxy version 16.04 or newer')
 

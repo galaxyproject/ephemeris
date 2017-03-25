@@ -591,9 +591,9 @@ class InstallToolManager(object):
     def __init__(self,
                  tools_info,
                  gi,
-                 default_install_tool_dependencies=False,
-                 default_install_resolver_dependencies=True,
-                 default_install_repository_dependencies=False,
+                 default_install_tool_dependencies=INSTALL_TOOL_DEPENDENCIES,
+                 default_install_resolver_dependencies=INSTALL_RESOLVER_DEPENDENCIES,
+                 default_install_repository_dependencies=INSTALL_REPOSITORY_DEPENDENCIES,
                  require_tool_panel_info=True):
         self.tools_info = tools_info
         self.gi = gi

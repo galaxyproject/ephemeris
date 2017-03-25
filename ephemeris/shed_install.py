@@ -44,7 +44,9 @@ from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
-
+INSTALL_TOOL_DEPENDENCIES = False
+INSTALL_REPOSITORY_DEPENDENCIES = False
+INSTALL_RESOLVER_DEPENDENCIES = True
 
 class ProgressConsoleHandler(logging.StreamHandler):
     """
@@ -542,13 +544,17 @@ def get_install_tool_manager(options):
     :type options: OptionParser object
     :param options: command line arguments parsed by OptionParser
     """
+    install_tool_dependencies = INSTALL_TOOL_DEPENDENCIES
+    install_repository_dependencies = INSTALL_REPOSITORY_DEPENDENCIES
+    install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
+    
     tool_list_file = options.tool_list_file
     if tool_list_file:
         tl = load_input_file(tool_list_file)  # Input file contents
         tools_info = tl['tools']  # The list of tools to install
-        install_repository_dependencies = tl.get('install_repository_dependencies', False)
-        install_resolver_dependencies = tl.get('install_resolver_dependencies', True)
-        install_tool_dependencies = tl.get('install_tool_dependencies', False)
+        install_repository_dependencies = tl.get('install_repository_dependencies', INSTALL_REPOSITORY_DEPENDENCIES)
+        install_resolver_dependencies = tl.get('install_resolver_dependencies', INSTALL_RESOLVER_DEPENDENCIES)
+        install_tool_dependencies = tl.get('install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     else:
@@ -561,9 +567,15 @@ def get_install_tool_manager(options):
 
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
-    install_tool_dependencies = not options.skip_tool_dependencies or install_tool_dependencies
+
+    if options.skip_tool_dependencies:
+        install_tool_dependencies = False
+        install_repository_dependencies = False
+    elif tool_list_file:
+        install_tool_dependencies = install_tool_dependencies
+        install_repository_dependencies = install_repository_dependencies
+
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
-    install_repository_dependencies = not options.skip_tool_dependencies or install_repository_dependencies
     gi = galaxy_instance(galaxy_url, api_key)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,

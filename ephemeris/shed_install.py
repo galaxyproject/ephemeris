@@ -48,6 +48,7 @@ INSTALL_TOOL_DEPENDENCIES = False
 INSTALL_REPOSITORY_DEPENDENCIES = False
 INSTALL_RESOLVER_DEPENDENCIES = True
 
+
 class ProgressConsoleHandler(logging.StreamHandler):
     """
     A handler class which allows the cursor to stay on
@@ -547,7 +548,7 @@ def get_install_tool_manager(options):
     install_tool_dependencies = INSTALL_TOOL_DEPENDENCIES
     install_repository_dependencies = INSTALL_REPOSITORY_DEPENDENCIES
     install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
-    
+
     tool_list_file = options.tool_list_file
     if tool_list_file:
         tl = load_input_file(tool_list_file)  # Input file contents

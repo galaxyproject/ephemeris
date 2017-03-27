@@ -12,6 +12,7 @@ def import_workflow(gi, path):
     if import_uuid not in existing_uuids:
         gi.workflows.import_workflow_from_local_path(path)
 
+
 def main():
     """
         This script uses bioblend to import .ga workflow files into a running instance of Galaxy
@@ -31,13 +32,13 @@ def main():
 
     gi = galaxy.GalaxyInstance(url=args.galaxy_url, key=args.api_key)
 
-    if os.path.isdir(args.workflow_path) 
+    if os.path.isdir(args.workflow_path):
         for file_path in os.listdir(args.workflow_path):
             if file_path.endswith('.ga'):
                 import_workflow(gi, os.path.join(args.workflow_path, file_path))
     else:
         import_workflow(gi, args.workflow_path)
-    
+
 
 if __name__ == '__main__':
     main()

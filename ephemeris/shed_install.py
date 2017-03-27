@@ -45,7 +45,7 @@ from bioblend.toolshed import ToolShedInstance
 
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 INSTALL_TOOL_DEPENDENCIES = False
-INSTALL_REPOSITORY_DEPENDENCIES = False
+INSTALL_REPOSITORY_DEPENDENCIES = True
 INSTALL_RESOLVER_DEPENDENCIES = True
 
 

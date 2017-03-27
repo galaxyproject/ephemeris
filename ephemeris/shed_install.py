@@ -43,7 +43,21 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
+# If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
+
+# The behavior of a tool installation and its dependencies can be controlled in a few ways.
+# You can add
+#   - install_tool_dependencies: True or False
+#   - install_repository_dependencies: True or False
+#   - install_resolver_dependencies: True or False
+# to every tool section in the tool-yaml file or you can add these options to the top of the yaml
+# file (next to galaxy_instance or api_key) to set a global default value, which can be overwritten
+# later in every section. Not specifying any of these options will use the values below,
+# means traditional tool_dependencies will not be installed.
+INSTALL_TOOL_DEPENDENCIES = False
+INSTALL_REPOSITORY_DEPENDENCIES = True
+INSTALL_RESOLVER_DEPENDENCIES = True
 
 
 class ProgressConsoleHandler(logging.StreamHandler):
@@ -542,10 +556,17 @@ def get_install_tool_manager(options):
     :type options: OptionParser object
     :param options: command line arguments parsed by OptionParser
     """
+    install_tool_dependencies = INSTALL_TOOL_DEPENDENCIES
+    install_repository_dependencies = INSTALL_REPOSITORY_DEPENDENCIES
+    install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
+
     tool_list_file = options.tool_list_file
     if tool_list_file:
         tl = load_input_file(tool_list_file)  # Input file contents
         tools_info = tl['tools']  # The list of tools to install
+        install_repository_dependencies = tl.get('install_repository_dependencies', INSTALL_REPOSITORY_DEPENDENCIES)
+        install_resolver_dependencies = tl.get('install_resolver_dependencies', INSTALL_RESOLVER_DEPENDENCIES)
+        install_tool_dependencies = tl.get('install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     else:
@@ -555,14 +576,24 @@ def get_install_tool_manager(options):
                        "tool_panel_section_id": options.tool_panel_section_id,
                        "tool_panel_section_label": options.tool_panel_section_label,
                        "tool_shed_url": options.tool_shed_url or MTS}]
+
     galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
-    install_tool_dependencies = not options.skip_tool_dependencies
+
+    if options.skip_tool_dependencies:
+        install_tool_dependencies = False
+        install_repository_dependencies = False
+    elif tool_list_file:
+        install_tool_dependencies = install_tool_dependencies
+        install_repository_dependencies = install_repository_dependencies
+
+    install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
     gi = galaxy_instance(galaxy_url, api_key)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
                               default_install_tool_dependencies=install_tool_dependencies,
-                              default_install_resolver_dependencies=options.install_resolver_dependencies
+                              default_install_repository_dependencies=install_repository_dependencies,
+                              default_install_resolver_dependencies=install_resolver_dependencies
                               )
 
 
@@ -571,8 +602,9 @@ class InstallToolManager(object):
     def __init__(self,
                  tools_info,
                  gi,
-                 default_install_tool_dependencies=True,
-                 default_install_resolver_dependencies=False,
+                 default_install_tool_dependencies=INSTALL_TOOL_DEPENDENCIES,
+                 default_install_resolver_dependencies=INSTALL_RESOLVER_DEPENDENCIES,
+                 default_install_repository_dependencies=INSTALL_REPOSITORY_DEPENDENCIES,
                  require_tool_panel_info=True):
         self.tools_info = tools_info
         self.gi = gi
@@ -580,6 +612,7 @@ class InstallToolManager(object):
         self.require_tool_panel_info = require_tool_panel_info
         self.install_tool_dependencies = default_install_tool_dependencies
         self.install_resolver_dependencies = default_install_resolver_dependencies
+        self.install_repository_dependencies = default_install_repository_dependencies
         self.errored_tools = []
         self.skipped_tools = []
         self.installed_tools = []
@@ -679,7 +712,7 @@ class InstallToolManager(object):
         tool['install_tool_dependencies'] = \
             tool_info.get('install_tool_dependencies', self.install_tool_dependencies)
         tool['install_repository_dependencies'] = \
-            tool_info.get('install_repository_dependencies', self.install_tool_dependencies)
+            tool_info.get('install_repository_dependencies', self.install_repository_dependencies)
         tool['install_resolver_dependencies'] = \
             tool_info.get('install_resolver_dependencies', self.install_resolver_dependencies)
         tool_shed = tool_info.get('tool_shed_url', MTS)

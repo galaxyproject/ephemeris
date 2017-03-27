@@ -47,7 +47,7 @@ from bioblend.toolshed import ToolShedInstance
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
 # The behavior of a tool installation and its dependencies can be controlled in a few ways.
-# You can add 
+# You can add
 #   - install_tool_dependencies: True or False
 #   - install_repository_dependencies: True or False
 #   - install_resolver_dependencies: True or False

@@ -48,9 +48,9 @@ MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
 # The behavior of a tool installation and its dependencies can be controlled in a few ways.
 # You can add
-#   - install_tool_dependencies: True or False
-#   - install_repository_dependencies: True or False
-#   - install_resolver_dependencies: True or False
+#   - install_tool_dependencies: True or False          (traditional Tool Shed dependencies)
+#   - install_repository_dependencies: True or False    (used for datatypes or suites)
+#   - install_resolver_dependencies: True or False      (other Galaxy supported dependency resolvers, like Conda)
 # to every tool section in the tool-yaml file or you can add these options to the top of the yaml
 # file (next to galaxy_instance or api_key) to set a global default value, which can be overwritten
 # later in every section. Not specifying any of these options will use the values below,

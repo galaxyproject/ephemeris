@@ -43,7 +43,18 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
+# If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
+
+# The behavior of a tool installation and its dependencies can be controlled in a few ways.
+# You can add 
+#   - install_tool_dependencies: True or False
+#   - install_repository_dependencies: True or False
+#   - install_resolver_dependencies: True or False
+# to every tool section in the tool-yaml file or you can add these options to the top of the yaml
+# file (next to galaxy_instance or api_key) to set a global default value, which can be overwritten
+# later in every section. Not specifying any of these options will use the values below,
+# means traditional tool_dependencies will not be installed.
 INSTALL_TOOL_DEPENDENCIES = False
 INSTALL_REPOSITORY_DEPENDENCIES = True
 INSTALL_RESOLVER_DEPENDENCIES = True

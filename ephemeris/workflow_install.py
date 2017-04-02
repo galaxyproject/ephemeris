@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import sys
 
 from bioblend import galaxy
 
@@ -34,7 +35,7 @@ def main():
     parser.add_argument("-a", "--api_key",
                         dest="api_key",
                         help="Galaxy admin user API key (required if not defined in the tools list file)")
-    
+
     args = parser.parse_args()
 
     if args.user and args.password:

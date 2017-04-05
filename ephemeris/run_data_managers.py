@@ -66,7 +66,7 @@ if __name__ == '__main__':
         description='Running Galaxy data managers in a defined order with defined parameters.')
     parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
                         action="store_true")
-    parser.add_argument("--config", required=True, help="Path the YAML config file.")
+    parser.add_argument("--config", required=True, help="Path to the YAML config file with the list of data managers and data to install.")
     parser.add_argument("-g", "--galaxy",
                         help="Target Galaxy instance URL/IP address")
     parser.add_argument("-u", "--user",

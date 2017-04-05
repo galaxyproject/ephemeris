@@ -7,7 +7,7 @@ import time
 try:
     from urllib.parse import urlparse
 except ImportError:
-    from urlparse import urlparse
+    import urlparse
 
 import yaml
 from bioblend.galaxy import GalaxyInstance

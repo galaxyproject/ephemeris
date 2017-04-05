@@ -6,9 +6,13 @@ History
 .. to_doc
 
 ---------------------
-0.4.1.dev0
+0.5.0.dev0
 ---------------------
 
+* Add ``run-data-managers`` tool to trigger DM with multiple values and in order. `#30 <https://github.com/galaxyproject/ephemeris/pull/30>`_
+* The workflow install tool now supports a directory of workflows. `#27 <https://github.com/galaxyproject/ephemeris/pull/27>`_
+* enable global options in a tool yaml files, like `install_resolver_dependencies: true` `#26 <https://github.com/galaxyproject/ephemeris/pull/26>`_
+* Mention mimum required galaxy versions. `#23 <https://github.com/galaxyproject/ephemeris/pull/23>`_ (thanks to @mvdbeek)
     
 
 ---------------------
@@ -16,7 +20,7 @@ History
 ---------------------
 
 * Be more generic in determining a server time-out (thanks to @afgane).
-* Get tool list entrypoint and improvements (thank to @mvdbeek).
+* Get tool list entrypoint and improvements (thanks to @mvdbeek).
 * Rename ``tool_panel_section_name`` to ``tool_panel_section_label`` like
   ansible-galaxy-tools (thanks to @nturaga).
 * Add missing file ``tool_list.yaml.sample`` (thanks to @nturaga).

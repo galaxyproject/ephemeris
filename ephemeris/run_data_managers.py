@@ -5,9 +5,9 @@ import logging as log
 import re
 import time
 try:
-    from urllib.parse import urlparse
+    from urllib.parse import urljoin
 except ImportError:
-    import urlparse
+    from urlparse import urljoin
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
@@ -57,7 +57,7 @@ def main(args):
             for data_table in dm.get('data_table_reload', []):
                 # reload two times
                 for i in range(2):
-                    gi.make_get_request(urlparse.urljoin(url, 'api/tool_data/%s/reload' % data_table))
+                    gi.make_get_request(urljoin(url, 'api/tool_data/%s/reload' % data_table))
                     time.sleep(5)
 
 

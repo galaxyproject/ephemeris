@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.4.1
+0.5.0.dev0
 ---------------------
 
 * Add ``run-data-managers`` tool to trigger DM with multiple values and in order. `#30 <https://github.com/galaxyproject/ephemeris/pull/30>`_

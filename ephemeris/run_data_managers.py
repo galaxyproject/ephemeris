@@ -34,7 +34,7 @@ def main(args):
     gi = GalaxyInstance(url=url, email=args.user, password=args.password)
 
     # should test valid connection
-    log.info("List of valid histories: %s" % gi.histories.get_histories())
+    log.info("List of valid histories: %s" % gi.users.get_current_user())
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):

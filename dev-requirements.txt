@@ -17,7 +17,7 @@ unittest2
 # Used for code checking.
 pyflakes
 flake8
-flake8-imports
+flake8-import-order
 
 # For release
 wheel

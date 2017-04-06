@@ -29,7 +29,7 @@ def wait(gi, job):
         time.sleep(30)
 
 
-def main(args):
+def run_dm(args):
     url = args.galaxy or DEFAULT_URL
     gi = GalaxyInstance(url=url, email=args.user, password=args.password)
 
@@ -60,8 +60,7 @@ def main(args):
                     gi.make_get_request(urljoin(url, 'api/tool_data/%s/reload' % data_table))
                     time.sleep(5)
 
-
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Running Galaxy data managers in a defined order with defined parameters.')
     parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
@@ -79,4 +78,7 @@ if __name__ == '__main__':
         log.basicConfig(level=log.DEBUG)
 
     log.info("Running data managers...")
-    main(args)
+    run_dm(args)
+                    
+if __name__ == '__main__':
+    main()

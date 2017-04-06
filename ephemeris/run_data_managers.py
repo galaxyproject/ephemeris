@@ -60,6 +60,7 @@ def run_dm(args):
                     gi.make_get_request(urljoin(url, 'api/tool_data/%s/reload' % data_table))
                     time.sleep(5)
 
+
 def main():
     parser = argparse.ArgumentParser(
         description='Running Galaxy data managers in a defined order with defined parameters.')
@@ -79,6 +80,7 @@ def main():
 
     log.info("Running data managers...")
     run_dm(args)
-                    
+
+
 if __name__ == '__main__':
     main()

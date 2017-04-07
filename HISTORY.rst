@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.5.1.dev0
+0.5.1 (2017-04-07)
 ---------------------
 
 * Fix new ``run-data-managers`` CLI entrypoint.

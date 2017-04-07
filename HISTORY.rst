@@ -9,7 +9,7 @@ History
 0.5.1.dev0
 ---------------------
 
-    
+* Fix new ``run-data-managers`` CLI entrypoint.
 
 ---------------------
 0.5.0 (2017-04-06)

@@ -77,7 +77,7 @@ def main():
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
-    
+
     setup_data_libraries(args.infile)
 
 

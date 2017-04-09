@@ -3,13 +3,14 @@
 import argparse
 import logging as log
 import os
+import sys
 import time
 
 import yaml
 from bioblend import galaxy
 
 
-def setup_data_libraries(data):
+def setup_data_libraries(gi, data):
     """
     Load files into a Galaxy data library.
     By default all test-data tools from all installed tools
@@ -17,15 +18,6 @@ def setup_data_libraries(data):
     """
 
     log.info("Importing data libraries.")
-
-    url = "http://localhost:8080"
-    # The environment variables are set by the parent container
-    admin_email = os.environ.get('GALAXY_DEFAULT_ADMIN_USER', 'admin@galaxy.org')
-    admin_pass = os.environ.get('GALAXY_DEFAULT_ADMIN_PASSWORD', 'admin')
-
-    # Establish connection to galaxy instance
-    gi = galaxy.GalaxyInstance(url=url, email=admin_email, password=admin_pass)
-
     jc = galaxy.jobs.JobsClient(gi)
 
     folders = dict()
@@ -45,8 +37,9 @@ def setup_data_libraries(data):
             for url in urls:
                 gi.libraries.upload_file_from_url(
                     lib_id,
-                    url,
-                    folder_id=folder[0]['id'],
+                    url['url'],
+                    folder_id = folder[0]['id'],
+                    file_type = url['file_type']
                 )
 
         no_break = True
@@ -70,15 +63,29 @@ def main():
     parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
                         action="store_true")
     parser.add_argument('-i', '--infile', type=argparse.FileType('r'))
-
-    # TODO: Add options to override the admin_user and admin_password + specify
-    #      files to upload via command line interface.
+    parser.add_argument("-g", "--galaxy",
+                        help="Target Galaxy instance URL/IP address.")
+    parser.add_argument("-u", "--user",
+                        help="Galaxy user name")
+    parser.add_argument("-p", "--password",
+                        help="Password for the Galaxy user")
+    parser.add_argument("-a", "--api_key",
+                        dest="api_key",
+                        help="Galaxy admin user API key (required if not defined in the tools list file)")
 
     args = parser.parse_args()
+
+    if args.user and args.password:
+        gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
+    elif args.api_key:
+        gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
+    else:
+        sys.exit('Please specify either a valid Galaxy username/password or an API key.')
+
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 
-    setup_data_libraries(args.infile)
+    setup_data_libraries(gi, args.infile)
 
 
 if __name__ == '__main__':

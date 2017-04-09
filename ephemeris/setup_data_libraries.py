@@ -2,7 +2,6 @@
 
 import argparse
 import logging as log
-import os
 import sys
 import time
 
@@ -38,8 +37,8 @@ def setup_data_libraries(gi, data):
                 gi.libraries.upload_file_from_url(
                     lib_id,
                     url['url'],
-                    folder_id = folder[0]['id'],
-                    file_type = url['file_type']
+                    folder_id=folder[0]['id'],
+                    file_type=url['file_type']
                 )
 
         no_break = True

@@ -9,7 +9,7 @@ import yaml
 from bioblend import galaxy
 
 
-def main(data):
+def setup_data_libraries(data):
     """
     Load files into a Galaxy data library.
     By default all test-data tools from all installed tools
@@ -63,7 +63,7 @@ def main(data):
         log.info("Finished importing test data.")
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Populate the Galaxy data library with test data.'
     )
@@ -77,5 +77,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
+    
+    setup_data_libraries(args.infile)
 
-    main(args.infile)
+
+if __name__ == '__main__':
+    main()

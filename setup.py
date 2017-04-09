@@ -39,6 +39,7 @@ ENTRY_POINTS = '''
         shed-install=ephemeris.shed_install:script_main
         workflow-install=ephemeris.workflow_install:main
         run-data-managers=ephemeris.run_data_managers:main
+        workflow-to-tools=ephemeris.generate_tool_list_from_ga_workflow_files:main
 '''
 PACKAGE_DATA = {
     # Be sure to update MANIFEST.in for source dist.

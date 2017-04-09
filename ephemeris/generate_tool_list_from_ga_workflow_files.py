@@ -75,6 +75,10 @@ def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     print_yaml_tool_list(convert_dic, output_file)
 
 
-if __name__ == "__main__":
+def main():
     options = _parse_cli_options()
     generate_tool_list_from_workflow(options.workflow_files, options.panel_label, options.output_file)
+
+
+if __name__ == "__main__":
+    main()

@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.6.0.dev0
+0.6.0 (2017-04-10)
 ---------------------
 
 * Add new connection options for setting up data libraries.

@@ -6,12 +6,16 @@ import sys
 
 from bioblend import galaxy
 
+from common_parser import get_common_args
+from . import get_galaxy_connection
+
 
 def import_workflow(gi, path):
     """
     Given a connection to a Galaxy Instance (gi) and a path to a Galaxy workflow file,
     this function will import the worklfow into Galaxy.
     """
+    print path
     with open(path, 'r') as wf_file:
         import_uuid = json.load(wf_file).get('uuid')
     existing_uuids = [d.get('latest_workflow_uuid') for d in gi.workflows.get_workflows()]
@@ -23,27 +27,14 @@ def main():
     """
         This script uses bioblend to import .ga workflow files into a running instance of Galaxy
     """
-    parser = argparse.ArgumentParser()
+    parent = get_common_args()
+    parser = argparse.ArgumentParser(parents=[parent])
     parser.add_argument("-w", "--workflow_path",
+                        required=True,
                         help='Path to a workflow file or a directory with multiple workflow files ending with ".ga"')
-    parser.add_argument("-g", "--galaxy",
-                        help="Target Galaxy instance URL/IP address.")
-    parser.add_argument("-u", "--user",
-                        help="Galaxy user name")
-    parser.add_argument("-p", "--password",
-                        help="Password for the Galaxy user")
-    parser.add_argument("-a", "--api_key",
-                        dest="api_key",
-                        help="Galaxy admin user API key (required if not defined in the tools list file)")
 
     args = parser.parse_args()
-
-    if args.user and args.password:
-        gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
-    elif args.api_key:
-        gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
-    else:
-        sys.exit('Please specify either a valid Galaxy username/password or an API key.')
+    gi = get_galaxy_connection(args)
 
     if os.path.isdir(args.workflow_path):
         for file_path in os.listdir(args.workflow_path):

@@ -43,6 +43,9 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
+from common_parser import get_common_args
+from . import get_galaxy_connection
+
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
@@ -175,6 +178,7 @@ def galaxy_instance(url=None, api_key=None):
     provided, load the default values using `load_input_file` method.
     """
     if not (url and api_key):
+        
         tl = load_input_file()
         url = tl['galaxy_instance']
         api_key = tl['api_key']
@@ -342,19 +346,14 @@ def _parse_cli_options():
     """
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
-    parser = ArgumentParser(usage="usage: python %(prog)s <options>")
+    parent = get_common_args()
+    parser = ArgumentParser(
+        parents=[parent],
+        usage="usage: python %(prog)s <options>")
     parser.add_argument("-d", "--dbkeysfile",
                         dest="dbkeys_list_file",
                         help="Reference genome dbkeys to install (see "
                              "dbkeys_list.yaml.sample)",)
-    parser.add_argument("-g", "--galaxy",
-                        dest="galaxy_url",
-                        help="Target Galaxy instance URL/IP address (required "
-                             "if not defined in the tools list file)",)
-    parser.add_argument("-a", "--apikey",
-                        dest="api_key",
-                        help="Galaxy admin user API key (required if not "
-                             "defined in the tools list file)",)
     parser.add_argument("-t", "--toolsfile",
                         dest="tool_list_file",
                         help="Tools file to use (see tool_list.yaml.sample)",)
@@ -450,9 +449,16 @@ def run_data_managers(options):
     kl = load_input_file(dbkeys_list_file)  # Input file contents
     dbkeys = kl['dbkeys']  # The list of dbkeys to install
     dms = kl['data_managers']  # The list of data managers to run
-    galaxy_url = options.galaxy_url or kl['galaxy_instance']
+    galaxy_url = options.galaxy or kl['galaxy_instance']
     api_key = options.api_key or kl['api_key']
-    gi = galaxy_instance(galaxy_url, api_key)
+
+    if options.user and options.password:
+        gi = galaxy.GalaxyInstance(url=options.galaxy, email=options.user, password=options.password)
+    elif options.api_key:
+        gi = galaxy.GalaxyInstance(url=options.galaxy, key=api_key)
+    else:
+        sys.exit('Please specify either a valid Galaxy username/password or an API key.')
+
 
     istart = dt.datetime.now()
     errored_dms = []
@@ -577,7 +583,7 @@ def get_install_tool_manager(options):
                        "tool_panel_section_label": options.tool_panel_section_label,
                        "tool_shed_url": options.tool_shed_url or MTS}]
 
-    galaxy_url = options.galaxy_url or tl.get('galaxy_instance')
+    galaxy_url = options.galaxy or tl.get('galaxy_instance')
     api_key = options.api_key or tl.get('api_key')
 
     if options.skip_tool_dependencies:
@@ -588,7 +594,9 @@ def get_install_tool_manager(options):
         install_repository_dependencies = install_repository_dependencies
 
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
-    gi = galaxy_instance(galaxy_url, api_key)
+    gi = get_galaxy_connection(options)
+    if not gi:
+        gi = galaxy_instance(galaxy_url, api_key)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
                               default_install_tool_dependencies=install_tool_dependencies,

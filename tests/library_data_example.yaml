@@ -1,9 +1,9 @@
 libraries:
-    - name: library_name_test_1
+    - name: "Test data"
       files:
-        - https://zenodo.org/record/60520/files/dbSNP_138.hg19.vcf
-    - name: library_name_test_2
+        - url: https://raw.githubusercontent.com/eteriSokhoyan/test-data/master/cliques-high-representatives.fa
+          file_type: fasta
+    - name: "Test data segmentation-fold"
       files:
-        - https://zenodo.org/record/60520/files/mother.bam
-        - https://zenodo.org/record/60520/files/father.bam
-        - https://zenodo.org/record/60520/files/patient.bam
+        - url: https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
+          file_type: xml

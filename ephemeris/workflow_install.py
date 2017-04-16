@@ -2,11 +2,9 @@
 import argparse
 import json
 import os
-import sys
-
-from bioblend import galaxy
 
 from common_parser import get_common_args
+
 from . import get_galaxy_connection
 
 

@@ -114,7 +114,7 @@ def _parse_cli_options():
     """
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
-    parent = get_common_args(login_required = False)
+    parent = get_common_args(login_required=False)
     parser = ArgumentParser(parents=[parent],
                             usage="usage: python %(prog)s <options>",
                             epilog='Example usage: python get_tool_yml_from_gi.py '

@@ -22,7 +22,5 @@ def get_galaxy_connection(args):
         gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
     elif args.api_key:
         gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
-    #else:
-    #    sys.exit('Please specify either a valid Galaxy username/password or an API key.')
 
     return gi or False

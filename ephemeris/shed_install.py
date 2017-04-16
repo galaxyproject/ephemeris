@@ -44,6 +44,7 @@ from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
 from common_parser import get_common_args
+
 from . import get_galaxy_connection
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
@@ -178,7 +179,6 @@ def galaxy_instance(url=None, api_key=None):
     provided, load the default values using `load_input_file` method.
     """
     if not (url and api_key):
-        
         tl = load_input_file()
         url = tl['galaxy_instance']
         api_key = tl['api_key']
@@ -449,16 +449,10 @@ def run_data_managers(options):
     kl = load_input_file(dbkeys_list_file)  # Input file contents
     dbkeys = kl['dbkeys']  # The list of dbkeys to install
     dms = kl['data_managers']  # The list of data managers to run
-    galaxy_url = options.galaxy or kl['galaxy_instance']
-    api_key = options.api_key or kl['api_key']
+    options.galaxy_url = options.galaxy or kl['galaxy_instance']
+    options.api_key = options.api_key or kl['api_key']
 
-    if options.user and options.password:
-        gi = galaxy.GalaxyInstance(url=options.galaxy, email=options.user, password=options.password)
-    elif options.api_key:
-        gi = galaxy.GalaxyInstance(url=options.galaxy, key=api_key)
-    else:
-        sys.exit('Please specify either a valid Galaxy username/password or an API key.')
-
+    gi = get_galaxy_connection(options)
 
     istart = dt.datetime.now()
     errored_dms = []

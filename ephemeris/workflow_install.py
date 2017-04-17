@@ -3,9 +3,9 @@ import argparse
 import json
 import os
 
-from .common_parser import get_common_args
-
 from . import get_galaxy_connection
+
+from .common_parser import get_common_args
 
 
 def import_workflow(gi, path):

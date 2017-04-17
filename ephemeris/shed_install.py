@@ -43,9 +43,9 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
-from .common_parser import get_common_args
-
 from . import get_galaxy_connection
+
+from .common_parser import get_common_args
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -415,7 +415,7 @@ def _flatten_tools_info(tools_info):
         excluding the key `revisions`.
         """
         new_d = {}
-        for k, v in d.iteritems():
+        for k, v in d.items():
             if k != 'revisions':
                 new_d[k] = v
         return new_d

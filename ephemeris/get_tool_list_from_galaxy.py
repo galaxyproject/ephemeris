@@ -9,7 +9,7 @@ from distutils.version import StrictVersion
 import requests
 import yaml
 
-from common_parser import get_common_args
+from .common_parser import get_common_args
 
 
 class GiToToolYaml:

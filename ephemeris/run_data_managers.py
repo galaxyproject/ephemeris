@@ -12,7 +12,7 @@ except ImportError:
 import yaml
 from bioblend.galaxy import GalaxyInstance
 
-from common_parser import get_common_args
+from .common_parser import get_common_args
 
 DEFAULT_URL = "http://localhost"
 

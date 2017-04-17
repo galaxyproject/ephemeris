@@ -43,7 +43,7 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
-from common_parser import get_common_args
+from .common_parser import get_common_args
 
 from . import get_galaxy_connection
 

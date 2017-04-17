@@ -8,7 +8,7 @@ import time
 import yaml
 from bioblend import galaxy
 
-from common_parser import get_common_args
+from .common_parser import get_common_args
 
 
 def setup_data_libraries(gi, data):

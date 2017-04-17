@@ -8,6 +8,8 @@ import time
 import yaml
 from bioblend import galaxy
 
+from .common_parser import get_common_args
+
 
 def setup_data_libraries(gi, data):
     """
@@ -56,22 +58,14 @@ def setup_data_libraries(gi, data):
 
 
 def main():
+
+    parent = get_common_args()
     parser = argparse.ArgumentParser(
+        parents=[parent],
         description='Populate the Galaxy data library with test data.'
     )
-    parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
-                        action="store_true")
-    parser.add_argument('-i', '--infile', type=argparse.FileType('r'))
-    parser.add_argument("-g", "--galaxy",
-                        help="Target Galaxy instance URL/IP address.")
-    parser.add_argument("-u", "--user",
-                        help="Galaxy user name")
-    parser.add_argument("-p", "--password",
-                        help="Password for the Galaxy user")
-    parser.add_argument("-a", "--api_key",
-                        dest="api_key",
-                        help="Galaxy admin user API key (required if not defined in the tools list file)")
 
+    parser.add_argument('-i', '--infile', required=True, type=argparse.FileType('r'))
     args = parser.parse_args()
 
     if args.user and args.password:

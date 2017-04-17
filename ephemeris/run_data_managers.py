@@ -1,4 +1,4 @@
-##!/usr/bin/env python
+#!/usr/bin/env python
 
 import argparse
 import logging as log
@@ -11,6 +11,8 @@ except ImportError:
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
+
+from .common_parser import get_common_args
 
 DEFAULT_URL = "http://localhost"
 
@@ -62,17 +64,13 @@ def run_dm(args):
 
 
 def main():
+
+    parent = get_common_args()
+
     parser = argparse.ArgumentParser(
+        parents=[parent],
         description='Running Galaxy data managers in a defined order with defined parameters.')
-    parser.add_argument("-v", "--verbose", help="Increase output verbosity.",
-                        action="store_true")
     parser.add_argument("--config", required=True, help="Path to the YAML config file with the list of data managers and data to install.")
-    parser.add_argument("-g", "--galaxy",
-                        help="Target Galaxy instance URL/IP address")
-    parser.add_argument("-u", "--user",
-                        help="Galaxy user name")
-    parser.add_argument("-p", "--password",
-                        help="Password for the Galaxy user")
 
     args = parser.parse_args()
     if args.verbose:

@@ -1,20 +1,36 @@
 language: python
-sudo: false
-python: 2.7
+sudo: required
+services:
+  - docker
+python:
+    - "2.7"
 env:
-  - TOX_ENV=py27-lint
-  - TOX_ENV=py34-lint
-  - TOX_ENV=py27-lint-readme
-  - TOX_ENV=py27
-  - TOX_ENV=py34
+  matrix:
+    - TOX_ENV=py27-lint
+    - TOX_ENV=py35-lint
+    - TOX_ENV=py27-lint-readme
+    - TOX_ENV=py27
+    - TOX_ENV=py35
+  global:
+    # do not load /etc/boto.cfg with Python 3 incompatible plugin
+    # https://github.com/travis-ci/travis-ci/issues/5246#issuecomment-166460882
+    - BOTO_CONFIG=/doesnotexist
+
 
 install:
-  # Setup git to allow git operations.
-  - git config --global user.name "Travis Test User"
-  - git config --global user.email "galaxy_test@galaxyproject.org"
-  - pip install tox coveralls
+    - sudo rm /etc/boto.cfg
+    # Setup git to allow git operations.
+    - git config --global user.name "Travis Test User"
+    - git config --global user.email "galaxy_test@galaxyproject.org"
+    - pip install tox coveralls
+    - docker run -d -p 8080:80 bgruening/galaxy-stable
+    - sleep 120
+    - docker ps
+    - python setup.py install
 
-script: tox -e $TOX_ENV
+script:
+    - tox -e $TOX_ENV
+    - bash test.sh
 
 after_success:
   - coveralls

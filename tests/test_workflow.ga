@@ -1,0 +1,62 @@
+{
+    "a_galaxy_workflow": "true", 
+    "annotation": "", 
+    "format-version": "0.1", 
+    "name": "test_workflow", 
+    "steps": {
+        "0": {
+            "annotation": "", 
+            "content_id": null, 
+            "errors": null, 
+            "id": 0, 
+            "input_connections": {}, 
+            "inputs": [], 
+            "label": null, 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 443.10765075683594, 
+                "top": 299.0972442626953
+            }, 
+            "tool_id": null, 
+            "tool_state": "{}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "uuid": "3e2e802f-b4e8-42d7-8142-03fc7c870852", 
+            "workflow_outputs": []
+        }, 
+        "1": {
+            "annotation": "", 
+            "content_id": "Cut1", 
+            "errors": null, 
+            "id": 1, 
+            "input_connections": {
+                "input": {
+                    "id": 0, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [], 
+            "label": null, 
+            "name": "Cut", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "tabular"
+                }
+            ], 
+            "position": {
+                "left": 713.1076507568359, 
+                "top": 202.08335876464844
+            }, 
+            "post_job_actions": {}, 
+            "tool_id": "Cut1", 
+            "tool_state": "{\"columnList\": \"\\\"c1,c2\\\"\", \"input\": \"null\", \"delimiter\": \"\\\"T\\\"\", \"__rerun_remap_job_id__\": null, \"__page__\": null}", 
+            "tool_version": "1.0.2", 
+            "type": "tool", 
+            "uuid": "c5df02c5-5015-45cf-a33d-9e6660838045", 
+            "workflow_outputs": []
+        }
+    }, 
+    "uuid": "70c250ed-21fb-4d08-9e52-8e6c5ad9859f"
+}

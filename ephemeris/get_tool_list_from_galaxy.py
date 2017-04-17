@@ -9,6 +9,8 @@ from distutils.version import StrictVersion
 import requests
 import yaml
 
+from .common_parser import get_common_args
+
 
 class GiToToolYaml:
     def __init__(self, url,
@@ -112,14 +114,12 @@ def _parse_cli_options():
     """
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
-    parser = ArgumentParser(usage="usage: python %(prog)s <options>",
+    parent = get_common_args(login_required=False)
+    parser = ArgumentParser(parents=[parent],
+                            usage="usage: python %(prog)s <options>",
                             epilog='Example usage: python get_tool_yml_from_gi.py '
                                    '-g https://usegalaxy.org/ -o tool_list.yml',
                             formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-g", "--galaxy",
-                        dest="galaxy_url",
-                        required=True,
-                        help="Target Galaxy instance URL/IP address (required)")
     parser.add_argument("-o", "--output-file",
                         required=True,
                         dest="output",
@@ -149,8 +149,8 @@ def check_galaxy_version(galaxy_url):
 
 def main():
     options = _parse_cli_options()
-    check_galaxy_version(options.galaxy_url)
-    GiToToolYaml(url=options.galaxy_url,
+    check_galaxy_version(options.galaxy)
+    GiToToolYaml(url=options.galaxy,
                  output_file=options.output,
                  include_tool_panel_section_id=options.include_tool_panel_id,
                  skip_tool_panel_section_name=options.skip_tool_panel_name,

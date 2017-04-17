@@ -9,7 +9,9 @@ History
 0.6.1.dev0
 ---------------------
 
-    
+* Add Python 2 and 3 testing for all scripts against galaxy-docker-stable along with various
+  refactoring to reduce code duplication and Python 3 fixes. `#36
+  <https://github.com/galaxyproject/ephemeris/pull/36>`__
 
 ---------------------
 0.6.0 (2017-04-10)

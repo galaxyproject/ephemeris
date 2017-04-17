@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.6.1.dev0
+0.6.1 (2017-04-17)
 ---------------------
 
 * Add Python 2 and 3 testing for all scripts against galaxy-docker-stable along with various

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
-import requests
 import sys
 import time
 
 from argparse import ArgumentParser
 
+import requests
+
 from .common_parser import get_common_args
-from .shed_install import setup_global_logger, _disable_external_library_logging
 
 
 def _parse_cli_options():
@@ -14,17 +14,18 @@ def _parse_cli_options():
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
     parent = get_common_args(login_required=False)
-    parser = ArgumentParser(parents=[parent], usage="usage: python %(prog)s <options>")
+    parser = ArgumentParser(parents=[parent], usage="usage: python %(prog)s <options>",
+                            description="Script to sleep and wait for Galaxy to be alive.")
     parser.add_argument("--timeout",
                         default=0, type=int,
-                        help="Galaxy startup timeout. The default value of 0 waits forever")
+                        help="Galaxy startup timeout in seconds. The default value of 0 waits forever")
     return parser.parse_args()
 
 
 def main():
-    global log
-    _disable_external_library_logging()
-    log = setup_global_logger(include_file=True)
+    """
+    Main function
+    """
     options = _parse_cli_options()
 
     count = 0

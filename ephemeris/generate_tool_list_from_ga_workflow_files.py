@@ -2,6 +2,7 @@
 
 import json
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
 import yaml
 
 
@@ -48,8 +49,8 @@ def translate_workflow_dictionary_to_tool_list(tool_dictionary, panel_label):
     tool_list = []
     for tool in starting_tool_list:
         sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revision': tool['changeset_revision'],
-                  'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed'],
-                  'zinstall_resolver_dependencies': 'True'}
+                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed'],
+                   'zinstall_resolver_dependencies': 'True'}
         tool_list.append(sub_dic)
     return tool_list
 

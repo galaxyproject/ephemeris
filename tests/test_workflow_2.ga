@@ -1,0 +1,626 @@
+{
+    "a_galaxy_workflow": "true", 
+    "annotation": "", 
+    "format-version": "0.1", 
+    "name": "dmel-all-filtered-r6.14.gff_TO_all-transposons-r6.14.gtf", 
+    "steps": {
+        "0": {
+            "annotation": "", 
+            "content_id": null, 
+            "id": 0, 
+            "input_connections": {}, 
+            "inputs": [
+                {
+                    "description": "", 
+                    "name": "dmel-all-filtered-r6.14.gff"
+                }
+            ], 
+            "label": null, 
+            "name": "Input dataset", 
+            "outputs": [], 
+            "position": {
+                "left": 202, 
+                "top": 370
+            }, 
+            "tool_errors": null, 
+            "tool_id": null, 
+            "tool_state": "{\"name\": \"dmel-all-filtered-r6.14.gff\"}", 
+            "tool_version": null, 
+            "type": "data_input", 
+            "uuid": "b15bf7a0-c1c9-4a01-8fe8-0b016ac34841", 
+            "workflow_outputs": []
+        }, 
+        "1": {
+            "annotation": "", 
+            "content_id": "Filter1", 
+            "id": 1, 
+            "input_connections": {
+                "input": {
+                    "id": 0, 
+                    "output_name": "output"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Filter", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Filter", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 420, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "Filter1", 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"cond\": \"\\\"c3=='transposable_element'\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"header_lines\": \"\\\"1874\\\"\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\"}", 
+            "tool_version": "1.1.0", 
+            "type": "tool", 
+            "uuid": "3817a0be-c184-4265-adcc-8fbeb5dd4ff8", 
+            "workflow_outputs": []
+        }, 
+        "2": {
+            "annotation": "select 2L, 2R, 3L, 3R, 4 and X", 
+            "content_id": "Extract_features1", 
+            "id": 2, 
+            "input_connections": {
+                "input1": {
+                    "id": 1, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Extract features", 
+                    "name": "column_choice"
+                }, 
+                {
+                    "description": "runtime parameter for tool Extract features", 
+                    "name": "input1"
+                }
+            ], 
+            "label": null, 
+            "name": "Extract features", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 641, 
+                "top": 251
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "Extract_features1", 
+            "tool_state": "{\"column_choice\": \"{\\\"col\\\": \\\"0\\\", \\\"__current_case__\\\": 0, \\\"feature\\\": {\\\"__class__\\\": \\\"RuntimeValue\\\"}}\", \"__rerun_remap_job_id__\": null, \"input1\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"__page__\": 0}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "79ca328a-f219-43eb-b0eb-c58da1b557f6", 
+            "workflow_outputs": []
+        }, 
+        "3": {
+            "annotation": "", 
+            "content_id": "Grep1", 
+            "id": 3, 
+            "input_connections": {
+                "input": {
+                    "id": 2, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Select", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Select", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 860, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "Grep1", 
+            "tool_state": "{\"__page__\": 0, \"pattern\": \"\\\"^##sequence-region \\\\\\\\d\\\\\\\\d\\\"\", \"invert\": \"\\\"true\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null}", 
+            "tool_version": "1.0.1", 
+            "type": "tool", 
+            "uuid": "5a734da2-d30c-439f-b693-3f9cba2fb903", 
+            "workflow_outputs": []
+        }, 
+        "4": {
+            "annotation": "", 
+            "content_id": "Grep1", 
+            "id": 4, 
+            "input_connections": {
+                "input": {
+                    "id": 3, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Select", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Select", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 1080, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "Grep1", 
+            "tool_state": "{\"__page__\": 0, \"pattern\": \"\\\"^##sequence-region Unmapped\\\"\", \"invert\": \"\\\"true\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null}", 
+            "tool_version": "1.0.1", 
+            "type": "tool", 
+            "uuid": "c9b98db6-0554-4bab-ab73-1872e308f32f", 
+            "workflow_outputs": []
+        }, 
+        "5": {
+            "annotation": "", 
+            "content_id": "Grep1", 
+            "id": 5, 
+            "input_connections": {
+                "input": {
+                    "id": 4, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Select", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Select", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 1300, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "Grep1", 
+            "tool_state": "{\"__page__\": 0, \"pattern\": \"\\\"^##.+Scaffold\\\"\", \"invert\": \"\\\"true\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"__rerun_remap_job_id__\": null}", 
+            "tool_version": "1.0.1", 
+            "type": "tool", 
+            "uuid": "60a6f2ce-d1fc-46cb-95fb-d9940b893a79", 
+            "workflow_outputs": []
+        }, 
+        "6": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "id": 6, 
+            "input_connections": {
+                "input": {
+                    "id": 5, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Column Regex Find And Replace", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Column Regex Find And Replace", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 1520, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9ea374bb0350", 
+                "name": "regex_find_replace", 
+                "owner": "jjohnson", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"field\": \"\\\"1\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"checks\": \"[{\\\"__index__\\\": 0, \\\"replacement\\\": \\\"chr\\\\\\\\1\\\", \\\"pattern\\\": \\\"^(\\\\\\\\d|X|Y)\\\"}]\"}", 
+            "tool_version": "0.1.0", 
+            "type": "tool", 
+            "uuid": "4c7a832f-7b76-4881-8983-f443ea436b5a", 
+            "workflow_outputs": []
+        }, 
+        "7": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "id": 7, 
+            "input_connections": {
+                "input": {
+                    "id": 6, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Column Regex Find And Replace", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Column Regex Find And Replace", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 1728, 
+                "top": 406
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9ea374bb0350", 
+                "name": "regex_find_replace", 
+                "owner": "jjohnson", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"field\": \"\\\"9\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"checks\": \"[{\\\"__index__\\\": 0, \\\"replacement\\\": \\\"\\\", \\\"pattern\\\": \\\";Alias.+\\\"}]\"}", 
+            "tool_version": "0.1.0", 
+            "type": "tool", 
+            "uuid": "03a3d831-a7c7-4753-9e4e-a60cacaae057", 
+            "workflow_outputs": []
+        }, 
+        "8": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "id": 8, 
+            "input_connections": {
+                "input": {
+                    "id": 7, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Column Regex Find And Replace", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Column Regex Find And Replace", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 1960, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9ea374bb0350", 
+                "name": "regex_find_replace", 
+                "owner": "jjohnson", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"field\": \"\\\"9\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"checks\": \"[{\\\"__index__\\\": 0, \\\"replacement\\\": \\\"\\\", \\\"pattern\\\": \\\";h-band.+\\\"}]\"}", 
+            "tool_version": "0.1.0", 
+            "type": "tool", 
+            "uuid": "62ce0aca-8cb7-4d0a-8f9a-4c36ed9684fe", 
+            "workflow_outputs": []
+        }, 
+        "9": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "id": 9, 
+            "input_connections": {
+                "input": {
+                    "id": 8, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Column Regex Find And Replace", 
+                    "name": "input"
+                }
+            ], 
+            "label": null, 
+            "name": "Column Regex Find And Replace", 
+            "outputs": [
+                {
+                    "name": "out_file1", 
+                    "type": "input"
+                }
+            ], 
+            "position": {
+                "left": 2193, 
+                "top": 410
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/jjohnson/regex_find_replace/regexColumn1/0.1.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9ea374bb0350", 
+                "name": "regex_find_replace", 
+                "owner": "jjohnson", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"__rerun_remap_job_id__\": null, \"field\": \"\\\"9\\\"\", \"input\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"checks\": \"[{\\\"__index__\\\": 0, \\\"replacement\\\": \\\";\\\\\\\\1\\\", \\\"pattern\\\": \\\";(.+);.+\\\"}]\"}", 
+            "tool_version": "0.1.0", 
+            "type": "tool", 
+            "uuid": "25876dfd-068e-4c86-84de-5a879a724c17", 
+            "workflow_outputs": []
+        }, 
+        "10": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "id": 10, 
+            "input_connections": {
+                "infile": {
+                    "id": 9, 
+                    "output_name": "out_file1"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Regex Replace", 
+                    "name": "infile"
+                }
+            ], 
+            "label": null, 
+            "name": "Regex Replace", 
+            "outputs": [
+                {
+                    "name": "outfile", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 2400, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9a77d5fca67c", 
+                "name": "regex_replace", 
+                "owner": "kellrott", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"ignore_case\": \"\\\"false\\\"\", \"search_str\": \"\\\"FlyBase\\\\\\\\ttransposable_element\\\"\", \"__rerun_remap_job_id__\": null, \"replace_str\": \"\\\"FlyBase_transposable_element\\\"\", \"replace_count\": \"\\\"0\\\"\", \"multiline\": \"\\\"false\\\"\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"infile\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"dot_all\": \"\\\"false\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "b630b142-e751-4e01-8e01-bb152f5decc1", 
+            "workflow_outputs": []
+        }, 
+        "11": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "id": 11, 
+            "input_connections": {
+                "infile": {
+                    "id": 10, 
+                    "output_name": "outfile"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Regex Replace", 
+                    "name": "infile"
+                }
+            ], 
+            "label": null, 
+            "name": "Regex Replace", 
+            "outputs": [
+                {
+                    "name": "outfile", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 2620, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9a77d5fca67c", 
+                "name": "regex_replace", 
+                "owner": "kellrott", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"ignore_case\": \"\\\"false\\\"\", \"search_str\": \"\\\"FlyBase_transposable_element\\\"\", \"__rerun_remap_job_id__\": null, \"replace_str\": \"\\\"FlyBase_transposable_element\\\\\\\\texon\\\"\", \"replace_count\": \"\\\"0\\\"\", \"multiline\": \"\\\"false\\\"\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"infile\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"dot_all\": \"\\\"false\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "00be72ac-1ea7-4128-9986-85fc002c2a61", 
+            "workflow_outputs": []
+        }, 
+        "12": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "id": 12, 
+            "input_connections": {
+                "infile": {
+                    "id": 11, 
+                    "output_name": "outfile"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Regex Replace", 
+                    "name": "infile"
+                }
+            ], 
+            "label": null, 
+            "name": "Regex Replace", 
+            "outputs": [
+                {
+                    "name": "outfile", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 2840, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9a77d5fca67c", 
+                "name": "regex_replace", 
+                "owner": "kellrott", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"ignore_case\": \"\\\"false\\\"\", \"search_str\": \"\\\"ID=\\\"\", \"__rerun_remap_job_id__\": null, \"replace_str\": \"\\\"gene_id \\\\\\\"\\\"\", \"replace_count\": \"\\\"0\\\"\", \"multiline\": \"\\\"false\\\"\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"infile\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"dot_all\": \"\\\"false\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "9f9995a2-a629-4c69-819a-ea2324de1569", 
+            "workflow_outputs": []
+        }, 
+        "13": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "id": 13, 
+            "input_connections": {
+                "infile": {
+                    "id": 12, 
+                    "output_name": "outfile"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Regex Replace", 
+                    "name": "infile"
+                }
+            ], 
+            "label": null, 
+            "name": "Regex Replace", 
+            "outputs": [
+                {
+                    "name": "outfile", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 3060, 
+                "top": 249
+            }, 
+            "post_job_actions": {}, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9a77d5fca67c", 
+                "name": "regex_replace", 
+                "owner": "kellrott", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"ignore_case\": \"\\\"false\\\"\", \"search_str\": \"\\\";Name=\\\"\", \"__rerun_remap_job_id__\": null, \"replace_str\": \"\\\"\\\\\\\"; transcript_id \\\\\\\"\\\"\", \"replace_count\": \"\\\"0\\\"\", \"multiline\": \"\\\"false\\\"\", \"chromInfo\": \"\\\"/home/galaxy/galaxy-dist/tool-data/shared/ucsc/chrom/?.len\\\"\", \"infile\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"dot_all\": \"\\\"false\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "9d3195a9-5866-46c2-8726-6c695625e760", 
+            "workflow_outputs": []
+        }, 
+        "14": {
+            "annotation": "", 
+            "content_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "id": 14, 
+            "input_connections": {
+                "infile": {
+                    "id": 13, 
+                    "output_name": "outfile"
+                }
+            }, 
+            "inputs": [
+                {
+                    "description": "runtime parameter for tool Regex Replace", 
+                    "name": "infile"
+                }
+            ], 
+            "label": null, 
+            "name": "Regex Replace", 
+            "outputs": [
+                {
+                    "name": "outfile", 
+                    "type": "txt"
+                }
+            ], 
+            "position": {
+                "left": 3280, 
+                "top": 249
+            }, 
+            "post_job_actions": {
+                "ChangeDatatypeActionoutfile": {
+                    "action_arguments": {
+                        "newtype": "gtf"
+                    }, 
+                    "action_type": "ChangeDatatypeAction", 
+                    "output_name": "outfile"
+                }, 
+                "RenameDatasetActionoutfile": {
+                    "action_arguments": {
+                        "newname": "all-transposons-r6.14.gtf"
+                    }, 
+                    "action_type": "RenameDatasetAction", 
+                    "output_name": "outfile"
+                }
+            }, 
+            "tool_errors": null, 
+            "tool_id": "toolshed.g2.bx.psu.edu/repos/kellrott/regex_replace/regex_replace/1.0.0", 
+            "tool_shed_repository": {
+                "changeset_revision": "9a77d5fca67c", 
+                "name": "regex_replace", 
+                "owner": "kellrott", 
+                "tool_shed": "toolshed.g2.bx.psu.edu"
+            }, 
+            "tool_state": "{\"__page__\": 0, \"ignore_case\": \"\\\"false\\\"\", \"search_str\": \"\\\"\\\\\\\\n\\\"\", \"__rerun_remap_job_id__\": null, \"replace_str\": \"\\\"\\\\\\\";\\\\\\\\n\\\"\", \"replace_count\": \"\\\"0\\\"\", \"multiline\": \"\\\"false\\\"\", \"infile\": \"{\\\"__class__\\\": \\\"RuntimeValue\\\"}\", \"dot_all\": \"\\\"false\\\"\"}", 
+            "tool_version": "1.0.0", 
+            "type": "tool", 
+            "uuid": "54fc3f3c-9424-4fc7-b6ef-1f64a34b9a90", 
+            "workflow_outputs": []
+        }
+    }, 
+    "uuid": "f088d383-8da0-4ed1-8def-1f48f3412192"
+}

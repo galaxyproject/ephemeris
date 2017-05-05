@@ -64,7 +64,8 @@ def print_yaml_tool_list(tool_dictionary, output_file):
         F.write(yaml.safe_dump(tool_dictionary, default_flow_style=False))
     return
 
-def reduce_tool_list (tool_list):
+
+def reduce_tool_list(tool_list):
     for current_tool in tool_list:
         for tool in tool_list:
             if current_tool is tool:
@@ -88,7 +89,7 @@ def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     for workflow in workflow_files:
         workflow_dictionary = get_workflow_dictionary(workflow)
         intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)
-    reduced_tool_list = reduce_tool_list (intermediate_tool_list)
+    reduced_tool_list = reduce_tool_list(intermediate_tool_list)
     convert_dic = {}
     convert_dic['tools'] = reduced_tool_list
     print_yaml_tool_list(convert_dic, output_file)

@@ -5,6 +5,10 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 import yaml
 
+INSTALL_TOOL_DEPENDENCIES = 'install_tool_dependencies: True'
+INSTALL_REPOSITORY_DEPENDENCIES = 'install_repository_dependencies: True'
+INSTALL_RESOLVER_DEPENDENCIES = 'install_resolver_dependencies: True'
+
 
 def _parse_cli_options():
     """
@@ -48,26 +52,31 @@ def translate_workflow_dictionary_to_tool_list(tool_dictionary, panel_label):
             starting_tool_list.append(tsr)
     tool_list = []
     for tool in starting_tool_list:
-        sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revision': tool['changeset_revision'],
-                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed'],
-                   'zinstall_resolver_dependencies': True}
+        sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revisions': [tool['changeset_revision']],
+                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed']}
         tool_list.append(sub_dic)
     return tool_list
 
 
 def print_yaml_tool_list(tool_dictionary, output_file):
     with open(output_file, 'w') as F:
+        F.write("\n".join([INSTALL_TOOL_DEPENDENCIES, INSTALL_REPOSITORY_DEPENDENCIES, INSTALL_RESOLVER_DEPENDENCIES, "", ""]))
         F.write(yaml.safe_dump(tool_dictionary, default_flow_style=False))
-    lines = []
-    with open(output_file, 'r') as F:
-        for line in F:
-            line = line.replace("zinstall", "install")
-            line = line.replace("-", "\n-")
-            lines.append(line)
-    with open(output_file, 'w') as F:
-        for line in lines:
-            F.write(line)
     return
+
+def reduce_tool_list (tool_list):
+    for current_tool in tool_list:
+        for tool in tool_list:
+            if current_tool is tool:
+                continue
+            if (tool["name"] == current_tool['name']
+                    and tool['owner'] == current_tool['owner']
+                    and tool['tool_panel_section_label'] == current_tool['tool_panel_section_label']
+                    and tool['tool_shed_url'] == current_tool['tool_shed_url']):
+                current_tool["revisions"].extend(tool["revisions"])
+                tool_list.remove(tool)
+        current_tool['revisions'] = list(set(current_tool['revisions']))
+    return tool_list
 
 
 def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
@@ -79,7 +88,7 @@ def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
     for workflow in workflow_files:
         workflow_dictionary = get_workflow_dictionary(workflow)
         intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)
-    reduced_tool_list = list({v['revision']: v for v in intermediate_tool_list}.values())
+    reduced_tool_list = reduce_tool_list (intermediate_tool_list)
     convert_dic = {}
     convert_dic['tools'] = reduced_tool_list
     print_yaml_tool_list(convert_dic, output_file)

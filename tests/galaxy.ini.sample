@@ -1,0 +1,12 @@
+ignored = options
+#disabled_ignored = options
+new_ignored = options
+#new_disabled_ignored = options
+
+[app:main]
+
+option1 = value1
+#option2 = value2
+#option3=value3
+option4 = value4
+#option5 = value5

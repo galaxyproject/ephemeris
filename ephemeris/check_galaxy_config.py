@@ -18,10 +18,10 @@ def check_galaxy_config(current_config_path, sample_config_path):
                                   if key not in current_active_config.keys()],
                                  key=lambda config_option: config_option.line)
     if len(new_default_configs) > 0:
-        print u"New default configs discovered in %s" % sample_config_path
+        print(u"New default configs discovered in %s" % sample_config_path)
         for config_option in new_default_configs:
-            print "%s (line %s)" % (config_option.text, config_option.line)
-        print u""
+            print(u"%s (line %s)" % (config_option.text, config_option.line))
+        print(u"")
 
     new_config_options = sorted([sample_inactive_config[key]
                                  for key in sample_inactive_config.keys()
@@ -29,10 +29,10 @@ def check_galaxy_config(current_config_path, sample_config_path):
                                  key not in current_active_config.keys()],
                                 key=lambda config_option: config_option.line)
     if len(new_config_options) > 0:
-        print "New config options discovered in %s" % sample_config_path
+        print(u"New config options discovered in %s" % sample_config_path)
         for config_option in new_config_options:
-            print "%s (line %s)" % (config_option.text, config_option.line)
-        print ""
+            print(u"%s (line %s)" % (config_option.text, config_option.line))
+        print(u"")
 
     deprecated_config_options = sorted([current_active_config[key]
                                         for key in current_active_config.keys()
@@ -40,9 +40,9 @@ def check_galaxy_config(current_config_path, sample_config_path):
                                         key not in sample_inactive_config.keys()],
                                        key=lambda config_option: config_option.line)
     if len(deprecated_config_options) > 0:
-        print "Deprecated config options present in %s" % current_config_path
+        print(u"Deprecated config options present in %s" % current_config_path)
         for config_option in deprecated_config_options:
-            print "%s (line %s)" % (config_option.text, config_option.line)
+            print(u"%s (line %s)" % (config_option.text, config_option.line))
 
 
 class ConfigOption(object):

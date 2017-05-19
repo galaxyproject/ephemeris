@@ -37,11 +37,10 @@ def run_dm(args):
         gi = GalaxyInstance(url=url, key=args.api_key)
     else:
         gi = GalaxyInstance(url=url, email=args.user, password=args.password)
-    
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()
-      
+    log.info('Number of installed genomes: %s' % str(len(genomes)) )
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):

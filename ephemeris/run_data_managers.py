@@ -33,10 +33,14 @@ def wait(gi, job):
 
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
-    gi = GalaxyInstance(url=url, email=args.user, password=args.password)
-
+    if args.api_key:
+        gi = GalaxyInstance(url=url, key=args.api_key)
+    else:
+        gi = GalaxyInstance(url=url, email=args.user, password=args.password)
     # should test valid connection
-    log.info("List of valid histories: %s" % gi.users.get_current_user())
+    # The following should throw a ConnectionError when invalid API key or password
+    genomes = gi.genomes.get_genomes()
+    log.info('Number of installed genomes: %s' % str(len(genomes)))
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):

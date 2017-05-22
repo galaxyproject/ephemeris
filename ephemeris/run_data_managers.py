@@ -40,7 +40,7 @@ def run_dm(args):
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):
-        for item in dm.get('items', [None]):
+        for item in dm.get('items', ['']):
             dm_id = dm['id']
             params = dm['params']
             log.info('Running DM: %s' % dm_id)

@@ -40,7 +40,7 @@ def run_dm(args):
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()
-    log.info('Number of installed genomes: %s' % str(len(genomes)) )
+    log.info('Number of installed genomes: %s' % str(len(genomes)))
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):

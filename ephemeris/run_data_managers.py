@@ -63,7 +63,7 @@ def run_dm(args):
             for data_table in dm.get('data_table_reload', []):
                 # reload two times
                 for i in range(2):
-                    gi.make_get_request(urljoin(url, 'api/tool_data/%s/reload' % data_table))
+                    gi.make_get_request(urljoin(gi.url, 'api/tool_data/%s/reload' % data_table))
                     time.sleep(5)
 
 

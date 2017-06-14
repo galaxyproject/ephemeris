@@ -8,6 +8,7 @@ Contents:
 
    readme
    installation
+   commands
    conduct
    contributing
    organization

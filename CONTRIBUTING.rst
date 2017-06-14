@@ -41,8 +41,8 @@ Look through the GitHub issues for features. Anything tagged with
 Write Documentation
 ~~~~~~~~~~~~~~~~~~~
 
-Planemo could always use more documentation, whether as part of the
-official Planemo docs, in docstrings, or even on the web in blog posts,
+Ephemeris could always use more documentation, whether as part of the
+official Ephemeris docs, in docstrings, or even on the web in blog posts,
 articles, and such.
 
 Submit Feedback
@@ -65,7 +65,7 @@ Ready to contribute? Here's how to set up `ephemeris` for local development.
 1. Fork the `ephemeris` repo on GitHub.
 2. Clone your fork locally::
 
-    $ git clone git@github.com:your_name_here/planemo.git
+    $ git clone git@github.com:your_name_here/ephemeris.git
 
 3. Install your local copy into a virtualenv. Assuming you have virtualenvwrapper installed, this is how you set up your fork for local development::
 

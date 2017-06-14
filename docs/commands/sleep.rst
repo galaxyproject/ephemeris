@@ -86,5 +86,5 @@ If the host returns HTML content, or otherwise non-JSON content, the tool will e
         raise JSONDecodeError("Expecting value", s, err.value) from None
     json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 
-If this behaviour presents an issue for you, please `file a bug with ephermis.
+If this behaviour presents an issue for you, please `file a bug with ephemeris.
 <https://github.com/galaxyproject/ephemeris/issues>`__

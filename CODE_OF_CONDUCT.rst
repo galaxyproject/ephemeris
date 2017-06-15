@@ -52,7 +52,8 @@ Our open source community strives to:
   err and blaming each other doesn’t get us anywhere. Instead, focus on helping
   to resolve issues and learning from mistakes.
 
-### Diversity Statement
+Diversity Statement
+----------------------
 
 We encourage everyone to participate and are committed to building a community
 for all. Although we will fail at times, we seek to treat everyone both as
@@ -68,7 +69,8 @@ socioeconomic status, and technical ability. We will not tolerate
 discrimination based on any of the protected characteristics above, including
 participants with disabilities.
 
-### Reporting Issues
+Reporting Issues
+----------------------
 
 If you experience or witness unacceptable behavior, or have any other concerns,
 please report it by contacting Dave Clements (clementsgalaxy@gmail.com). To

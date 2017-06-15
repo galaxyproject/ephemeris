@@ -7,3 +7,4 @@ Commands
 
    commands/sleep
    commands/shed-install
+   commands/run-data-managers

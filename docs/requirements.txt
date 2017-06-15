@@ -1,0 +1,5 @@
+recommonmark==0.4.0
+commonmark==0.7.3
+sphinx
+sphinx-argparse
+sphinx_rtd_theme

@@ -7,7 +7,8 @@ into an instance of Galaxy.
 Galaxy instance details and the installed tools can be provided in one of three
 ways:
 
-1. In the YAML format via dedicated files (a sample can be found `here <https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample>`_).
+1. In the YAML format via dedicated files (a sample can be found
+   `here <https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample>`_).
 2. On the command line as dedicated script options (see the usage help).
 3. As a single composite parameter to the script. The parameter must be a
    single, YAML-formatted string with the keys corresponding to the keys
@@ -28,8 +29,8 @@ Galaxy's configuration directory and set Galaxy configuration option
 `tool_config_file` to include it.
 """
 
-#Required libraries:
-#bioblend, pyyaml
+# Required libraries:
+# bioblend, pyyaml
 
 import datetime as dt
 import logging
@@ -343,6 +344,7 @@ def _list_tool_categories(tl):
         category_list.append(t.get('id'))
     return set(category_list)
 
+
 def _parser():
     '''construct the parser object'''
     parent = get_common_args()
@@ -394,11 +396,12 @@ def _parser():
                              "Can be overwritten on a per-tool basis in the tools file")
     return parser
 
+
 def _parse_cli_options():
     """
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
-    parser=_parser()
+    parser = _parser()
     return parser.parse_args()
 
 

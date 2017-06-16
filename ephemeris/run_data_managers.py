@@ -75,6 +75,7 @@ def run_dm(args):
                     gi.make_get_request(urljoin(gi.url, 'api/tool_data/%s/reload' % data_table))
                     time.sleep(5)
 
+
 def _parser():
     '''returns the parser object.'''
     parent = get_common_args()
@@ -85,9 +86,10 @@ def _parser():
     parser.add_argument("--config", required=True, help="Path to the YAML config file with the list of data managers and data to install.")
     return parser
 
+
 def main():
 
-    parser=_parser()
+    parser = _parser()
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)

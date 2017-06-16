@@ -6,6 +6,7 @@ coverage
 #Building Docs
 sphinx
 sphinx_rtd_theme
+sphinx-argparse==0.1.17
 recommonmark
 
 # Used to check readme.

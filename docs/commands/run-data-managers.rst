@@ -6,7 +6,6 @@ Run-data-managers
 Usage
 ----------
 
-.. Tried to autogenerate this with code below
 .. argparse::
    :module: ephemeris.run_data_managers
    :func: _parser

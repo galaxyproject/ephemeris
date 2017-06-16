@@ -1,5 +1,14 @@
 #!/usr/bin/env python
+'''Run-data-managers is a tool for provisioning data on a galaxy instance.
 
+Run-data-managers has the ability to reload the datatables after a data manager has finished.
+It is therefore able to run multiple data managers that are interdependent.
+When a reference genome is needed for bwa-mem for example, Run-data-managers
+can first run a data manager to fetch the fasta file, reload the data table and run
+another data manager that indexes the fasta file for bwa-mem.
+
+Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
+An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_. '''
 import argparse
 import logging as log
 import re
@@ -67,15 +76,20 @@ def run_dm(args):
                     time.sleep(5)
 
 
-def main():
-
+def _parser():
+    '''returns the parser object.'''
     parent = get_common_args()
 
     parser = argparse.ArgumentParser(
         parents=[parent],
         description='Running Galaxy data managers in a defined order with defined parameters.')
     parser.add_argument("--config", required=True, help="Path to the YAML config file with the list of data managers and data to install.")
+    return parser
 
+
+def main():
+
+    parser = _parser()
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)

@@ -1,0 +1,7 @@
+recommonmark
+sphinx
+sphinx-argparse==0.1.17
+sphinx_rtd_theme
+six>=1.9.0
+pyyaml
+bioblend>=0.8.0

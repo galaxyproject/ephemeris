@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.7.0.dev0
+0.7.0 (2017-06-27)
 ---------------------
 
 * Many new documentation enhancements (thanks to @rhpvorderman, @erasche, and others) -

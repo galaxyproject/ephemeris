@@ -6,10 +6,15 @@ History
 .. to_doc
 
 ---------------------
-0.6.2.dev0
+0.7.0.dev0
 ---------------------
 
-    
+* Many new documentation enhancements (thanks to @rhpvorderman, @erasche, and others) -
+  docs are now published to https://readthedocs.org/projects/ephemeris/.
+* Fix problem with empty list options related to running data managers (thanks to @rhpvorderman).
+* Enable data managers to run with API keys (thanks to @rhpvorderman).
+* Add sleep command to wait for a Galaxy API to become available (thanks to @erasche).
+* Preserve readable order of keys while processing tool lists (thanks to @drosofff).
 
 ---------------------
 0.6.1 (2017-04-17)

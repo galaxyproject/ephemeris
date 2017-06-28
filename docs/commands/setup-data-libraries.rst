@@ -1,5 +1,5 @@
 Setup-data-libraries
-=============
+=====================
 
 .. automodule :: ephemeris.setup_data_libraries
 

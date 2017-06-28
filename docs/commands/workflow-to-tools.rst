@@ -1,5 +1,5 @@
 Workflow-to-tools
-=============
+==================
 
 .. automodule :: ephemeris.generate_tool_list_from_ga_workflow_files
 

@@ -1,12 +1,12 @@
-Shed-install
+Workflow-to-tools
 =============
 
-.. automodule :: ephemeris.shed_install
+.. automodule :: ephemeris.generate_tool_list_from_ga_workflow_files
 
 Usage
 ----------
 
 .. argparse::
-   :module: ephemeris.shed_install
+   :module: ephemeris.generate_tool_list_from_ga_workflow_files
    :func: _parser
-   :prog: shed-install
+   :prog: workflow-to-tools

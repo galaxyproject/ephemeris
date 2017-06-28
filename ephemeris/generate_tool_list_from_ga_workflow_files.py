@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+'''Tool to generate tools from workflows'''
 import json
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
@@ -14,6 +14,10 @@ def _parse_cli_options():
     """
     Parse command line options, returning `parse_args` from `ArgumentParser`.
     """
+    parser = _parser()
+    return parser.parse_args()
+
+def _parser():
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                             usage="python %(prog)s <options>",
                             epilog="Workflow files must have been exported from Galaxy release 16.04 or newer.\n\n"
@@ -35,8 +39,7 @@ def _parse_cli_options():
                         default='Tools from workflows',
                         help='The name of the panel where the tools will show up in Galaxy.'
                              'If not specified: "Tools from workflows"')
-    return parser.parse_args()
-
+    return parser
 
 def get_workflow_dictionary(json_file):
     with open(json_file, "r") as File:

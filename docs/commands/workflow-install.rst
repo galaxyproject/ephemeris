@@ -1,12 +1,12 @@
-Shed-install
+Workflow-install
 =============
 
-.. automodule :: ephemeris.shed_install
+.. automodule :: ephemeris.workflow_install
 
 Usage
 ----------
 
 .. argparse::
-   :module: ephemeris.shed_install
+   :module: ephemeris.workflow_install
    :func: _parser
-   :prog: shed-install
+   :prog: workflow-install

@@ -1,5 +1,5 @@
 Galaxy-wait
-=====
+============
 
 .. automodule :: ephemeris.sleep
 

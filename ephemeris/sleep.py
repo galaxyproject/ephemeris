@@ -18,16 +18,22 @@ import requests
 from .common_parser import get_common_args
 
 
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
+def _parser():
+    '''Constructs the parser object'''
     parent = get_common_args(login_required=False)
     parser = ArgumentParser(parents=[parent], usage="usage: python %(prog)s <options>",
                             description="Script to sleep and wait for Galaxy to be alive.")
     parser.add_argument("--timeout",
                         default=0, type=int,
                         help="Galaxy startup timeout in seconds. The default value of 0 waits forever")
+    return parser
+
+
+def _parse_cli_options():
+    """
+    Parse command line options, returning `parse_args` from `ArgumentParser`.
+    """
+    parser = _parser()
     return parser.parse_args()
 
 

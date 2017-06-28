@@ -1,12 +1,12 @@
-Shed-install
+Setup-data-libraries
 =============
 
-.. automodule :: ephemeris.shed_install
+.. automodule :: ephemeris.setup_data_libraries
 
 Usage
 ----------
 
 .. argparse::
-   :module: ephemeris.shed_install
+   :module: ephemeris.setup_data_libraries
    :func: _parser
-   :prog: shed-install
+   :prog: setup-data-libraries

@@ -1,15 +1,15 @@
-Sleep
+Galaxy-wait
 =====
 
-.. automodule :: ephemeris.get_tool_list_from_galaxy
+.. automodule :: ephemeris.sleep
 
 Usage
 ----------
 
 .. argparse::
-   :module: ephemeris.get_tool_list_from_galaxy
+   :module: ephemeris.sleep
    :func: _parser
-   :prog: get-tool-list
+   :prog: galaxy-wait
 
 
 Galaxy URL

@@ -2,6 +2,8 @@ Get-tool-list
 =============
 
 .. automodule :: ephemeris.get_tool_list_from_galaxy
+
+Usage
 ----------
 
 .. argparse::

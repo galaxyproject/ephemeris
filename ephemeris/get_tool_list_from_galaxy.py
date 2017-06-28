@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+'''Tool to extract a tool list from galaxy.'''
 import json
 
 from argparse import ArgumentDefaultsHelpFormatter
@@ -109,11 +109,8 @@ class GiToToolYaml:
         with open(self.output_file, "w") as output:
             output.write(yaml.safe_dump(tool_dict, default_flow_style=False))
 
-
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
+def _parser():
+    '''Creates the parser object.'''
     parent = get_common_args(login_required=False)
     parser = ArgumentParser(parents=[parent],
                             usage="usage: python %(prog)s <options>",
@@ -138,6 +135,12 @@ def _parse_cli_options():
                              "Use this if you would like to use the list to update all the tools in"
                              "your galaxy instance using shed-install."
                         )
+    return parser
+def _parse_cli_options():
+    """
+    Parse command line options, returning `parse_args` from `ArgumentParser`.
+    """
+    parser = _parser()
     return parser.parse_args()
 
 

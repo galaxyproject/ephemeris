@@ -1,12 +1,10 @@
-Shed-install
+Get-tool-list
 =============
 
-.. automodule :: ephemeris.shed_install
-
-Usage
+.. automodule :: ephemeris.get_tool_list_from_galaxy
 ----------
 
 .. argparse::
-   :module: ephemeris.shed_install
+   :module: ephemeris.get_tool_list_from_galaxy
    :func: _parser
-   :prog: shed-install
+   :prog: get-tool-list

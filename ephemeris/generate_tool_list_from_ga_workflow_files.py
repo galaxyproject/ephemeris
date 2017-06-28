@@ -17,6 +17,7 @@ def _parse_cli_options():
     parser = _parser()
     return parser.parse_args()
 
+
 def _parser():
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
                             usage="python %(prog)s <options>",
@@ -40,6 +41,7 @@ def _parser():
                         help='The name of the panel where the tools will show up in Galaxy.'
                              'If not specified: "Tools from workflows"')
     return parser
+
 
 def get_workflow_dictionary(json_file):
     with open(json_file, "r") as File:

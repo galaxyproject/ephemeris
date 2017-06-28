@@ -64,7 +64,6 @@ def _parser():
         parents=[parent],
         description='Populate the Galaxy data library with test data.'
     )
-
     parser.add_argument('-i', '--infile', required=True, type=argparse.FileType('r'))
     return parser
 

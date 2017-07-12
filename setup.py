@@ -42,6 +42,7 @@ ENTRY_POINTS = '''
         workflow-to-tools=ephemeris.generate_tool_list_from_ga_workflow_files:main
         setup-data-libraries=ephemeris.setup_data_libraries:main
         galaxy-wait=ephemeris.sleep:main
+        check_galaxy_config=ephemeris.check_galaxy_config:main
 '''
 PACKAGE_DATA = {
     # Be sure to update MANIFEST.in for source dist.

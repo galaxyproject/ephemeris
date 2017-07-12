@@ -2,7 +2,7 @@
 Contributing
 ============
 
-Please note that this project is released with a `Contributor Code of Conduct 
+Please note that this project is released with a `Contributor Code of Conduct
 <https://ephemeris.readthedocs.org/en/latest/conduct.html>`__. By participating
 in this project you agree to abide by its terms.
 
@@ -21,7 +21,7 @@ Report bugs at https://github.com/galaxyproject/ephemeris/issues.
 
 If you are reporting a bug, please include:
 
-* Your operating system name and version, versions of other relevant software 
+* Your operating system name and version, versions of other relevant software
   such as Galaxy.
 * Any details about your local setup that might be helpful in troubleshooting.
 * Detailed steps to reproduce the bug.
@@ -44,6 +44,28 @@ Write Documentation
 Ephemeris could always use more documentation, whether as part of the
 official Ephemeris docs, in docstrings, or even on the web in blog posts,
 articles, and such.
+
+User documentation
++++++++++++++++++++
+User documentation is (partly) automated to contain the first docstring in a
+module and the usage based on the parser object.
+
+If you want to contribute to the user documentation you can edit the docstring or the parser module
+or write more information in the commands .rst file. (See galaxy-wait for an example.)
+
+When you add a new command line tool in ephemeris you can add documentation as follows:
+
+1. Go to the source file and:
+
+  * Add a docstring that gives general information about the module. (Examples in shed-install and run-data-managers)
+  * Create a new _parser() method that returns the argument parser.
+
+2. Create a new rst file using shed-install.rst or run-data-managers.rst as a template.
+3. Reference the new rst file in commands.rst
+
+To build your documentation to check out how it works before submitting the pull request:
+1. Install sphinx in a virtual environment by running `pip install -r docs/requirements.txt` from ephemeris root
+2. go to the docs directory and run `make html`
 
 Submit Feedback
 ~~~~~~~~~~~~~~~
@@ -79,11 +101,11 @@ Ready to contribute? Here's how to set up `ephemeris` for local development.
 
 5. When you're done making changes, check that your changes pass ``flake8``
    and the tests
-   
+
    ::
 
        $ make lint
-   
+
 6. Commit your changes and push your branch to GitHub::
 
     $ git add .

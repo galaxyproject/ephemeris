@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+'''Tool to install workflows on a Galaxy instance.'''
 import argparse
 import json
 import os
@@ -20,17 +21,20 @@ def import_workflow(gi, path):
         gi.workflows.import_workflow_from_local_path(path)
 
 
-def main():
-    """
-        This script uses bioblend to import .ga workflow files into a running instance of Galaxy
-    """
+def _parser():
     parent = get_common_args()
     parser = argparse.ArgumentParser(parents=[parent])
     parser.add_argument("-w", "--workflow_path",
                         required=True,
                         help='Path to a workflow file or a directory with multiple workflow files ending with ".ga"')
+    return parser
 
-    args = parser.parse_args()
+
+def main():
+    """
+        This script uses bioblend to import .ga workflow files into a running instance of Galaxy
+    """
+    args = _parser().parse_args()
     gi = get_galaxy_connection(args)
 
     if os.path.isdir(args.workflow_path):

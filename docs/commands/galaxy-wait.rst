@@ -1,14 +1,16 @@
-Sleep
-=====
+Galaxy-wait
+============
 
-Utility to do a blocking sleep until a Galaxy instance is responsive.
-This is useful in docker images, in RUN steps, where one needs to wait
-for a currently starting Galaxy to be alive, before API requests can be
-made successfully.
+.. automodule :: ephemeris.sleep
 
-The script functions by making repeated requests to
-``http(s)://fqdn/api/version``, an API which requires no authentication
-to access.
+Usage
+----------
+
+.. argparse::
+   :module: ephemeris.sleep
+   :func: _parser
+   :prog: galaxy-wait
+
 
 Galaxy URL
 ----------

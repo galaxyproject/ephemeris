@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+'''Tool to setup data libraries on a galaxy instance'''
 import argparse
 import logging as log
 import sys
@@ -57,17 +57,19 @@ def setup_data_libraries(gi, data):
         log.info("Finished importing test data.")
 
 
-def main():
-
+def _parser():
+    '''Constructs the parser object'''
     parent = get_common_args()
     parser = argparse.ArgumentParser(
         parents=[parent],
         description='Populate the Galaxy data library with test data.'
     )
-
     parser.add_argument('-i', '--infile', required=True, type=argparse.FileType('r'))
-    args = parser.parse_args()
+    return parser
 
+
+def main():
+    args = _parser().parse_args()
     if args.user and args.password:
         gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
     elif args.api_key:

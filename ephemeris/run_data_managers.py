@@ -20,6 +20,7 @@ except ImportError:
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
+from bioblend.galaxy.tool_data import ToolDataClient
 
 from .common_parser import get_common_args
 
@@ -51,6 +52,8 @@ def run_dm(args):
     genomes = gi.genomes.get_genomes()
     log.info('Number of installed genomes: %s' % str(len(genomes)))
 
+    tool_data_client = ToolDataClient(gi)
+
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):
         for item in dm.get('items', ['']):
@@ -72,7 +75,7 @@ def run_dm(args):
             for data_table in dm.get('data_table_reload', []):
                 # reload two times
                 for i in range(2):
-                    gi.make_get_request(urljoin(gi.url, 'api/tool_data/%s/reload' % data_table))
+                    tool_data_client.reload_data_table(str(data_table))
                     time.sleep(5)
 
 

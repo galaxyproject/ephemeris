@@ -54,6 +54,16 @@ def run_dm(args):
 
     tool_data_client = ToolDataClient(gi)
 
+    # Value shared among all tables
+
+    #for data_table in tdc.get_data_tables():
+    #    data_table_content = tdc.show_data_table(data_table.get('name'))
+    #    print data_table.get('name')
+    #    columns = data_table_content.get('columns')
+    #    print columns.index('value')
+    #    for field in data_table_content.get('fields',[]):
+    #        print field[index]
+
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):
         for item in dm.get('items', ['']):
@@ -67,6 +77,12 @@ def run_dm(args):
                 key, value = param.items()[0]
                 value = re.sub(r'{{\s*item\s*}}', item, value, flags=re.IGNORECASE)
                 inputs.update({key: value})
+            for data_table in dm.get('data_table_reload', []):
+                data_table_content = tool_data_client.show_data_table(data_table)
+                columns=data_table_content.get('columns',[])
+                if columns.__contains__('value'):
+                    value_index=columns.index('value')
+                    for field in data_table_content.get('fields',[]):
 
             # run the DM-job
             job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)

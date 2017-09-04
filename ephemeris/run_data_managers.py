@@ -40,6 +40,22 @@ def wait(gi, job):
         log.info('Data manager still running.')
         time.sleep(30)
 
+def check_data_table_entry_exists(tool_data_client, data_table_name, value):
+    '''Checks whether an entry exists in the 'value' column in the data_table.'''
+    try:
+        data_table_content = tool_data_client.show_data_table(data_table_name)
+    except:
+        raise Exception('Table %s does not exist' % (data_table_name))
+
+    try:
+        value_index = data_table_content.get('columns').index('value')
+    except:
+        raise Exception('Value does not exist in data table')
+
+    for field in data_table_content.get('fields'):
+        if field[value_index] == value:
+            return True
+    return False
 
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
@@ -49,20 +65,10 @@ def run_dm(args):
         gi = GalaxyInstance(url=url, email=args.user, password=args.password)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
-    genomes = gi.genomes.get_genomes()
-    log.info('Number of installed genomes: %s' % str(len(genomes)))
+    genomes = gi.genomes.get_genomes() # Does not get genomes but preconfigured dbkeys
+    log.info('Number of possible dbkeys: %s' % str(len(genomes)))
 
     tool_data_client = ToolDataClient(gi)
-
-    # Value shared among all tables
-
-    #for data_table in tdc.get_data_tables():
-    #    data_table_content = tdc.show_data_table(data_table.get('name'))
-    #    print data_table.get('name')
-    #    columns = data_table_content.get('columns')
-    #    print columns.index('value')
-    #    for field in data_table_content.get('fields',[]):
-    #        print field[index]
 
     conf = yaml.load(open(args.config))
     for dm in conf.get('data_managers'):
@@ -77,22 +83,29 @@ def run_dm(args):
                 key, value = param.items()[0]
                 value = re.sub(r'{{\s*item\s*}}', item, value, flags=re.IGNORECASE)
                 inputs.update({key: value})
-            for data_table in dm.get('data_table_reload', []):
-                data_table_content = tool_data_client.show_data_table(data_table)
-                columns=data_table_content.get('columns',[])
-                if columns.__contains__('value'):
-                    value_index=columns.index('value')
-                    for field in data_table_content.get('fields',[]):
 
-            # run the DM-job
-            job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-            wait(gi, job)
-            log.info('Reloading data managers table.')
+            # Check if already present in the data table.
+            item_present_in_data_table = False
             for data_table in dm.get('data_table_reload', []):
-                # reload two times
-                for i in range(2):
-                    tool_data_client.reload_data_table(str(data_table))
-                    time.sleep(5)
+                # Extremely ugly hack to check all input values. Is there a better way to do this?
+                # sequence_id input parameter perhaps?
+
+                for input_value in inputs.values():
+                    if not check_data_table_entry_exists(tool_data_client,data_table,input_value):
+                        item_present_in_data_table = False
+                        break # If multiple data_tables are specified, the data manager will always run if on of the tables is not populated with the value.
+                    else:
+                        item_present_in_data_table = True
+
+            if not item_present_in_data_table:
+                job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
+                wait(gi, job)
+                log.info('Reloading data managers table.')
+                for data_table in dm.get('data_table_reload', []):
+                    # reload two times
+                    for i in range(2):
+                        tool_data_client.reload_data_table(str(data_table))
+                        time.sleep(5)
 
 
 def _parser():

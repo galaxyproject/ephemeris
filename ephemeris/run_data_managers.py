@@ -40,15 +40,17 @@ def wait(gi, job):
         log.info('Data manager still running.')
         time.sleep(30)
 
-def parse_items(items,genomes):
+
+def parse_items(items, genomes):
     if bool(genomes):
-        items_template=Template(json.dumps(items))
+        items_template = Template(json.dumps(items))
         rendered_items = items_template.render(genomes=json.dumps(genomes))
-        #Remove trailing " if present
+        # Remove trailing " if present
         if rendered_items.startswith('"') and rendered_items.endswith('"'):
-           rendered_items = rendered_items[1:-1]
-        items=json.loads(rendered_items)
+            rendered_items = rendered_items[1:-1]
+        items = json.loads(rendered_items)
     return items
+
 
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
@@ -62,9 +64,9 @@ def run_dm(args):
     log.info('Number of installed genomes: %s' % str(len(genomes)))
 
     conf = yaml.load(open(args.config))
-    genomes=conf.get('genomes','')
+    genomes = conf.get('genomes', '')
     for dm in conf.get('data_managers'):
-        items=parse_items(dm.get('items', ['']),genomes)
+        items = parse_items(dm.get('items', ['']), genomes)
         for item in items:
             dm_id = dm['id']
             params = dm['params']

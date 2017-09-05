@@ -125,7 +125,7 @@ def run_dm(args):
 
             data_tables = dm.get('data_table_reload', [])
             # Only run if not run before.
-            if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs):
+            if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
                 log.info('%s already run for %s' % (dm_id, str(inputs)))
             else:
                 # run the DM-job
@@ -148,6 +148,8 @@ def _parser():
         description='Running Galaxy data managers in a defined order with defined parameters.')
     parser.add_argument("--config", required=True,
                         help="Path to the YAML config file with the list of data managers and data to install.")
+    parser.add_argument("--overwrite", action="store_true",
+                        help="Disables checking whether the item already exists in the tool data table.")
     return parser
 
 

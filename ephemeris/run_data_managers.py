@@ -40,22 +40,40 @@ def wait(gi, job):
         log.info('Data manager still running.')
         time.sleep(30)
 
-def check_data_table_entry_exists(tool_data_client, data_table_name, value):
-    '''Checks whether an entry exists in the 'value' column in the data_table.'''
+def check_data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
+    '''Checks whether an entry exists in the a specified column in the data_table.'''
     try:
         data_table_content = tool_data_client.show_data_table(data_table_name)
     except:
-        raise Exception('Table %s does not exist' % (data_table_name))
+        raise Exception('Table "%s" does not exist' % (data_table_name))
 
     try:
-        value_index = data_table_content.get('columns').index('value')
+        column_index = data_table_content.get('columns').index(column)
     except:
-        raise Exception('Value does not exist in data table')
+        raise Exception('Column "%s" does not exist in %s' % (column,data_table_name))
 
     for field in data_table_content.get('fields'):
-        if field[value_index] == value:
+        if field[column_index] == entry:
             return True
     return False
+
+def get_name_from_inputs(input_dict):
+    '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns None'''
+    possible_keys=['name','sequence_name'] # In order of importance!
+    for key in possible_keys:
+        if bool(input_dict.get(key)):
+            return input_dict.get(key)
+    return None
+
+def get_value_from_inputs(input_dict):
+    '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns None'''
+    possible_keys=['value','sequence_id','dbkey'] # In order of importance!
+    for key in possible_keys:
+        if bool(input_dict.get(key)):
+            return input_dict.get(key)
+    return None
+
+
 
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
@@ -86,6 +104,14 @@ def run_dm(args):
 
             # Check if already present in the data table.
             item_present_in_data_table = False
+            value_entry = get_value_from_inputs(inputs)
+            name_entry = get_name_from_inputs(inputs)
+            if bool(value_entry):
+                item_present_in_data_table = check_data_table_entry_exists(tool_data_client, data_table, value_entry,column='value')
+            if bool(name_entry):
+                item_present_in_data_table = check_data_table_entry_exists(tool_data_client, data_table, name_entry, column='name')
+
+
             for data_table in dm.get('data_table_reload', []):
                 # Extremely ugly hack to check all input values. Is there a better way to do this?
                 # sequence_id input parameter perhaps?

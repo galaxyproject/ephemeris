@@ -10,6 +10,7 @@ another data manager that indexes the fasta file for bwa-mem.
 Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
 An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_. '''
 import argparse
+import json
 import logging as log
 import time
 try:
@@ -39,6 +40,15 @@ def wait(gi, job):
         log.info('Data manager still running.')
         time.sleep(30)
 
+def parse_items(items,genomes):
+    if bool(genomes):
+        items_template=Template(json.dumps(items))
+        rendered_items = items_template.render(genomes=json.dumps(genomes))
+        #Remove trailing " if present
+        if rendered_items.startswith('"') and rendered_items.endswith('"'):
+           rendered_items = rendered_items[1:-1]
+        items=json.loads(rendered_items)
+    return items
 
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
@@ -52,8 +62,10 @@ def run_dm(args):
     log.info('Number of installed genomes: %s' % str(len(genomes)))
 
     conf = yaml.load(open(args.config))
+    genomes=conf.get('genomes','')
     for dm in conf.get('data_managers'):
-        for item in dm.get('items', ['']):
+        items=parse_items(dm.get('items', ['']),genomes)
+        for item in items:
             dm_id = dm['id']
             params = dm['params']
             inputs = dict()

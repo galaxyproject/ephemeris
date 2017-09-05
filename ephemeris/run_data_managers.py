@@ -26,8 +26,9 @@ import time
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
-from jinja2 import Template
 from bioblend.galaxy.tool_data import ToolDataClient
+from jinja2 import Template
+
 
 from .common_parser import get_common_args
 

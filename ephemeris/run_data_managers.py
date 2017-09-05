@@ -20,15 +20,17 @@ It checks it in the following way:
 * If none of the above input variables are specified the data manager will always run.
 '''
 import argparse
+import json
 import logging as log
-import re
 import time
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
+from jinja2 import Template
 from bioblend.galaxy.tool_data import ToolDataClient
 
 from .common_parser import get_common_args
+
 
 DEFAULT_URL = "http://localhost"
 
@@ -106,6 +108,17 @@ def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict
     return True
 
 
+def parse_items(items, genomes):
+    if bool(genomes):
+        items_template = Template(json.dumps(items))
+        rendered_items = items_template.render(genomes=json.dumps(genomes))
+        # Remove trailing " if present
+        if rendered_items.startswith('"') and rendered_items.endswith('"'):
+            rendered_items = rendered_items[1:-1]
+        items = json.loads(rendered_items)
+    return items
+
+
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
     if args.api_key:
@@ -120,17 +133,19 @@ def run_dm(args):
     tool_data_client = ToolDataClient(gi)
 
     conf = yaml.load(open(args.config))
+    genomes = conf.get('genomes', '')
     for dm in conf.get('data_managers'):
-        for item in dm.get('items', ['']):
+        items = parse_items(dm.get('items', ['']), genomes)
+        for item in items:
             dm_id = dm['id']
             params = dm['params']
-            log.info('Running DM: %s' % dm_id)
             inputs = dict()
             # Iterate over all parameters, replace occurences of {{item}} with the current processing item
             # and create the tool_inputs dict for running the data manager job
             for param in params:
                 key, value = param.items()[0]
-                value = re.sub(r'{{\s*item\s*}}', item, value, flags=re.IGNORECASE)
+                value_template = Template(value)
+                value = value_template.render(item=item)
                 inputs.update({key: value})
 
             data_tables = dm.get('data_table_reload', [])
@@ -138,6 +153,7 @@ def run_dm(args):
             if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
                 log.info('%s already run for %s' % (dm_id, str(inputs)))
             else:
+                log.info('Running DM: "%s" with parameters: %s' % (dm_id, str(inputs)))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 wait(gi, job)

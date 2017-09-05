@@ -129,18 +129,19 @@ def run_dm(args):
                 inputs.update({key: value})
 
             data_tables = dm.get('data_table_reload', [])
+            # Only run if not run before.
             if input_entries_exist_in_data_tables(tool_data_client, data_tables,inputs):
-                log.info('Running DM: %s' % dm_id)
-
-            # run the DM-job
-            job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-            wait(gi, job)
-            log.info('Reloading data managers table.')
-            for data_table in data_tables:
-                # reload two times
-                for i in range(2):
-                    gi.make_get_request(urljoin(gi.url, 'api/tool_data/%s/reload' % data_table))
-                    time.sleep(5)
+                log.info('%s already run for %s' % (dm_id,str(inputs)))
+            else:
+                # run the DM-job
+                job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
+                wait(gi, job)
+                log.info('Reloading data managers table.')
+                for data_table in data_tables:
+                    # reload two times
+                    for i in range(2):
+                        tool_data_client.reload_data_table(str(data_table))
+                        time.sleep(5)
 
 
 def _parser():

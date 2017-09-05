@@ -13,6 +13,7 @@ import argparse
 import logging as log
 import re
 import time
+
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -40,7 +41,8 @@ def wait(gi, job):
         log.info('Data manager still running.')
         time.sleep(30)
 
-def check_data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
+
+def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
     '''Checks whether an entry exists in the a specified column in the data_table.'''
     try:
         data_table_content = tool_data_client.show_data_table(data_table_name)
@@ -50,29 +52,53 @@ def check_data_table_entry_exists(tool_data_client, data_table_name, entry, colu
     try:
         column_index = data_table_content.get('columns').index(column)
     except:
-        raise Exception('Column "%s" does not exist in %s' % (column,data_table_name))
+        raise Exception('Column "%s" does not exist in %s' % (column, data_table_name))
 
     for field in data_table_content.get('fields'):
         if field[column_index] == entry:
             return True
     return False
 
+
 def get_name_from_inputs(input_dict):
     '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns None'''
-    possible_keys=['name','sequence_name'] # In order of importance!
+    possible_keys = ['name', 'sequence_name']  # In order of importance!
     for key in possible_keys:
         if bool(input_dict.get(key)):
             return input_dict.get(key)
     return None
+
 
 def get_value_from_inputs(input_dict):
     '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns None'''
-    possible_keys=['value','sequence_id','dbkey'] # In order of importance!
+    possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
     for key in possible_keys:
         if bool(input_dict.get(key)):
             return input_dict.get(key)
     return None
 
+
+def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict):
+    '''Checks whether name and value entries from the input are already present in the data tables.
+    If an entry is missing in of the tables, this function returns False'''
+    value_entry = get_value_from_inputs(input_dict)
+    name_entry = get_name_from_inputs(input_dict)
+
+    # Return False if name and value entries are both none
+    if not bool(value_entry) and not bool(name_entry):
+        return False
+
+    # Check every data table for existance of name and value
+    # Return False as soon as entry is not present
+    for data_table in data_tables:
+        if bool(value_entry):
+            if not data_table_entry_exists(tool_data_client, data_table, value_entry, column='value'):
+                return False
+        if bool(name_entry):
+            if not data_table_entry_exists(tool_data_client, data_table, name_entry, column='name'):
+                return False
+    # If all checks are passed the entries are present in the database tables.
+    return True
 
 
 def run_dm(args):
@@ -83,7 +109,7 @@ def run_dm(args):
         gi = GalaxyInstance(url=url, email=args.user, password=args.password)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
-    genomes = gi.genomes.get_genomes() # Does not get genomes but preconfigured dbkeys
+    genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
     log.info('Number of possible dbkeys: %s' % str(len(genomes)))
 
     tool_data_client = ToolDataClient(gi)
@@ -102,36 +128,19 @@ def run_dm(args):
                 value = re.sub(r'{{\s*item\s*}}', item, value, flags=re.IGNORECASE)
                 inputs.update({key: value})
 
-            # Check if already present in the data table.
-            item_present_in_data_table = False
-            value_entry = get_value_from_inputs(inputs)
-            name_entry = get_name_from_inputs(inputs)
-            if bool(value_entry):
-                item_present_in_data_table = check_data_table_entry_exists(tool_data_client, data_table, value_entry,column='value')
-            if bool(name_entry):
-                item_present_in_data_table = check_data_table_entry_exists(tool_data_client, data_table, name_entry, column='name')
+            data_tables = dm.get('data_table_reload', [])
+            if input_entries_exist_in_data_tables(tool_data_client, data_tables,inputs):
+                log.info('Running DM: %s' % dm_id)
 
-
-            for data_table in dm.get('data_table_reload', []):
-                # Extremely ugly hack to check all input values. Is there a better way to do this?
-                # sequence_id input parameter perhaps?
-
-                for input_value in inputs.values():
-                    if not check_data_table_entry_exists(tool_data_client,data_table,input_value):
-                        item_present_in_data_table = False
-                        break # If multiple data_tables are specified, the data manager will always run if on of the tables is not populated with the value.
-                    else:
-                        item_present_in_data_table = True
-
-            if not item_present_in_data_table:
-                job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                wait(gi, job)
-                log.info('Reloading data managers table.')
-                for data_table in dm.get('data_table_reload', []):
-                    # reload two times
-                    for i in range(2):
-                        tool_data_client.reload_data_table(str(data_table))
-                        time.sleep(5)
+            # run the DM-job
+            job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
+            wait(gi, job)
+            log.info('Reloading data managers table.')
+            for data_table in data_tables:
+                # reload two times
+                for i in range(2):
+                    gi.make_get_request(urljoin(gi.url, 'api/tool_data/%s/reload' % data_table))
+                    time.sleep(5)
 
 
 def _parser():
@@ -141,12 +150,12 @@ def _parser():
     parser = argparse.ArgumentParser(
         parents=[parent],
         description='Running Galaxy data managers in a defined order with defined parameters.')
-    parser.add_argument("--config", required=True, help="Path to the YAML config file with the list of data managers and data to install.")
+    parser.add_argument("--config", required=True,
+                        help="Path to the YAML config file with the list of data managers and data to install.")
     return parser
 
 
 def main():
-
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:

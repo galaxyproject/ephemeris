@@ -14,11 +14,6 @@ import logging as log
 import re
 import time
 
-try:
-    from urllib.parse import urljoin
-except ImportError:
-    from urlparse import urljoin
-
 import yaml
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
@@ -130,8 +125,8 @@ def run_dm(args):
 
             data_tables = dm.get('data_table_reload', [])
             # Only run if not run before.
-            if input_entries_exist_in_data_tables(tool_data_client, data_tables,inputs):
-                log.info('%s already run for %s' % (dm_id,str(inputs)))
+            if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs):
+                log.info('%s already run for %s' % (dm_id, str(inputs)))
             else:
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)

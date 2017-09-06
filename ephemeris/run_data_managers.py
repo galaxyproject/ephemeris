@@ -10,8 +10,8 @@ another data manager that indexes the fasta file for bwa-mem.
 Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
 An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_. '''
 import argparse
+import json
 import logging as log
-import re
 import time
 try:
     from urllib.parse import urljoin
@@ -20,8 +20,9 @@ except ImportError:
 
 import yaml
 from bioblend.galaxy import GalaxyInstance
-
+from jinja2 import Template
 from .common_parser import get_common_args
+
 
 DEFAULT_URL = "http://localhost"
 
@@ -40,6 +41,17 @@ def wait(gi, job):
         time.sleep(30)
 
 
+def parse_items(items, genomes):
+    if bool(genomes):
+        items_template = Template(json.dumps(items))
+        rendered_items = items_template.render(genomes=json.dumps(genomes))
+        # Remove trailing " if present
+        if rendered_items.startswith('"') and rendered_items.endswith('"'):
+            rendered_items = rendered_items[1:-1]
+        items = json.loads(rendered_items)
+    return items
+
+
 def run_dm(args):
     url = args.galaxy or DEFAULT_URL
     if args.api_key:
@@ -52,19 +64,21 @@ def run_dm(args):
     log.info('Number of installed genomes: %s' % str(len(genomes)))
 
     conf = yaml.load(open(args.config))
+    genomes = conf.get('genomes', '')
     for dm in conf.get('data_managers'):
-        for item in dm.get('items', ['']):
+        items = parse_items(dm.get('items', ['']), genomes)
+        for item in items:
             dm_id = dm['id']
             params = dm['params']
-            log.info('Running DM: %s' % dm_id)
             inputs = dict()
             # Iterate over all parameters, replace occurences of {{item}} with the current processing item
             # and create the tool_inputs dict for running the data manager job
             for param in params:
                 key, value = param.items()[0]
-                value = re.sub(r'{{\s*item\s*}}', item, value, flags=re.IGNORECASE)
+                value_template = Template(value)
+                value = value_template.render(item=item)
                 inputs.update({key: value})
-
+            log.info('Running DM: "%s" with parameters: %s' % (dm_id, str(inputs)))
             # run the DM-job
             job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
             wait(gi, job)

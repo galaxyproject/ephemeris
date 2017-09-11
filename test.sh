@@ -24,4 +24,4 @@ echo "Check tool installation from workflow"
 shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:8080
 shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:8080
 echo "Check installation of reference genomes"
-run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test
+run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v

@@ -4,6 +4,13 @@ genomes:
     - id: NC_001617.1
       name: RhinoVirus A (NC_001617.1)
       source: 'ncbi'
+    # Same key again two times to check if check for not installing twice works.
+    - id: NC_001617.1
+      name: RhinoVirus A (NC_001617.1)
+      source: 'ncbi'
+    - id: NC_001617.1
+      name: RhinoVirus A (NC_001617.1)
+      source: 'ncbi'
 
 data_managers:
     - id: toolshed.g2.bx.psu.edu/repos/devteam/data_manager_fetch_genome_dbkeys_all_fasta/data_manager_fetch_genome_all_fasta_dbkey/0.0.2

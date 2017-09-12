@@ -25,11 +25,12 @@ shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:8080
 shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:8080
 echo "Check installation of reference genomes"
 run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test
+sleep 30
 echo "Check if installation is skipped when reference genomes are already installed."
 run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v >> data_manager_output.txt 2>&1
 # Check if already installed was thrown
 echo $(cat data_manager_output.txt | grep -i "already run for")
-data_manager_already_installed = $(cat data_manager_output.txt | grep -i "already run for" -c)
+data_manager_already_installed=$(cat data_manager_output.txt | grep -i "already run for" -c)
 if [ $data_manager_already_installed -ne 2 ]
     then
         echo "ERROR: Not all already installed genomes were skipped"

@@ -28,6 +28,7 @@ run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --co
 echo "Check if installation is skipped when reference genomes are already installed."
 run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v >> data_manager_output.txt
 # Check if already installed was thrown
+echo $(cat data_manager_output.txt | grep -i "already run for")
 data_manager_already_installed = $(cat data_manager_output.txt | grep -i "already run for" | wc -l)
 if [ $data_manager_already_installed -ne 2 ]
     then

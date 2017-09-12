@@ -23,7 +23,7 @@ install:
     - git config --global user.name "Travis Test User"
     - git config --global user.email "galaxy_test@galaxyproject.org"
     - pip install tox coveralls
-    - docker run -d -p 8080:80 bgruening/galaxy-stable
+    - docker run -d -p 8080:80 bgruening/galaxy-stable -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True
     - sleep 120
     - docker ps
     - python setup.py install

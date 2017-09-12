@@ -69,21 +69,21 @@ def data_table_entry_exists(tool_data_client, data_table_name, entry, column='va
 
 
 def get_name_from_inputs(input_dict):
-    '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns None'''
+    '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns False'''
     possible_keys = ['name', 'sequence_name']  # In order of importance!
     for key in possible_keys:
-        if bool(input_dict.get(key)):
+        if key in input_dict.keys():
             return input_dict.get(key)
-    return None
+    return False
 
 
 def get_value_from_inputs(input_dict):
-    '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns None'''
+    '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns False'''
     possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
     for key in possible_keys:
-        if bool(input_dict.get(key)):
+        if key in input_dict.keys():
             return input_dict.get(key)
-    return None
+    return False
 
 
 def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict):
@@ -92,17 +92,17 @@ def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict
     value_entry = get_value_from_inputs(input_dict)
     name_entry = get_name_from_inputs(input_dict)
 
-    # Return False if name and value entries are both none
-    if not bool(value_entry) and not bool(name_entry):
+    # Return False if name and value entries are both False
+    if not value_entry and not name_entry:
         return False
 
     # Check every data table for existance of name and value
     # Return False as soon as entry is not present
     for data_table in data_tables:
-        if bool(value_entry):
+        if value_entry:
             if not data_table_entry_exists(tool_data_client, data_table, value_entry, column='value'):
                 return False
-        if bool(name_entry):
+        if name_entry:
             if not data_table_entry_exists(tool_data_client, data_table, name_entry, column='name'):
                 return False
     # If all checks are passed the entries are present in the database tables.
@@ -114,8 +114,7 @@ def parse_items(items, genomes):
         items_template = Template(json.dumps(items))
         rendered_items = items_template.render(genomes=json.dumps(genomes))
         # Remove trailing " if present
-        if rendered_items.startswith('"') and rendered_items.endswith('"'):
-            rendered_items = rendered_items[1:-1]
+        rendered_items = rendered_items.strip('"')
         items = json.loads(rendered_items)
     return items
 
@@ -152,9 +151,9 @@ def run_dm(args):
             data_tables = dm.get('data_table_reload', [])
             # Only run if not run before.
             if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
-                log.info('%s already run for %s' % (dm_id, str(inputs)))
+                log.info('%s already run for %s' % (dm_id, inputs))
             else:
-                log.info('Running DM: "%s" with parameters: %s' % (dm_id, str(inputs)))
+                log.info('Running DM: "%s" with parameters: %s' % (dm_id, inputs))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 wait(gi, job)

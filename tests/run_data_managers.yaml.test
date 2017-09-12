@@ -15,7 +15,7 @@ data_managers:
         - 'sequence_id': '{{ item.id }}'
         - 'reference_source|reference_source_selector': 'ncbi'
         - 'reference_source|requested_identifier': '{{ item.accession }}'
-      items: "{{ genomes}}"
+      items: "{{ genomes }}"
       data_table_reload:
         - all_fasta
         - __dbkeys__

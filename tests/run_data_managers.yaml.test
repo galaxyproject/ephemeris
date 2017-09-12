@@ -1,6 +1,5 @@
 # Sample file for testing run-data-managers
 genomes:
-  viruses:
     - id: NC_001617.1
       name: RhinoVirus A (NC_001617.1)
       source: 'ncbi'
@@ -11,7 +10,7 @@ data_managers:
         - 'dbkey_source|dbkey': '{{ item.id }}'
         - 'reference_source|reference_source_selector': '{{item.source}}'
         - 'reference_source|requested_dbkey': '{{ item.id }}'
-      items: "{{ genomes.viruses }}"
+      items: "{{ genomes }}"
       data_table_reload:
         - all_fasta
         - __dbkeys__
@@ -21,6 +20,6 @@ data_managers:
         - 'all_fasta_source': '{{ item.id }}'
         - 'sequence_name': '{{ item.name }}'
         - 'sequence_id': '{{ item.id }}'
-      items: "{{ genomes.viruses }}"
+      items: "{{ genomes }}"
       data_table_reload:
         - fasta_indexes

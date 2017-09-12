@@ -18,9 +18,6 @@ data_managers:
         - 'reference_source|requested_dbkey': '{{ item.id }}'
       # Items can be set to "{{ genomes }}" which removes a lot of copy paste clutter.
       # Warning: this is not Ansible. Other values than "genomes" will not work!
-      # If you want to go even more advanced:
-      # you could set up genomes as a dictionary, with keys having lists as values
-      # and call those lists as "{{ genomes.proteomes }}" or "{{ genomes.dna }}" for example.
       items: "{{ genomes }}"
       # Name of the data-tables you want to reload after your DM are finished. This can be important for subsequent data managers
       data_table_reload:

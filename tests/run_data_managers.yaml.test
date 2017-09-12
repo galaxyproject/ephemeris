@@ -2,14 +2,14 @@
 genomes:
     - id: NC_001617.1
       name: RhinoVirus A (NC_001617.1)
-      source: 'ncbi'
+
 
 data_managers:
     - id: toolshed.g2.bx.psu.edu/repos/devteam/data_manager_fetch_genome_dbkeys_all_fasta/data_manager_fetch_genome_all_fasta_dbkey/0.0.2
       params:
         - 'dbkey_source|dbkey': '{{ item.id }}'
-        - 'reference_source|reference_source_selector': '{{item.source}}'
-        - 'reference_source|requested_dbkey': '{{ item.id }}'
+        - 'reference_source|reference_source_selector': 'ncbi'
+        - 'reference_source|requested_identifier': '{{ item.id }}'
       items: "{{ genomes }}"
       data_table_reload:
         - all_fasta

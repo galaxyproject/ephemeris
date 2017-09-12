@@ -11,6 +11,8 @@ get-tool-list --help
 echo "Check tool installation"
 shed-install -t tests/tool_list.yaml.sample -a admin -g http://localhost:8080
 shed-install -t tests/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:8080
+#We restart galaxy because otherwise the data manager tables won't be watched
+docker exec galaxy_container supervisorctl restart galaxy: && sleep 30s
 echo "Check workflow installation"
 workflow-install --user admin@galaxy.org -p admin -g http://localhost:8080 -w tests/test_workflow.ga
 workflow-install -a admin -g http://localhost:8080 -w tests/test_workflow.ga

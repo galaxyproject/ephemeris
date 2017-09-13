@@ -157,6 +157,8 @@ def run_dm(args):
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 wait(gi, job)
+                log.info('Wait 5 seconds so data tables can be reloaded.')
+                time.sleep(5)
 
 
 def _parser():

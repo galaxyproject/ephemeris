@@ -10,18 +10,23 @@ get-tool-list --help
 
 echo "Check tool installation"
 shed-install -t tests/tool_list.yaml.sample -a admin -g http://localhost:8080
+#shed-install -t tests/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:8080
 #We restart galaxy because otherwise the data manager tables won't be watched
 docker exec galaxy_container supervisorctl restart galaxy: && sleep 30s
 echo "Check workflow installation"
+#workflow-install --user admin@galaxy.org -p admin -g http://localhost:8080 -w tests/test_workflow.ga
 workflow-install -a admin -g http://localhost:8080 -w tests/test_workflow.ga
 echo "Populate data libraries"
+#setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:8080 -i tests/library_data_example.yaml
 setup-data-libraries -a admin -g http://localhost:8080 -i tests/library_data_example.yaml
 echo "Get tool list from Galaxy"
 get-tool-list -o result_tool_list.yaml
 workflow-to-tools -w tests/test_workflow_2.ga -o result_workflow_to_tools.yaml
 echo "Check tool installation from workflow"
 shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:8080
+#shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:8080
 echo "Check installation of reference genomes"
+#run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v
 run-data-managers -a admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v
 echo "Check if installation is skipped when reference genomes are already installed."
 echo "Wait for 30 seconds to allow galaxy to update its table status"

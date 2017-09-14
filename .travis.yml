@@ -2,16 +2,18 @@ language: python
 sudo: required
 services:
   - docker
-python:
-    - "2.7"
-    - "3.5"
-env:
-  matrix:
-    - TOX_ENV=py27-lint
-    - TOX_ENV=py35-lint
-    - TOX_ENV=py27-lint-readme
-    - TOX_ENV=py27
-    - TOX_ENV=py35
+matrix:
+  include:
+    - python: 2.7
+      env: TOX_ENV=py27-lint
+    - python: 3.5
+      env: TOX_ENV=py35-lint
+    - python: 2.7
+      env: TOX_ENV=py27-lint-readme
+    - python: 2.7
+      env: TOX_ENV=py27
+    - python: 3.5
+      env: TOX_ENV=py35
   global:
     # do not load /etc/boto.cfg with Python 3 incompatible plugin
     # https://github.com/travis-ci/travis-ci/issues/5246#issuecomment-166460882

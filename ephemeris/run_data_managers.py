@@ -72,7 +72,7 @@ def get_name_from_inputs(input_dict):
     '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns False'''
     possible_keys = ['name', 'sequence_name']  # In order of importance!
     for key in possible_keys:
-        if key in input_dict.keys():
+        if key in input_dict:
             return input_dict.get(key)
     return False
 
@@ -81,7 +81,7 @@ def get_value_from_inputs(input_dict):
     '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns False'''
     possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
     for key in possible_keys:
-        if key in input_dict.keys():
+        if key in input_dict:
             return input_dict.get(key)
     return False
 
@@ -143,7 +143,7 @@ def run_dm(args):
             # Iterate over all parameters, replace occurences of {{item}} with the current processing item
             # and create the tool_inputs dict for running the data manager job
             for param in params:
-                key, value = param.items()[0]
+                key, value = list(param.items())[0]
                 value_template = Template(value)
                 value = value_template.render(item=item)
                 inputs.update({key: value})

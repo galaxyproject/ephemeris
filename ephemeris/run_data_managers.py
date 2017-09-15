@@ -158,6 +158,7 @@ def run_dm(args):
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 wait(gi, job)
 
+
 def _parser():
     '''returns the parser object.'''
     parent = get_common_args()

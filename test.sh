@@ -29,8 +29,6 @@ echo "Check installation of reference genomes"
 #run-data-managers --user admin@galaxy.org -p admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v
 run-data-managers -a admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v
 echo "Check if installation is skipped when reference genomes are already installed."
-echo "Wait for 30 seconds to allow galaxy to update its table status"
-sleep 30
 run-data-managers -a admin -g http://localhost:8080 --config tests/run_data_managers.yaml.test -v >> data_manager_output.txt 2>&1
 # Check if already installed was thrown
 echo $(cat data_manager_output.txt | grep -i "already run for")

@@ -54,13 +54,13 @@ def data_table_entry_exists(tool_data_client, data_table_name, entry, column='va
     '''Checks whether an entry exists in the a specified column in the data_table.'''
     try:
         data_table_content = tool_data_client.show_data_table(data_table_name)
-    except:
+    except Exception:
         raise Exception('Table "%s" does not exist' % (data_table_name))
 
     try:
         column_index = data_table_content.get('columns').index(column)
-    except:
-        raise Exception('Column "%s" does not exist in %s' % (column, data_table_name))
+    except IndexError:
+        raise IndexError('Column "%s" does not exist in %s' % (column, data_table_name))
 
     for field in data_table_content.get('fields'):
         if field[column_index] == entry:
@@ -157,9 +157,6 @@ def run_dm(args):
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 wait(gi, job)
-                log.info('Wait 5 seconds so data tables can be reloaded.')
-                time.sleep(5)
-
 
 def _parser():
     '''returns the parser object.'''

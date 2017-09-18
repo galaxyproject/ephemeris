@@ -36,17 +36,23 @@ from .common_parser import get_common_args
 DEFAULT_URL = "http://localhost"
 
 
-def wait(gi, job):
+def wait(gi, job_list):
     """
         Waits until a data_manager is finished or failed.
         It will check the state of the created datasets every 30s.
     """
-    while True:
-        value = job['outputs']
-        # check if the output of the running job is either in 'ok' or 'error' state
-        if gi.datasets.show_dataset(value[0]['id'])['state'] in ['ok', 'error']:
-            break
-        log.info('Data manager still running.')
+    # Empty list returns false
+    while bool(job_list):
+        for job in job_list:
+            value = job['outputs']
+            job_id = job.get('hid')
+            # check if the output of the running job is either in 'ok' or 'error' state
+            state = gi.datasets.show_dataset(value[0]['id'])['state']
+            if state in ['ok', 'error']:
+                log.info('Job %i finished with state %s.' % (job_id, state))
+                job_list.remove(job) # Empties the list.
+            else:
+                log.info('Job %i still running.' % job_id)
         time.sleep(30)
 
 
@@ -136,6 +142,7 @@ def run_dm(args):
     genomes = conf.get('genomes', '')
     for dm in conf.get('data_managers'):
         items = parse_items(dm.get('items', ['']), genomes)
+        job_list = []
         for item in items:
             dm_id = dm['id']
             params = dm['params']
@@ -156,7 +163,11 @@ def run_dm(args):
                 log.info('Running DM: "%s" with parameters: %s' % (dm_id, inputs))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                wait(gi, job)
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job.get('hid'),dm_id, inputs))
+                job_list.append(job)
+        wait(gi, job_list)
+
+
 
 
 def _parser():

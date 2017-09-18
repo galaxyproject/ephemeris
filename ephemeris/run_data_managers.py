@@ -53,7 +53,9 @@ def wait(gi, job_list):
                 job_list.remove(job) # Empties the list.
             else:
                 log.info('Job %i still running.' % job_id)
-        time.sleep(30)
+        # only sleep if job_list is not empty yet.
+        if bool(job_list):
+           time.sleep(30)
 
 
 def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):

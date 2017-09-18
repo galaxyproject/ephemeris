@@ -43,7 +43,7 @@ def wait(gi, job_list):
     """
     # Empty list returns false
     while bool(job_list):
-        finished_jobs=[]
+        finished_jobs = []
         for job in job_list:
             value = job['outputs']
             job_id = job['outputs'][0]['hid']
@@ -54,9 +54,10 @@ def wait(gi, job_list):
                 finished_jobs.append(job)
             else:
                 log.debug('Job %i still running.' % job_id)
-        # only sleep if job_list is not empty yet.
+        # Remove finished jobs from job_list.
         for finished_job in finished_jobs:
-            job_list.remove(finished_job) # Empties the list.
+            job_list.remove(finished_job)
+        # only sleep if job_list is not empty yet.
         if bool(job_list):
             time.sleep(30)
 

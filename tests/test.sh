@@ -4,7 +4,6 @@ set -e
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEST_DATA=${EPHEMERIS_TEST_DATA:-"$CURRENT_DIR"}
-CID="galaxy-container"
 
 run-data-managers --help
 shed-install --help
@@ -13,7 +12,7 @@ setup-data-libraries --help
 get-tool-list --help
 
 echo "Starting galaxy docker container"
-docker run --name $CID -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -p 8080:80 bgruening/galaxy-stable
+CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -p 8080:80 bgruening/galaxy-stable`
 sleep 120s
 docker ps
 echo "Check tool installation"

@@ -47,7 +47,7 @@ run-data-managers -a admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/r
 # Check if already installed was thrown
 echo $(cat data_manager_output.txt | grep -i "already run for")
 data_manager_already_installed=$(cat data_manager_output.txt | grep -i "already run for" -c)
-if [ $data_manager_already_installed -ne 2 ]
+if [ $data_manager_already_installed -ne 6 ]
     then
         echo "ERROR: Not all already installed genomes were skipped"
         exit 1

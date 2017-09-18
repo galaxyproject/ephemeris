@@ -43,6 +43,7 @@ def wait(gi, job_list):
     """
     # Empty list returns false
     while bool(job_list):
+        finished_jobs=[]
         for job in job_list:
             value = job['outputs']
             job_id = job['outputs'][0]['hid']
@@ -50,10 +51,11 @@ def wait(gi, job_list):
             state = gi.datasets.show_dataset(value[0]['id'])['state']
             if state in ['ok', 'error']:
                 log.info('Job %i finished with state %s.' % (job_id, state))
-                job_list.remove(job)  # Empties the list.
             else:
-                log.info('Job %i still running.' % job_id)
+                log.debug('Job %i still running.' % job_id)
         # only sleep if job_list is not empty yet.
+        for finished_job in finished_jobs:
+            job_list.remove(job) # Empties the list.
         if bool(job_list):
             time.sleep(30)
 

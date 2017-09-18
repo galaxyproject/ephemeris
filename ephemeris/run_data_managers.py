@@ -189,7 +189,8 @@ def main():
     args = parser.parse_args()
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
-
+    else:
+        log.basicConfig(level=log.INFO)
     log.info("Running data managers...")
     run_dm(args)
 

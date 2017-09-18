@@ -50,12 +50,12 @@ def wait(gi, job_list):
             state = gi.datasets.show_dataset(value[0]['id'])['state']
             if state in ['ok', 'error']:
                 log.info('Job %i finished with state %s.' % (job_id, state))
-                job_list.remove(job) # Empties the list.
+                job_list.remove(job)  # Empties the list.
             else:
                 log.info('Job %i still running.' % job_id)
         # only sleep if job_list is not empty yet.
         if bool(job_list):
-           time.sleep(30)
+            time.sleep(30)
 
 
 def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
@@ -165,11 +165,9 @@ def run_dm(args):
                 log.info('Running DM: "%s" with parameters: %s' % (dm_id, inputs))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'],dm_id, inputs))
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
                 job_list.append(job)
         wait(gi, job_list)
-
-
 
 
 def _parser():

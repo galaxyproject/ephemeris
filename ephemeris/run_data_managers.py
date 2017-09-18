@@ -45,7 +45,7 @@ def wait(gi, job_list):
     while bool(job_list):
         for job in job_list:
             value = job['outputs']
-            job_id = job.get('hid')
+            job_id = job['outputs'][0]['hid']
             # check if the output of the running job is either in 'ok' or 'error' state
             state = gi.datasets.show_dataset(value[0]['id'])['state']
             if state in ['ok', 'error']:
@@ -163,7 +163,7 @@ def run_dm(args):
                 log.info('Running DM: "%s" with parameters: %s' % (dm_id, inputs))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job.get('hid'),dm_id, inputs))
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'],dm_id, inputs))
                 job_list.append(job)
         wait(gi, job_list)
 

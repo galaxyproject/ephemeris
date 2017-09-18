@@ -4,6 +4,7 @@ set -e
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEST_DATA=${EPHEMERIS_TEST_DATA:-"$CURRENT_DIR"}
+CID="galaxy-container"
 
 run-data-managers --help
 shed-install --help
@@ -12,7 +13,7 @@ setup-data-libraries --help
 get-tool-list --help
 
 echo "Starting galaxy docker container"
-CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -p 8080:80 bgruening/galaxy-stable`
+docker run --name $CID -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -p 8080:80 bgruening/galaxy-stable
 sleep 120s
 docker ps
 echo "Check tool installation"
@@ -46,4 +47,4 @@ if [ $data_manager_already_installed -ne 2 ]
         exit 1
 fi
 # Remove running container
-docker stop $CID && docker rm $CID
+docker rm -f $CID

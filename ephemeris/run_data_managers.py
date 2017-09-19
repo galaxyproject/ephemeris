@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 '''Run-data-managers is a tool for provisioning data on a galaxy instance.
 
-Run-data-managers has the ability to reload the datatables after a data manager has finished.
-It is therefore able to run multiple data managers that are interdependent.
+Run-data-managers has the ability to run multiple data managers that are interdependent.
 When a reference genome is needed for bwa-mem for example, Run-data-managers
-can first run a data manager to fetch the fasta file, reload the data table and run
+can first run a data manager to fetch the fasta file and run
 another data manager that indexes the fasta file for bwa-mem.
+This functionality depends on the "watch_tool_data_dir" setting in galaxy.ini to be True.
+Also, if a new data manager is installed, galaxy needs to be restarted in order for it's tool_data_dir to be watched.
 
 Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
 An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_.

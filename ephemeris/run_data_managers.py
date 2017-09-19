@@ -167,7 +167,6 @@ def run_dm(args):
             if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
                 log.info('%s already run for %s' % (dm_id, inputs))
             else:
-                log.info('Running DM: "%s" with parameters: %s' % (dm_id, inputs))
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))

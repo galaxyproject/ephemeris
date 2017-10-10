@@ -46,6 +46,7 @@ echo "Check if installation is skipped when reference genomes are already instal
 run-data-managers -a admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test &> data_manager_output.txt
 # Check if already installed was thrown
 cat data_manager_output.txt
+echo "Number of skipped jobs should be 6"
 data_manager_already_installed=$(cat data_manager_output.txt | grep -i "Skipped jobs: 6" -c)
 if [ $data_manager_already_installed -ne 1 ]
     then

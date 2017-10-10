@@ -43,10 +43,11 @@ def wait(gi, job_list):
         It will check the state of the created datasets every 30s.
         It will return a tuple: ( finished_jobs, failed_jobs )
     """
-    # Empty list returns false
+    finished_jobs = []
+    failed_jobs = []
+
+    # Empty list returns false and stops the loop.
     while bool(job_list):
-        finished_jobs = []
-        failed_jobs = []
         for job in job_list:
             value = job['outputs']
             job_id = job['outputs'][0]['hid']

@@ -43,11 +43,13 @@ def wait(gi, job_list):
         It will check the state of the created datasets every 30s.
         It will return a tuple: ( finished_jobs, failed_jobs )
     """
-    finished_jobs = []
+
     failed_jobs = []
+    succesfull_jobs = []
 
     # Empty list returns false and stops the loop.
     while bool(job_list):
+        finished_jobs = []
         for job in job_list:
             value = job['outputs']
             job_id = job['outputs'][0]['hid']
@@ -55,6 +57,7 @@ def wait(gi, job_list):
             state = gi.datasets.show_dataset(value[0]['id'])['state']
             if state == 'ok':
                 log.info('Job %i finished with state %s.' % (job_id, state))
+                succesfull_jobs.append(job)
                 finished_jobs.append(job)
             if state == 'error':
                 log.error('Job %i finished with state %s.' % (job_id, state))
@@ -68,7 +71,7 @@ def wait(gi, job_list):
         # only sleep if job_list is not empty yet.
         if bool(job_list):
             time.sleep(30)
-    return finished_jobs, failed_jobs
+    return succesfull_jobs, failed_jobs
 
 
 def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
@@ -155,7 +158,7 @@ def run_dm(args):
 
     number_skipped_jobs = 0
     all_failed_jobs = []
-    all_finished_jobs = []
+    all_successfull_jobs = []
 
     conf = yaml.load(open(args.config))
     genomes = conf.get('genomes', '')
@@ -184,17 +187,17 @@ def run_dm(args):
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
                 job_list.append(job)
-        finished_jobs, failed_jobs = wait(gi, job_list)
+        succesfull_jobs, failed_jobs = wait(gi, job_list)
         if failed_jobs:
             if not args.ignore_errors:
                 raise Exception('Not all jobs successfull! aborting...')
                 break
             else:
                 log.error('Not all jobs successfull! ignoring...')
-        all_finished_jobs += finished_jobs
+        all_successfull_jobs += succesfull_jobs
         all_failed_jobs += failed_jobs
     job_summary = dict()
-    job_summary['finished_jobs'] = len(all_finished_jobs)
+    job_summary['succesfull_jobs'] = len(all_successfull_jobs)
     job_summary['failed_jobs'] = len(all_failed_jobs)
     job_summary['skipped_jobs'] = number_skipped_jobs
     return job_summary
@@ -226,7 +229,7 @@ def main():
     log.info("Running data managers...")
     job_summary = run_dm(args)
     log.info('Finished running data managers. Results:')
-    log.info('Succesfull jobs: %i ' % job_summary['finished_jobs'])
+    log.info('Succesfull jobs: %i ' % job_summary['succesfull_jobs'])
     log.info('Skipped jobs: %i ' % job_summary['skipped_jobs'])
     log.info('Failed jobs: %i ' % job_summary['failed_jobs'])
 

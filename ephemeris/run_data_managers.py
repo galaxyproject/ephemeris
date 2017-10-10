@@ -41,17 +41,23 @@ def wait(gi, job_list):
     """
         Waits until a data_manager is finished or failed.
         It will check the state of the created datasets every 30s.
+        It will return a tuple: ( finished_jobs, failed_jobs )
     """
     # Empty list returns false
     while bool(job_list):
         finished_jobs = []
+        failed_jobs = []
         for job in job_list:
             value = job['outputs']
             job_id = job['outputs'][0]['hid']
             # check if the output of the running job is either in 'ok' or 'error' state
             state = gi.datasets.show_dataset(value[0]['id'])['state']
-            if state in ['ok', 'error']:
+            if state == 'ok':
                 log.info('Job %i finished with state %s.' % (job_id, state))
+                finished_jobs.append(job)
+            if state == 'error':
+                log.error('Job %i finished with state %s.' % (job_id, state))
+                failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
                 log.debug('Job %i still running.' % job_id)
@@ -61,6 +67,7 @@ def wait(gi, job_list):
         # only sleep if job_list is not empty yet.
         if bool(job_list):
             time.sleep(30)
+    return finished_jobs, failed_jobs
 
 
 def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
@@ -145,6 +152,10 @@ def run_dm(args):
 
     tool_data_client = ToolDataClient(gi)
 
+    number_skipped_jobs = 0
+    all_failed_jobs = []
+    all_finished_jobs = []
+
     conf = yaml.load(open(args.config))
     genomes = conf.get('genomes', '')
     for dm in conf.get('data_managers'):
@@ -166,12 +177,26 @@ def run_dm(args):
             # Only run if not run before.
             if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
                 log.info('%s already run for %s' % (dm_id, inputs))
+                number_skipped_jobs += 1
             else:
                 # run the DM-job
                 job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
                 job_list.append(job)
-        wait(gi, job_list)
+        finished_jobs, failed_jobs = wait(gi, job_list)
+        if failed_jobs:
+            if not args.ignore_errors:
+                raise Exception('Not all jobs successfull! aborting...')
+                break
+            else:
+                log.error('Not all jobs successfull! ignoring...')
+        all_finished_jobs += finished_jobs
+        all_failed_jobs += failed_jobs
+    job_summary = dict()
+    job_summary['finished_jobs'] = len(all_finished_jobs)
+    job_summary['failed_jobs'] = len(all_failed_jobs)
+    job_summary['skipped_jobs'] = number_skipped_jobs
+    return job_summary
 
 
 def _parser():
@@ -185,6 +210,8 @@ def _parser():
                         help="Path to the YAML config file with the list of data managers and data to install.")
     parser.add_argument("--overwrite", action="store_true",
                         help="Disables checking whether the item already exists in the tool data table.")
+    parser.add_argument("--ignore_errors", action="store_true",
+                        help="Do not stop running when jobs have failed.")
     return parser
 
 
@@ -196,7 +223,11 @@ def main():
     else:
         log.basicConfig(level=log.INFO)
     log.info("Running data managers...")
-    run_dm(args)
+    job_summary = run_dm(args)
+    log.info('\nFinished running data managers. Results:')
+    log.info('Succesfull jobs: %i ' % job_summary['finished_jobs'])
+    log.info('Skipped jobs: %i ' % job_summary['skipped_jobs'])
+    log.info('Failed jobs: %i ' % job_summary['failed_jobs'])
 
 
 if __name__ == '__main__':

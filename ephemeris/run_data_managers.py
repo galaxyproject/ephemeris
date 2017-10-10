@@ -224,7 +224,7 @@ def main():
         log.basicConfig(level=log.INFO)
     log.info("Running data managers...")
     job_summary = run_dm(args)
-    log.info('\nFinished running data managers. Results:')
+    log.info('Finished running data managers. Results:')
     log.info('Succesfull jobs: %i ' % job_summary['finished_jobs'])
     log.info('Skipped jobs: %i ' % job_summary['skipped_jobs'])
     log.info('Failed jobs: %i ' % job_summary['failed_jobs'])

@@ -17,10 +17,10 @@ RAW_CONTENT_URL = "https://raw.github.com/%s/%s/master/" % (
 def get_galaxy_connection(args):
     """
     Return a Galaxy connection, given a user or an API key.
+    If either is missing returns `False`.
     """
     if args.user and args.password:
-        gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
+        return galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
     elif args.api_key:
-        gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
-
-    return gi or False
+        return galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
+    return False

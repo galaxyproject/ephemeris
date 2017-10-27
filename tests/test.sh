@@ -24,24 +24,23 @@ sleep 120s
 docker ps
 echo "Check tool installation"
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
-#shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 #We restart galaxy because otherwise the data manager tables won't be watched
 docker exec $CID supervisorctl restart galaxy: && sleep 60s
 echo "Check workflow installation"
-#workflow-install --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
+workflow-install --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
 workflow-install -a admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
 echo "Populate data libraries"
-#setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -i "$TET_DATA"/library_data_example.yaml
+setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -i "$TET_DATA"/library_data_example.yaml
 setup-data-libraries -a admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example.yaml
 echo "Get tool list from Galaxy"
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 workflow-to-tools -w "$TEST_DATA"/test_workflow_2.ga -o result_workflow_to_tools.yaml
 echo "Check tool installation from workflow"
 shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:$WEB_PORT
-#shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 echo "Check installation of reference genomes"
-#run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config ./run_data_managers.yaml.test -v
-run-data-managers -a admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test
+run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config ./run_data_managers.yaml.test -v
 echo "Check if installation is skipped when reference genomes are already installed."
 run-data-managers -a admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test &> data_manager_output.txt
 # Check if already installed was thrown

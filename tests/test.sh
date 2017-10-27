@@ -20,13 +20,13 @@ echo "Starting galaxy docker container"
 CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
 # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
 WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
-sleep 120s
+galaxy-wait http://localhost:$WEB_PORT
 docker ps
 echo "Check tool installation"
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 #We restart galaxy because otherwise the data manager tables won't be watched
-docker exec $CID supervisorctl restart galaxy: && sleep 60s
+docker exec $CID supervisorctl restart galaxy: && galaxy-wait http://localhost:$WEB_PORT
 echo "Check workflow installation"
 workflow-install --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
 workflow-install -a admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga

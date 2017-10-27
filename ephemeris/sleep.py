@@ -54,7 +54,7 @@ def main():
                 break
             except ValueError:
                 if options.verbose:
-                    sys.stdout.write("[%02d] No valid json returned... %s\n" % (count,result.__str__()))
+                    sys.stdout.write("[%02d] No valid json returned... %s\n" % (count, result.__str__()))
                     sys.stdout.flush()
         except requests.exceptions.ConnectionError as e:
             if options.verbose:

@@ -52,7 +52,7 @@ shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:$WEB_
 shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 
 echo "Check installation of reference genomes"
-run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test -v
+run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test
 echo "Small waiting step to allow data-tables to update"
 # This seems to be necessary on travis
 sleep 15

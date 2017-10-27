@@ -26,10 +26,8 @@ import logging as log
 import time
 
 import yaml
-from bioblend import ConnectionError
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
-
 from jinja2 import Template
 
 
@@ -186,27 +184,9 @@ def run_dm(args):
                 number_skipped_jobs += 1
             else:
                 # run the DM-job
-                for attempt in range(args.retry_attempts):
-                    try:
-                        job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                        log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
-                        job_list.append(job)
-                        break
-                    except ConnectionError as e:
-                        wait_time = 30
-                        attempts_left = args.retry_attempts - (attempt + 1)
-                        log.error("Connection error: %s", e)
-                        if attempts_left <= 0:
-                            log.error("No attempts left")
-                            if not args.ignore_erros:
-                                raise Exception('Could not run DM: "%s" with parameters: "%s"' % (dm_id, inputs))
-                            else:
-                                # Ignore and try next job
-                                break
-                        else:
-                            log.error("Retrying in %i seconds, %i attempts left..." % (wait_time, attempts_left))
-                            time.sleep(wait_time)
-
+                job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
+                job_list.append(job)
         succesfull_jobs, failed_jobs = wait(gi, job_list)
         if failed_jobs:
             if not args.ignore_errors:
@@ -236,8 +216,6 @@ def _parser():
                         help="Disables checking whether the item already exists in the tool data table.")
     parser.add_argument("--ignore_errors", action="store_true",
                         help="Do not stop running when jobs have failed.")
-    parser.add_argument("--retry_attempts", metavar='N', type=int, default=3,
-                        help="If a job can not submitted due to a connection error run-data-manager will try N times.")
     return parser
 
 

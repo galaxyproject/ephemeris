@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-set -e
+set -eu
+set -o pipefail
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TEST_DATA=${EPHEMERIS_TEST_DATA:-"$CURRENT_DIR"}
@@ -20,21 +21,26 @@ echo "Starting galaxy docker container"
 CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
 # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
 WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
-galaxy-wait -g http://localhost:$WEB_PORT
+echo "test galaxy-wait function"
+galaxy-wait -g http://localhost:$WEB_PORT -v
 docker ps
 
 echo "Check tool installation"
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+
+echo "restarting galaxy"
 #We restart galaxy because otherwise the data manager tables won't be watched
-docker exec $CID supervisorctl restart galaxy: && galaxy-wait -g http://localhost:$WEB_PORT
+docker exec $CID supervisorctl restart galaxy:
+echo "wait for galaxy to start"
+galaxy-wait -g http://localhost:$WEB_PORT -v
 
 echo "Check workflow installation"
 workflow-install --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
 workflow-install -a admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_workflow.ga
 
 echo "Populate data libraries"
-setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -i "$TET_DATA"/library_data_example.yaml
+setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example.yaml
 setup-data-libraries -a admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example.yaml
 
 echo "Get tool list from Galaxy"
@@ -46,7 +52,7 @@ shed-install -t result_workflow_to_tools.yaml -a admin -g http://localhost:$WEB_
 shed-install -t result_workflow_to_tools.yaml --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 
 echo "Check installation of reference genomes"
-run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config ./run_data_managers.yaml.test -v
+run-data-managers --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/run_data_managers.yaml.test -v
 echo "Small waiting step to allow data-tables to update"
 # This seems to be necessary on travis
 sleep 15

@@ -18,7 +18,10 @@ echo "Starting galaxy docker container"
 # We start the image with the -P flag that published all exposed container ports
 # to random free ports on the host, since on OS X the container can't be reached
 # through the internal network (https://docs.docker.com/docker-for-mac/networking/#i-cannot-ping-my-containers)
-CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
+# We start the image with the following environment variables:
+# GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True  this is needed for run_data_managers
+# GALAXY_HANDLER_NUMPROCS=1   this will prevent to handler processes editing the same data table at the same time.
+CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -e GALAXY_HANDLER_NUMPROCS=1 -P bgruening/galaxy-stable`
 # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
 WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
 echo "Test galaxy-wait function"

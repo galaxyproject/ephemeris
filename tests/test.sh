@@ -29,6 +29,9 @@ echo "Check tool installation"
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 
+echo "Wait a few seconds before restarting galaxy"
+sleep 15
+
 echo "Restarting galaxy"
 #We restart galaxy because otherwise the data manager tables won't be watched
 docker exec $CID supervisorctl restart galaxy:

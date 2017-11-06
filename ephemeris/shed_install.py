@@ -1,7 +1,4 @@
 """
-**NOTE:** *While shed-install can be used to run data managers, it is recommended
-to use run-data-managers instead.*
-
 A script to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
 Galaxy instance details and the installed tools can be provided in one of three
@@ -351,10 +348,6 @@ def _parser():
     parser = ArgumentParser(
         parents=[parent],
         usage="usage: python %(prog)s <options>")
-    parser.add_argument("-d", "--dbkeysfile",
-                        dest="dbkeys_list_file",
-                        help="Reference genome dbkeys to install (see "
-                             "dbkeys_list.yaml.sample)",)
     parser.add_argument("-t", "--toolsfile",
                         dest="tool_list_file",
                         help="Tools file to use (see tool_list.yaml.sample)",)
@@ -444,76 +437,6 @@ def _flatten_tools_info(tools_info):
         else:  # Revision was not defined at all
             flattened_list.append(tool_info)
     return flattened_list
-
-
-def run_data_managers(options):
-    """
-    Run Galaxy Data Manager to download, index, and install reference genome
-    data into Galaxy.
-    :type options: OptionParser object
-    :param options: command line arguments parsed by OptionParser
-    """
-    _ensure_log_configured()
-    dbkeys_list_file = options.dbkeys_list_file
-    kl = load_input_file(dbkeys_list_file)  # Input file contents
-    dbkeys = kl['dbkeys']  # The list of dbkeys to install
-    dms = kl['data_managers']  # The list of data managers to run
-    options.galaxy_url = options.galaxy or kl['galaxy_instance']
-    options.api_key = options.api_key or kl['api_key']
-
-    gi = get_galaxy_connection(options)
-
-    istart = dt.datetime.now()
-    errored_dms = []
-    dbkey_counter = 0
-    for dbkey in dbkeys:
-        dbkey_counter += 1
-        dbkey_name = dbkey.get('dbkey')
-        dm_counter = 0
-        for dm in dms:
-            dm_counter += 1
-            dm_tool = dm.get('id')
-            # Initiate tool installation
-            start = dt.datetime.now()
-            log.debug('[dbkey {0}/{1}; DM: {2}/{3}] Installing dbkey {4} with '
-                      'DM {5}'.format(dbkey_counter, len(dbkeys), dm_counter,
-                                      len(dms), dbkey_name, dm_tool))
-            tool_input = dbkey
-            try:
-                response = gi.tools.run_tool('', dm_tool, tool_input)
-                jobs = response.get('jobs', [])
-                # Check if a job is actually running
-                if len(jobs) == 0:
-                    log.warning("\t(!) No '{0}' job found for '{1}'".format(dm_tool,
-                                dbkey_name))
-                    errored_dms.append({'dbkey': dbkey_name, 'DM': dm_tool})
-                else:
-                    # Monitor the job(s)
-                    log.debug("\tJob running", extra={'same_line': True})
-                    done_count = 0
-                    while done_count < len(jobs):
-                        done_count = 0
-                        for job in jobs:
-                            job_id = job.get('id')
-                            job_state = gi.jobs.show_job(job_id).get('state', '')
-                            if job_state == 'ok':
-                                done_count += 1
-                            elif job_state == 'error':
-                                done_count += 1
-                                errored_dms.append({'dbkey': dbkey_name, 'DM': dm_tool})
-                        log.debug("", extra={'same_line': True})
-                        time.sleep(10)
-                    log.debug("\tDbkey '{0}' installed successfully in '{1}'".format(
-                              dbkey.get('dbkey'), dt.datetime.now() - start))
-            except ConnectionError as e:
-                response = None
-                end = dt.datetime.now()
-                log.error("\t* Error installing dbkey {0} for DM {1} (after {2}): {3}"
-                          .format(dbkey_name, dm_tool, end - start, e.body))
-                errored_dms.append({'dbkey': dbkey_name, 'DM': dm_tool})
-    log.info("All dbkeys & DMs listed in '{0}' have been processed.".format(dbkeys_list_file))
-    log.info("Errored DMs: {0}".format(errored_dms))
-    log.info("Total run time: {0}".format(dt.datetime.now() - istart))
 
 
 def install_repository_revision(tool, tsc):
@@ -764,8 +687,6 @@ def script_main():
         itm.install_tools()
         if itm.errored_tools:
             sys.exit(1)
-    elif options.dbkeys_list_file:
-        run_data_managers(options)
     else:
         sys.exit("Must provide a tool list file, individual tools info or a list of data manager tasks. "
                  "Look at usage.")

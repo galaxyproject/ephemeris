@@ -3,7 +3,12 @@ genomes:
     - accession: NC_001617.1
       name: RhinoVirus A (NC_001617.1)
       id: RhinoVirusA
-
+    - accession: AC_000007.1
+      name: Human adenovirus 2 (AC_000007.1)
+      id: HumAdeno2
+    - accession: KF039736.1
+      name: Norovirus Hu/GI.1/CHA7A011/2010/USA
+      id: NoroVirCHA7A011
 
 data_managers:
     - id: toolshed.g2.bx.psu.edu/repos/devteam/data_manager_fetch_genome_dbkeys_all_fasta/data_manager_fetch_genome_all_fasta_dbkey/0.0.2

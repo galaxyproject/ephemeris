@@ -507,6 +507,11 @@ def get_install_tool_manager(options):
                        "tool_shed_url": options.tool_shed_url or MTS}]
 
     galaxy_url = options.galaxy or tl.get('galaxy_instance')
+
+    if not galaxy_url.startswith('http'):
+        log.warning('URL should start with http:// or https://. https:// chosen by default.')
+        galaxy_url = 'https://' + galaxy_url
+
     api_key = options.api_key or tl.get('api_key')
 
     if options.skip_tool_dependencies:

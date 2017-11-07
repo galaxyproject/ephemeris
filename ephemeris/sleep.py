@@ -10,7 +10,6 @@ to access.'''
 
 import sys
 import time
-
 from argparse import ArgumentParser
 
 import requests
@@ -46,10 +45,16 @@ def main():
     count = 0
     while True:
         try:
-            result = requests.get(options.galaxy + '/api/version').json()
-            if options.verbose:
-                sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
-            break
+            result = requests.get(options.galaxy + '/api/version')
+            try:
+                result = result.json()
+                if options.verbose:
+                    sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
+                break
+            except ValueError:
+                if options.verbose:
+                    sys.stdout.write("[%02d] No valid json returned... %s\n" % (count, result.__str__()))
+                    sys.stdout.flush()
         except requests.exceptions.ConnectionError as e:
             if options.verbose:
                 sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, str(e)[0:100]))

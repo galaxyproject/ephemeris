@@ -8,7 +8,9 @@ can first run a data manager to fetch the fasta file, reload the data table and 
 another data manager that indexes the fasta file for bwa-mem.
 
 Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
-An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_.
+Example files can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_,
+`here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample.advanced>`_,
+and `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.test>`_.
 
 By default run-data-managers skips entries in the yaml file that have already been run.
 It checks it in the following way:

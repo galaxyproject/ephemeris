@@ -33,18 +33,15 @@ import datetime as dt
 import logging
 import sys
 import time
-
 from argparse import ArgumentParser
 
 import yaml
-
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
 from . import get_galaxy_connection
-
 from .common_parser import get_common_args
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken

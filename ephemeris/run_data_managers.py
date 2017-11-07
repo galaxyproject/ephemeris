@@ -9,7 +9,9 @@ This functionality depends on the "watch_tool_data_dir" setting in galaxy.ini to
 Also, if a new data manager is installed, galaxy needs to be restarted in order for it's tool_data_dir to be watched.
 
 Run-data-managers needs a yaml that specifies what data managers are run and with which settings.
-An example file can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_.
+Example files can be found `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample>`_,
+`here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.sample.advanced>`_,
+and `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data_managers.yaml.test>`_.
 
 By default run-data-managers skips entries in the yaml file that have already been run.
 It checks it in the following way:

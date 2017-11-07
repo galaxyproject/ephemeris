@@ -5,7 +5,6 @@ import json
 import os
 
 from . import get_galaxy_connection
-
 from .common_parser import get_common_args
 
 

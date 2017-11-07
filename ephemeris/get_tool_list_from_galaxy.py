@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 '''Tool to extract a tool list from galaxy.'''
 import json
-
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
 from distutils.version import StrictVersion

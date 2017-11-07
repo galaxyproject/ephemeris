@@ -10,7 +10,6 @@ to access.'''
 
 import sys
 import time
-
 from argparse import ArgumentParser
 
 import requests

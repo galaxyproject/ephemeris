@@ -4,6 +4,13 @@ tools:
 - name: 'column_maker'
   owner: 'devteam'
   tool_panel_section_label: 'Columnmaker section'
+- name: 'bwa'
+  owner: 'devteam'
+  tool_panel_section_label: 'NGS mapping'
+  revisions:
+  - '051eba708f43'  # 0.7.15.2
+  - '4d82cf59895e'  # 0.7.16.2
+  install_resolver_dependencies: False
 - name: 'tabular_to_fasta'
   owner: 'devteam'
   tool_panel_section_label: 'New Converters'

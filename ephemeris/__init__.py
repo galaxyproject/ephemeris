@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from bioblend import galaxy
+import yaml
 
 __version__ = '0.7.1.dev0'
 
@@ -24,3 +25,19 @@ def get_galaxy_connection(args):
     elif args.api_key:
         return galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
     return False
+
+def load_yaml_file(filename):
+    """
+    Load YAML from the `tool_list_file` and return a dict with the content.
+    """
+    with open(filename, 'r') as f:
+        dictionary = yaml.load(f)
+    return dictionary
+
+
+def dump_to_yaml_file(content, file_name):
+    """
+    Dump YAML-compatible `content` to `file_name`.
+    """
+    with open(file_name, 'w') as f:
+        yaml.dump(content, f, default_flow_style=False)

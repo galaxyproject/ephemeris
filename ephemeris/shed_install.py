@@ -41,9 +41,10 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
-from . import get_galaxy_connection
+from . import get_galaxy_connection,load_yaml_file
 from .common_parser import get_common_args
 from.ephemeris_log import ensure_log_configured,disable_external_library_logging,setup_global_logger
+
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 
@@ -92,44 +93,14 @@ def log_tool_install_success(tool, start, installed_tools):
               (tool['name'], str(end - start), tool['changeset_revision']))
 
 
-def load_input_file(tool_list_file='tool_list.yaml'):
+def galaxy_instance_from_tool_list_file(tool_list_file):
     """
-    Load YAML from the `tool_list_file` and return a dict with the content.
+    Get an instance of the `GalaxyInstance` object using the instance from the tool list file.
     """
-    with open(tool_list_file, 'r') as f:
-        tl = yaml.load(f)
-    return tl
-
-
-def dump_to_yaml_file(content, file_name):
-    """
-    Dump YAML-compatible `content` to `file_name`.
-    """
-    with open(file_name, 'w') as f:
-        yaml.dump(content, f, default_flow_style=False)
-
-
-def galaxy_instance(url=None, api_key=None):
-    """
-    Get an instance of the `GalaxyInstance` object. If the arguments are not
-    provided, load the default values using `load_input_file` method.
-    """
-    if not (url and api_key):
-        tl = load_input_file()
-        url = tl['galaxy_instance']
-        api_key = tl['api_key']
+    tl = load_yaml_file(tool_list_file)
+    url = tl['galaxy_instance']
+    api_key = tl['api_key']
     return GalaxyInstance(url, api_key)
-
-
-def tool_shed_client(gi=None):
-    """
-    Get an instance of the `ToolShedClient` on a given Galaxy instance. If no
-    value is provided for the `galaxy_instance`, use the default provided via
-    `load_input_file`.
-    """
-    if not gi:
-        gi = galaxy_instance()
-    return ToolShedClient(gi)
 
 
 def the_same_tool(tool_1_info, tool_2_info):
@@ -149,7 +120,7 @@ def the_same_tool(tool_1_info, tool_2_info):
     return False
 
 
-def installed_tool_revisions(gi=None, omit=None):
+def installed_tool_revisions(gi, omit=None):
     """
     Get a list of tool revisions installed from a Tool Shed on a Galaxy instance.
     Included are all the tool revisions that were installed from a Tool
@@ -168,7 +139,7 @@ def installed_tool_revisions(gi=None, omit=None):
     """
     if not omit:
         omit = []
-    tsc = tool_shed_client(gi)
+    tsc = ToolShedClient(gi)
     installed_revisions_list = []
     itl = tsc.get_repositories()
     for it in itl:
@@ -430,7 +401,7 @@ def get_install_tool_manager(options):
 
     tool_list_file = options.tool_list_file
     if tool_list_file:
-        tool_list = load_input_file(tool_list_file)  # Input file contents
+        tool_list = load_yaml_file(tool_list_file)  # Input file contents
         tools_info = tool_list['tools']  # The list of tools to install
         install_repository_dependencies = tool_list.get(
             'install_repository_dependencies', INSTALL_REPOSITORY_DEPENDENCIES)
@@ -466,7 +437,7 @@ def get_install_tool_manager(options):
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
     gi = get_galaxy_connection(options)
     if not gi:
-        gi = galaxy_instance(galaxy_url, api_key)
+        gi = galaxy_instance_from_tool_list_file(tool_list_file)
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
                               default_install_tool_dependencies=install_tool_dependencies,
@@ -486,7 +457,7 @@ class InstallToolManager(object):
                  require_tool_panel_info=True):
         self.tools_info = tools_info
         self.gi = gi
-        self.tsc = tool_shed_client(self.gi)
+        self.tsc = ToolShedClient(self.gi)
         self.require_tool_panel_info = require_tool_panel_info
         self.install_tool_dependencies = default_install_tool_dependencies
         self.install_resolver_dependencies = default_install_resolver_dependencies

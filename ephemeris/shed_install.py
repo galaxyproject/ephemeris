@@ -278,6 +278,12 @@ def _parser():
                         help="Galaxy tool panel section label where tool will be installed "
                              "(if the section does not exist, it will be created; "
                              "only applicable if the tools file is not provided).")
+    parser.add_argument("--revisions",
+                        default=None,
+                        dest="revisions",
+                        help="The revisions of the tool repository that will be installed. "
+                             "Revisions must be specified in YAML format: ['revision1','revision2']"
+                             "(Only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",
                         help="The Tool Shed URL where to install the tool from. "
@@ -421,7 +427,8 @@ def get_install_tool_manager(options):
                        "name": options.name,
                        "tool_panel_section_id": options.tool_panel_section_id,
                        "tool_panel_section_label": options.tool_panel_section_label,
-                       "tool_shed_url": options.tool_shed_url or MTS}]
+                       "tool_shed_url": options.tool_shed_url or MTS,
+                       "revisions": yaml.load(options.revisions)}]
 
     galaxy_url = options.galaxy or tool_list.get('galaxy_instance')
 

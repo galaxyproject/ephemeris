@@ -30,6 +30,7 @@ Galaxy's configuration directory and set Galaxy configuration option
 # bioblend, pyyaml
 
 import datetime as dt
+import logging
 import sys
 import time
 from argparse import ArgumentParser
@@ -42,7 +43,7 @@ from bioblend.toolshed import ToolShedInstance
 
 from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
-from.ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
+
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -61,11 +62,72 @@ INSTALL_REPOSITORY_DEPENDENCIES = True
 INSTALL_RESOLVER_DEPENDENCIES = True
 
 
+class ProgressConsoleHandler(logging.StreamHandler):
+    """
+    A handler class which allows the cursor to stay on
+    one line for selected messages
+    """
+    on_same_line = False
+
+    def emit(self, record):
+        try:
+            msg = self.format(record)
+            stream = self.stream
+            same_line = hasattr(record, 'same_line')
+            if self.on_same_line and not same_line:
+                stream.write('\r\n')
+            stream.write(msg)
+            if same_line:
+                stream.write('.')
+                self.on_same_line = True
+            else:
+                stream.write('\r\n')
+                self.on_same_line = False
+            self.flush()
+        except (KeyboardInterrupt, SystemExit):
+            raise
+        except Exception:
+            self.handleError(record)
+
+
+def _disable_external_library_logging():
+    # Omit (most of the) logging by external libraries
+    logging.getLogger('bioblend').setLevel(logging.ERROR)
+    logging.getLogger('requests').setLevel(logging.ERROR)
+    try:
+        logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
+    except AttributeError:
+        pass
+
+
+def _ensure_log_configured():
+    # For library-style usage - just ensure a log exists and use ephemeris name.
+    if 'log' not in globals():
+        global log
+        log = setup_global_logger()
+
+
+def setup_global_logger(include_file=False):
+    formatter = logging.Formatter('%(asctime)s %(levelname)-5s - %(message)s')
+    progress = ProgressConsoleHandler()
+    console = logging.StreamHandler()
+    console.setFormatter(formatter)
+
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(progress)
+
+    if include_file:
+        file_handler = logging.FileHandler('/tmp/galaxy_tool_install.log')
+        logger.addHandler(file_handler)
+    return logger
+
+
 def log_tool_install_error(tool, start, msg, errored_tools):
     """
     Log failed tool installations
     """
-    ensure_log_configured()
+    _ensure_log_configured()
     end = dt.datetime.now()
     log.error("\t* Error installing a tool (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
               str(end - start),
@@ -84,7 +146,7 @@ def log_tool_install_success(tool, start, installed_tools):
     Log successful tool installation.
     Tools that finish in error still count as successful installs currently.
     """
-    ensure_log_configured()
+    _ensure_log_configured()
     end = dt.datetime.now()
     installed_tools.append({'name': tool['name'], 'owner': tool['owner'],
                            'revision': tool['changeset_revision']})
@@ -354,7 +416,7 @@ def install_repository_revision(tool, tool_shed_client):
     """
     Adjusts tool dictionary to bioblend signature and installs single tool
     """
-    ensure_log_configured()
+    _ensure_log_configured()
     tool['new_tool_panel_section_label'] = tool.pop('tool_panel_section_label')
     response = tool_shed_client.install_repository_revision(**tool)
     if isinstance(response, dict) and response.get('status', None) == 'ok':
@@ -443,7 +505,7 @@ def get_install_tool_manager(options):
     if not gi:
         gi = galaxy_instance_from_tool_list_file(tool_list_file)
 
-    force_latest_revision = options.get("force_latest_revision", False)
+    force_latest_revision = options.force_latest_revision
 
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
@@ -479,7 +541,7 @@ class InstallToolManager(object):
     def install_tools(self):
         """
         """
-        ensure_log_configured()
+        _ensure_log_configured()
         installation_start = dt.datetime.now()
         installed_tool_list = installed_tool_revisions(self.gi)  # installed tools list
         counter = 0
@@ -606,7 +668,7 @@ class InstallToolManager(object):
 
 def script_main():
     global log
-    disable_external_library_logging()
+    _disable_external_library_logging()
     log = setup_global_logger(include_file=True)
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \

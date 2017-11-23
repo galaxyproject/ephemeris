@@ -466,7 +466,7 @@ def get_install_tool_manager(options):
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     elif options.update_tools:
-        tool_list = installed_tool_revisions(gi)
+        tools_info = installed_tool_revisions(gi)
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,

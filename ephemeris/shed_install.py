@@ -30,7 +30,6 @@ Galaxy's configuration directory and set Galaxy configuration option
 # bioblend, pyyaml
 
 import datetime as dt
-import logging
 import sys
 import time
 from argparse import ArgumentParser
@@ -82,8 +81,8 @@ def log_tool_install_error(tool, start, msg, errored_tools):
 
 def log_tool_install_success(tool, start, installed_tools):
     """
-    Log successfull tool installation.
-    Tools that finish in error still count as successfull installs currently.
+    Log successful tool installation.
+    Tools that finish in error still count as successful installs currently.
     """
     ensure_log_configured()
     end = dt.datetime.now()
@@ -141,26 +140,26 @@ def installed_tool_revisions(gi, omit=None):
         omit = []
     tsc = ToolShedClient(gi)
     installed_revisions_list = []
-    itl = tsc.get_repositories()
-    for it in itl:
-        if it['status'] == 'Installed':
+    installed_tool_list = tsc.get_repositories()
+    for installed_tool in installed_tool_list:
+        if installed_tool['status'] == 'Installed':
             skip = False
             # Check if we already processed this tool and, if so, add the new
             # revision to the existing list entry
-            for ir in installed_revisions_list:
-                if the_same_tool(it, ir):
-                    ir['revisions'].append(it.get('changeset_revision', None))
+            for installed_revision in installed_revisions_list:
+                if the_same_tool(installed_tool, installed_revision):
+                    installed_revision['revisions'].append(installed_tool.get('changeset_revision', None))
                     skip = True
             # Check if the repo name is contained in the 'omit' list
-            for o in omit:
-                if o in it['name']:
+            for omitted_tool in omit:
+                if omitted_tool in installed_tool['name']:
                     skip = True
             # We have not processed this tool so create a list entry
             if not skip:
-                ti = {'name': it['name'],
-                      'owner': it['owner'],
-                      'revisions': [it.get('changeset_revision', None)],
-                      'tool_shed_url': 'https://' + it['tool_shed']}
+                ti = {'name': installed_tool['name'],
+                      'owner': installed_tool['owner'],
+                      'revisions': [installed_tool.get('changeset_revision', None)],
+                      'tool_shed_url': 'https://' + installed_tool['tool_shed']}
                 installed_revisions_list.append(ti)
     return installed_revisions_list
 
@@ -194,58 +193,58 @@ def installed_tools(gi, omit=None):
     """
     if not omit:
         omit = []
-    tp_tools = []  # Tools available in the tool panel and installe via a TS
+    tool_panel_tools = []  # Tools available in the tool panel and installable via a TS
     custom_tools = []  # Tools available in the tool panel but custom-installed
 
-    tl = gi.tools.get_tool_panel()  # In-panel tool list
-    for ts in tl:  # ts -> tool section
+    panel_tool_list = gi.tools.get_tool_panel()
+    for tool_section in panel_tool_list:
         # print "%s (%s): %s" % (ts['name'], ts['id'], len(ts.get('elems', [])))
         # Parse the tool panel to ge the the tool lists
-        for t in ts.get('elems', []):
+        for custom_tool in tool_section.get('elems', []):
             # Tool ID is either a tool name (in case of custom-installed tools)
             # or a URI (in case of Tool Shed-installed tools) so differentiate
             # among those
-            tid = t['id'].split('/')
-            if len(tid) > 3:
+            custom_tool_id = custom_tool['id'].split('/')
+            if len(custom_tool_id) > 3:
                 skip = False
                 # Check if we already encountered this tool
-                for added_tool in tp_tools:
-                    if tid[3] in added_tool['name']:
+                for added_tool in tool_panel_tools:
+                    if custom_tool_id[3] in added_tool['name']:
                         skip = True
                 # Check if the repo name is contained in the 'omit' list
-                for o in omit:
-                    if o in tid[3]:
+                for omitted_tool in omit:
+                    if omitted_tool in custom_tool_id[3]:
                         skip = True
                 if not skip:
-                    tp_tools.append({'tool_shed_url': "https://{0}".format(tid[0]),
-                                     'owner': tid[2],
-                                     'name': tid[3],
-                                     'tool_panel_section_id': ts['id']})
+                    tool_panel_tools.append({'tool_shed_url': "https://{0}".format(custom_tool_id[0]),
+                                     'owner': custom_tool_id[2],
+                                     'name': custom_tool_id[3],
+                                     'tool_panel_section_id': tool_section['id']})
             else:
-                custom_tools.append(t['id'])
+                custom_tools.append(custom_tool['id'])
 
     # Match tp_tools with the tool list available from the Tool Shed Clients on
     # the given Galaxy instance and and add tool section IDs it
-    ts_tools = installed_tool_revisions(gi, omit)  # Tools revisions installed via a TS
-    for it in ts_tools:
-        for t in tp_tools:
-            if the_same_tool(it, t):
-                it['tool_panel_section_id'] = t['tool_panel_section_id']
+    shed_tools = installed_tool_revisions(gi, omit)  # Tools revisions installed via a TS
+    for shed_tool in shed_tools:
+        for panel_tool in tool_panel_tools:
+            if the_same_tool(shed_tool, panel_tool):
+                shed_tool['tool_panel_section_id'] = panel_tool['tool_panel_section_id']
 
-    return {'tool_panel_shed_tools': tp_tools,
+    return {'tool_panel_shed_tools': tool_panel_tools,
             'tool_panel_custom_tools': custom_tools,
-            'shed_tools': ts_tools}
+            'shed_tools': shed_tools}
 
 
-def _list_tool_categories(tl):
+def _list_tool_categories(tool_dictionaries_list):
     """
-    Given a list of dicts `tl` as returned by the `installed_tools` method and
+    Given a list of dicts `tool_dictionaries_list` as returned by the `installed_tools` method and
     where each list element holds a key `tool_panel_section_id`, return a list
     of unique section IDs.
     """
     category_list = []
-    for t in tl:
-        category_list.append(t.get('id'))
+    for tool_dictionary in tool_dictionaries_list:
+        category_list.append(tool_dictionary.get('id'))
     return set(category_list)
 
 
@@ -318,27 +317,27 @@ def _flatten_tools_info(tools_info):
              that if an input element contained `revisions` key with multiple
              values, those will be returned as separate list items.
     """
-    def _copy_dict(d):
+    def _strip_revisions(dictionary):
         """
-        Iterrate through the dictionary `d` and copy its keys and values
+        Iterate through the dictionary and copy its keys and values
         excluding the key `revisions`.
         """
-        new_d = {}
-        for k, v in d.items():
-            if k != 'revisions':
-                new_d[k] = v
-        return new_d
+        new_dictionary = {}
+        for key, value in dictionary.items():
+            if key != 'revisions':
+                new_dictionary[key] = value
+        return new_dictionary
 
     flattened_list = []
     for tool_info in tools_info:
         revisions = tool_info.get('revisions', [])
         if len(revisions) > 1:
             for revision in revisions:
-                ti = _copy_dict(tool_info)
+                ti = _strip_revisions(tool_info)
                 ti['changeset_revision'] = revision
                 flattened_list.append(ti)
         elif revisions:  # A single revisions was defined so keep it
-            ti = _copy_dict(tool_info)
+            ti = _strip_revisions(tool_info)
             ti['changeset_revision'] = revisions[0]
             flattened_list.append(ti)
         else:  # Revision was not defined at all
@@ -346,13 +345,13 @@ def _flatten_tools_info(tools_info):
     return flattened_list
 
 
-def install_repository_revision(tool, tsc):
+def install_repository_revision(tool, tool_shed_client):
     """
     Adjusts tool dictionary to bioblend signature and installs single tool
     """
     ensure_log_configured()
     tool['new_tool_panel_section_label'] = tool.pop('tool_panel_section_label')
-    response = tsc.install_repository_revision(**tool)
+    response = tool_shed_client.install_repository_revision(**tool)
     if isinstance(response, dict) and response.get('status', None) == 'ok':
         # This rare case happens if a tool is already installed but
         # was not recognised as such in the above check. In such a
@@ -371,10 +370,10 @@ def wait_for_install(tool, tool_shed_client, timeout=3600):
     Returns True if install finished, returns False when timeout is exceeded.
     """
     def install_done(tool, tool_shed_client):
-        itl = tool_shed_client.get_repositories()
-        for it in itl:
-            if (tool['name'] == it['name']) and (it['owner'] == tool['owner']):
-                if it['status'] not in ['Installed', 'Error']:
+        installed_tool_list = tool_shed_client.get_repositories()
+        for installing_tool in installed_tool_list:
+            if (tool['name'] == installing_tool['name']) and (installing_tool['owner'] == tool['owner']):
+                if installing_tool['status'] not in ['Installed', 'Error']:
                     return False
         return True
 
@@ -470,7 +469,7 @@ class InstallToolManager(object):
         """
         """
         ensure_log_configured()
-        istart = dt.datetime.now()
+        installation_start = dt.datetime.now()
         installed_tool_list = installed_tool_revisions(self.gi)  # installed tools list
         counter = 0
         tools_info = _flatten_tools_info(self.tools_info)
@@ -504,7 +503,7 @@ class InstallToolManager(object):
                           'revision %s (TRT: %s)' %
                           (counter, total_num_tools, tool['name'], tool['owner'],
                            tool['tool_panel_section_id'] or tool['tool_panel_section_label'],
-                           tool['changeset_revision'], dt.datetime.now() - istart))
+                           tool['changeset_revision'], dt.datetime.now() - installation_start))
                 try:
                     install_repository_revision(tool, self.tsc)
                     log_tool_install_success(tool=tool, start=start, installed_tools=self.installed_tools)
@@ -529,7 +528,7 @@ class InstallToolManager(object):
         log.info("Errored tools ({0}): {1}".format(
                  len(self.errored_tools), [(t['name'], t.get('changeset_revision', "")) for t in self.errored_tools]))
         log.info("All tools have been processed.")
-        log.info("Total run time: {0}".format(dt.datetime.now() - istart))
+        log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
 
     def create_tool_install_payload(self, tool_info):
         """
@@ -598,9 +597,9 @@ def script_main():
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
-        itm = get_install_tool_manager(options)
-        itm.install_tools()
-        if itm.errored_tools:
+        install_tool_manager = get_install_tool_manager(options)
+        install_tool_manager.install_tools()
+        if install_tool_manager.errored_tools:
             sys.exit(1)
     else:
         sys.exit("Must provide a tool list file, individual tools info or a list of data manager tasks. "

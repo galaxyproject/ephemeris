@@ -1,5 +1,6 @@
 import logging
 
+
 class ProgressConsoleHandler(logging.StreamHandler):
     """
     A handler class which allows the cursor to stay on

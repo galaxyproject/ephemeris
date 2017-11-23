@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from bioblend import galaxy
 import yaml
+from bioblend import galaxy
+
 
 __version__ = '0.7.1.dev0'
 
@@ -25,6 +26,7 @@ def get_galaxy_connection(args):
     elif args.api_key:
         return galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
     return False
+
 
 def load_yaml_file(filename):
     """

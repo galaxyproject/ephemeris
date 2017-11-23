@@ -40,9 +40,9 @@ from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
-from . import get_galaxy_connection,load_yaml_file
+from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
-from.ephemeris_log import ensure_log_configured,disable_external_library_logging,setup_global_logger
+from.ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -138,9 +138,9 @@ def installed_tool_revisions(gi, omit=None):
     """
     if not omit:
         omit = []
-    tsc = ToolShedClient(gi)
+    tool_shed_client = ToolShedClient(gi)
     installed_revisions_list = []
-    installed_tool_list = tsc.get_repositories()
+    installed_tool_list = tool_shed_client.get_repositories()
     for installed_tool in installed_tool_list:
         if installed_tool['status'] == 'Installed':
             skip = False
@@ -216,10 +216,11 @@ def installed_tools(gi, omit=None):
                     if omitted_tool in custom_tool_id[3]:
                         skip = True
                 if not skip:
-                    tool_panel_tools.append({'tool_shed_url': "https://{0}".format(custom_tool_id[0]),
-                                     'owner': custom_tool_id[2],
-                                     'name': custom_tool_id[3],
-                                     'tool_panel_section_id': tool_section['id']})
+                    tool_panel_tools.append(
+                        {'tool_shed_url': "https://{0}".format(custom_tool_id[0]),
+                         'owner': custom_tool_id[2],
+                         'name': custom_tool_id[3],
+                         'tool_panel_section_id': tool_section['id']})
             else:
                 custom_tools.append(custom_tool['id'])
 
@@ -424,11 +425,10 @@ def get_install_tool_manager(options):
         log.warning('URL should start with http:// or https://. https:// chosen by default.')
         galaxy_url = 'https://' + galaxy_url
 
-    api_key = options.api_key or tool_list.get('api_key')
-
     if options.skip_tool_dependencies:
         install_tool_dependencies = False
         install_repository_dependencies = False
+
     elif tool_list_file:
         install_tool_dependencies = install_tool_dependencies
         install_repository_dependencies = install_repository_dependencies
@@ -583,7 +583,10 @@ class InstallToolManager(object):
         installable_revisions = ts.repositories.get_ordered_installable_revisions(tool['name'], tool['owner'])
         if not installable_revisions:  # Repo does not exist in tool shed
             now = dt.datetime.now()
-            log_tool_install_error(tool, start=now, msg="Repository does not exist in tool shed", errored_tools=self.errored_tools)
+            log_tool_install_error(tool,
+                                   start=now,
+                                   msg="Repository does not exist in tool shed",
+                                   errored_tools=self.errored_tools)
             return None
         if not tool['changeset_revision']:
             tool['changeset_revision'] = installable_revisions[-1]

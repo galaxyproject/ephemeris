@@ -37,6 +37,7 @@ from argparse import ArgumentParser
 import yaml
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
+from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
@@ -132,13 +133,15 @@ def installed_tool_revisions(gi, omit=None):
                     in the tool not being included in the returned list.
     :rtype: list of dicts
     :return: Each dict in the returned list will have the following keys:
-             `name`, `owner`, `tool_shed_url`, `revisions`.
+             `name`, `owner`, `tool_shed_url`, `revisions`, `tool_panel_section_id`,
+             `tool_panel_section_name`, `versions`.
     .. seealso:: this method returns a subset of data returned by
                  `installed_tools` function
     """
     if not omit:
         omit = []
     tool_shed_client = ToolShedClient(gi)
+    tool_client = ToolClient(gi)
     installed_revisions_list = []
     installed_tool_list = tool_shed_client.get_repositories()
     for installed_tool in installed_tool_list:
@@ -156,11 +159,17 @@ def installed_tool_revisions(gi, omit=None):
                     skip = True
             # We have not processed this tool so create a list entry
             if not skip:
-                ti = {'name': installed_tool['name'],
-                      'owner': installed_tool['owner'],
-                      'revisions': [installed_tool.get('changeset_revision', None)],
-                      'tool_shed_url': 'https://' + installed_tool['tool_shed']}
-                installed_revisions_list.append(ti)
+                tool_specific_info = tool_client.show_tool(installed_tool['name'])
+                tool_info = {
+                    'name': installed_tool['name'],
+                    'owner': installed_tool['owner'],
+                    'revisions': [installed_tool.get('changeset_revision', None)],
+                    'tool_shed_url': 'https://' + installed_tool['tool_shed'],
+                    'tool_panel_section_id': tool_specific_info.get('panel_section_id', None),
+                    'tool_panel_section_name': tool_specific_info.get('panel_section_name', None),
+                    'versions': tool_specific_info.get('version', None)
+                }
+                installed_revisions_list.append(tool_info)
     return installed_revisions_list
 
 
@@ -305,6 +314,12 @@ def _parser():
                         action="store_true",
                         dest="force_latest_revision",
                         help="Will override the revisions in the tools file and always install the latest revision.")
+    parser.add_argument("--update",
+                        action="store_true",
+                        dest="update_tools",
+                        help="This updates all tools in the Galaxy to the latest revision. "
+                              "No tools should be specified in a tool list or via the command line "
+                              "when this option is selected.")
     return parser
 
 
@@ -410,6 +425,10 @@ def get_install_tool_manager(options):
     install_repository_dependencies = INSTALL_REPOSITORY_DEPENDENCIES
     install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
 
+    gi = get_galaxy_connection(options)
+    if not gi:
+        gi = galaxy_instance_from_tool_list_file(options.tool_list_file)
+
     tool_list_file = options.tool_list_file
     if tool_list_file:
         tool_list = load_yaml_file(tool_list_file)  # Input file contents
@@ -422,6 +441,8 @@ def get_install_tool_manager(options):
             'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
+    elif options.update_tools:
+        tool_list = installed_tool_revisions(gi)
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,
@@ -447,11 +468,7 @@ def get_install_tool_manager(options):
 
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
 
-    gi = get_galaxy_connection(options)
-    if not gi:
-        gi = galaxy_instance_from_tool_list_file(tool_list_file)
-
-    force_latest_revision = options.force_latest_revision
+    force_latest_revision = options.force_latest_revision or options.update_tools
 
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
@@ -612,21 +629,28 @@ class InstallToolManager(object):
         return tool
 
 
-def script_main():
+def main():
     global log
     disable_external_library_logging()
     log = setup_global_logger(include_file=True)
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
+        if options.update_tools:
+            sys.exit("--update can not be used together with tools to be installed.")
+        install_tool_manager = get_install_tool_manager(options)
+        install_tool_manager.install_tools()
+        if install_tool_manager.errored_tools:
+            sys.exit(1)
+    elif options.update_tools:
         install_tool_manager = get_install_tool_manager(options)
         install_tool_manager.install_tools()
         if install_tool_manager.errored_tools:
             sys.exit(1)
     else:
-        sys.exit("Must provide a tool list file, individual tools info or a list of data manager tasks. "
+        sys.exit("Must provide a tool list file, individual tools info , a list of data manager tasks or issue the update command. "
                  "Look at usage.")
 
 
 if __name__ == "__main__":
-    script_main()
+    main()

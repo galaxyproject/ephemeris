@@ -14,25 +14,58 @@ workflow-install --help
 setup-data-libraries --help
 get-tool-list --help
 
+function start_container {
+    # We start the image with the -P flag that published all exposed container ports
+    # to random free ports on the host, since on OS X the container can't be reached
+    # through the internal network (https://docs.docker.com/docker-for-mac/networking/#i-cannot-ping-my-containers)
+    CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
+    # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
+    WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
+    echo "Wait for galaxy to start"
+    galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
+}
+function start_new_container{
+    echo "Start new container"
+    docker rm -f $CID
+    start_container
+}
+
 echo "Starting galaxy docker container"
-# We start the image with the -P flag that published all exposed container ports
-# to random free ports on the host, since on OS X the container can't be reached
-# through the internal network (https://docs.docker.com/docker-for-mac/networking/#i-cannot-ping-my-containers)
-CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
-# We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
-WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
-echo "Test galaxy-wait function"
-galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
+start_container
 docker ps
 
-echo "Check tool installation"
+echo "Check tool installation with yaml on the commandline"
+OLD_TOOL="{'owner':'jjohnson','tool_panel_section_id':'cdhit','name':'cdhit','revisions':['34a799d173f7']}"
+shed-install -y  $OLD_TOOL --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
+grep "cdhit" result_tool_list.yaml
+grep "34a799d173f7" result_tool_list.yaml #installed revision
+
+echo "TODO: Check update function"
+
+start_new_container
+echo "Check tool installation with command line flags"
+shed-install --name cdhit --owner jjohnson --section cdhit --revisions "['34a799d173f7']" --a admin -g http://localhost:$WEB_PORT --latest
+get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
+grep "cdhit" result_tool_list.yaml
+grep "34a799d173f7" result_tool_list.yaml #installed revision
+
+start_new_container
+echo "Check tool installation with --latest"
+shed-install -y  $OLD_TOOL --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --latest
+get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
+grep "cdhit" result_tool_list.yaml
+grep "28b7a43907f0" result_tool_list.yaml #latest revision
+
+start_new_container
+echo "Check tool installation from tool list"
 # Establish the current tool list
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_pre.yaml
 shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_post.yaml
 grep 4d82cf59895e result_tool_list_post.yaml && grep 0b4e36026794 result_tool_list_post.yaml  # this means both revisions have been successfully installed.
 
-shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --latest
+
 
 echo "Wait a few seconds before restarting galaxy"
 sleep 15

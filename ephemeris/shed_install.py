@@ -294,6 +294,10 @@ def _parser():
                         help="Install tool dependencies through resolver (e.g. conda). "
                              "Will be ignored on galaxy releases older than 16.07. "
                              "Can be overwritten on a per-tool basis in the tools file")
+    parser.add_argument("--latest",
+                        action="store_true",
+                        dest="force_latest_revision",
+                        help="Will override the revisions in the tools file and always install the latest revision.")
     return parser
 
 
@@ -434,14 +438,19 @@ def get_install_tool_manager(options):
         install_repository_dependencies = install_repository_dependencies
 
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
+
     gi = get_galaxy_connection(options)
     if not gi:
         gi = galaxy_instance_from_tool_list_file(tool_list_file)
+
+    force_latest_revision = options.get("force_latest_revision", False)
+
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,
                               default_install_tool_dependencies=install_tool_dependencies,
                               default_install_repository_dependencies=install_repository_dependencies,
-                              default_install_resolver_dependencies=install_resolver_dependencies
+                              default_install_resolver_dependencies=install_resolver_dependencies,
+                              force_latest_revision=force_latest_revision
                               )
 
 
@@ -453,7 +462,8 @@ class InstallToolManager(object):
                  default_install_tool_dependencies=INSTALL_TOOL_DEPENDENCIES,
                  default_install_resolver_dependencies=INSTALL_RESOLVER_DEPENDENCIES,
                  default_install_repository_dependencies=INSTALL_REPOSITORY_DEPENDENCIES,
-                 require_tool_panel_info=True):
+                 require_tool_panel_info=True,
+                 force_latest_revision=False):
         self.tools_info = tools_info
         self.gi = gi
         self.tsc = ToolShedClient(self.gi)
@@ -461,6 +471,7 @@ class InstallToolManager(object):
         self.install_tool_dependencies = default_install_tool_dependencies
         self.install_resolver_dependencies = default_install_resolver_dependencies
         self.install_repository_dependencies = default_install_repository_dependencies
+        self.force_latest_revision = force_latest_revision
         self.errored_tools = []
         self.skipped_tools = []
         self.installed_tools = []
@@ -588,7 +599,7 @@ class InstallToolManager(object):
                                    msg="Repository does not exist in tool shed",
                                    errored_tools=self.errored_tools)
             return None
-        if not tool['changeset_revision']:
+        if not tool['changeset_revision'] or self.force_latest_revision:
             tool['changeset_revision'] = installable_revisions[-1]
         return tool
 

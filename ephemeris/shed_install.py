@@ -340,7 +340,7 @@ def _list_tool_categories(tl):
 
 
 def _parser():
-    '''construct the parser object'''
+    """construct the parser object"""
     parent = get_common_args()
     parser = ArgumentParser(
         parents=[parent],
@@ -454,25 +454,25 @@ def install_repository_revision(tool, tsc):
     return response
 
 
-def wait_for_install(tool, tsc, timeout=3600):
+def wait_for_install(tool, tool_shed_client, timeout=3600):
     """
     If nginx times out, we look into the list of installed repositories
     and try to determine if a tool of the same namer/owner is still installing.
     Returns True if install finished, returns False when timeout is exceeded.
     """
-    def install_done(tool, tsc):
-        itl = tsc.get_repositories()
+    def install_done(tool, tool_shed_client):
+        itl = tool_shed_client.get_repositories()
         for it in itl:
             if (tool['name'] == it['name']) and (it['owner'] == tool['owner']):
                 if it['status'] not in ['Installed', 'Error']:
                     return False
         return True
 
-    finished = install_done(tool, tsc)
+    finished = install_done(tool, tool_shed_client)
     while (not finished) and (timeout > 0):
         timeout -= 10
         time.sleep(10)
-        finished = install_done(tool, tsc)
+        finished = install_done(tool, tool_shed_client)
     if timeout > 0:
         return True
     else:
@@ -491,11 +491,14 @@ def get_install_tool_manager(options):
 
     tool_list_file = options.tool_list_file
     if tool_list_file:
-        tl = load_input_file(tool_list_file)  # Input file contents
-        tools_info = tl['tools']  # The list of tools to install
-        install_repository_dependencies = tl.get('install_repository_dependencies', INSTALL_REPOSITORY_DEPENDENCIES)
-        install_resolver_dependencies = tl.get('install_resolver_dependencies', INSTALL_RESOLVER_DEPENDENCIES)
-        install_tool_dependencies = tl.get('install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
+        tool_list = load_input_file(tool_list_file)  # Input file contents
+        tools_info = tool_list['tools']  # The list of tools to install
+        install_repository_dependencies = tool_list.get(
+            'install_repository_dependencies', INSTALL_REPOSITORY_DEPENDENCIES)
+        install_resolver_dependencies = tool_list.get(
+            'install_resolver_dependencies', INSTALL_RESOLVER_DEPENDENCIES)
+        install_tool_dependencies = tool_list.get(
+            'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     else:
@@ -506,13 +509,13 @@ def get_install_tool_manager(options):
                        "tool_panel_section_label": options.tool_panel_section_label,
                        "tool_shed_url": options.tool_shed_url or MTS}]
 
-    galaxy_url = options.galaxy or tl.get('galaxy_instance')
+    galaxy_url = options.galaxy or tool_list.get('galaxy_instance')
 
     if not galaxy_url.startswith('http'):
         log.warning('URL should start with http:// or https://. https:// chosen by default.')
         galaxy_url = 'https://' + galaxy_url
 
-    api_key = options.api_key or tl.get('api_key')
+    api_key = options.api_key or tool_list.get('api_key')
 
     if options.skip_tool_dependencies:
         install_tool_dependencies = False
@@ -558,7 +561,7 @@ class InstallToolManager(object):
         """
         _ensure_log_configured()
         istart = dt.datetime.now()
-        itl = installed_tool_revisions(self.gi)  # installed tools list
+        installed_tool_list = installed_tool_revisions(self.gi)  # installed tools list
         counter = 0
         tools_info = _flatten_tools_info(self.tools_info)
         total_num_tools = len(tools_info)
@@ -576,7 +579,7 @@ class InstallToolManager(object):
             if not tool:
                 continue
             # Check if the tool@revision is already installed
-            for installed in itl:
+            for installed in installed_tool_list:
                 if the_same_tool(installed, tool) and tool['changeset_revision'] in installed['revisions']:
                     log.debug("({0}/{1}) Tool {2} already installed at revision {3}. Skipping."
                               .format(counter, total_num_tools, tool['name'], tool['changeset_revision']))
@@ -602,7 +605,7 @@ class InstallToolManager(object):
                     else:
                         if "504" in e.message:
                             log.debug("Timeout during install of %s, extending wait to 1h", tool['name'])
-                            success = wait_for_install(tool=tool, tsc=self.tsc, timeout=3600)
+                            success = wait_for_install(tool=tool, tool_shed_client=self.tsc, timeout=3600)
                             if success:
                                 log_tool_install_success(tool=tool, start=start, installed_tools=self.installed_tools)
                             else:

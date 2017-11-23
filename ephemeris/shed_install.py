@@ -443,7 +443,7 @@ def get_install_tool_manager(options):
     if not gi:
         gi = galaxy_instance_from_tool_list_file(tool_list_file)
 
-    force_latest_revision = options.get("force_latest_revision", False)
+    force_latest_revision = options.force_latest_revision
 
     return InstallToolManager(tools_info=tools_info,
                               gi=gi,

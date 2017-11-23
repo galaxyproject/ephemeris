@@ -32,7 +32,7 @@ shed-install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_post.yaml
 grep 4d82cf59895e result_tool_list_post.yaml && grep 0b4e36026794 result_tool_list_post.yaml  # this means both revisions have been successfully installed.
 
-shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+shed-install -t "$TEST_DATA"/tool_list.yaml.sample --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT --latest
 
 echo "Wait a few seconds before restarting galaxy"
 sleep 15

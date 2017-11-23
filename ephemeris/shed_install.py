@@ -282,7 +282,8 @@ def _parser():
                         default=None,
                         dest="revisions",
                         help="The revisions of the tool repository that will be installed. "
-                             "Revisions must be specified in YAML format: ['revision1','revision2']"
+                             "Revisions must be specified in on the command line in YAML format:"
+                            """ "['revision1','revision2']". """
                              "(Only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",

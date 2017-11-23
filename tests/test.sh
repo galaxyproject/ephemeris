@@ -24,7 +24,8 @@ function start_container {
     echo "Wait for galaxy to start"
     galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
 }
-function start_new_container{
+
+function start_new_container {
     echo "Start new container"
     docker rm -f $CID
     start_container
@@ -45,7 +46,7 @@ echo "TODO: Check update function"
 
 start_new_container
 echo "Check tool installation with command line flags"
-shed-install --name cdhit --owner jjohnson --section cdhit --revisions "['34a799d173f7']" --a admin -g http://localhost:$WEB_PORT --latest
+shed-install --name cdhit --owner jjohnson --section cdhit --revisions "['34a799d173f7']" --a admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "34a799d173f7" result_tool_list.yaml #installed revision

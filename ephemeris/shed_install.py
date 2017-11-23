@@ -120,6 +120,28 @@ def the_same_tool(tool_1_info, tool_2_info):
     return False
 
 
+def get_tool_from_repository(gi, repository):
+    """Converts a repository from ToolShedClient into tool information from
+    ToolClient"""
+    name = repository['name']
+    owner = repository['owner']
+    tool_shed = repository['tool_shed']
+    revision = repository['installed_changeset_revision']
+
+    tool_client = ToolClient(gi)
+    installed_tools = tool_client.get_tools()
+
+    for installed_tool in installed_tools:
+        tool_repository = installed_tool.get('tool_shed_repository')
+        if tool_repository:
+            # Identifiers ordered from most unique to least unique for performance reasons
+            if revision == tool_repository.get('installed_changeset_revision'):
+                if name == tool_repository.get('name'):
+                    if owner == tool_repository.get('owner'):
+                        if tool_shed == tool_repository.get('tool_shed'):
+                            return installed_tool
+    return dict()
+
 def installed_tool_revisions(gi, omit=None):
     """
     Get a list of tool revisions installed from a Tool Shed on a Galaxy instance.
@@ -141,7 +163,9 @@ def installed_tool_revisions(gi, omit=None):
     if not omit:
         omit = []
     tool_shed_client = ToolShedClient(gi)
-    tool_client = ToolClient(gi)
+
+    # Create dictionary to look up all tools based on repository information
+
     installed_revisions_list = []
     installed_tool_list = tool_shed_client.get_repositories()
     for installed_tool in installed_tool_list:
@@ -159,7 +183,7 @@ def installed_tool_revisions(gi, omit=None):
                     skip = True
             # We have not processed this tool so create a list entry
             if not skip:
-                tool_specific_info = tool_client.show_tool(installed_tool['name'])
+                tool_specific_info = get_tool_from_repository(gi,installed_tool)
                 tool_info = {
                     'name': installed_tool['name'],
                     'owner': installed_tool['owner'],
@@ -353,7 +377,7 @@ def _flatten_tools_info(tools_info):
         for key, value in dictionary.items():
             if key != 'revisions':
                 new_dictionary[key] = value
-        return new_dictionary
+
 
     flattened_list = []
     for tool_info in tools_info:

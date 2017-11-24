@@ -47,3 +47,4 @@ Committers
 - John Chilton (@jmchilton)
 - Björn Grüning (@bgruening)
 - Marius van den Beek (@mvdbeek)
+- rhpvorderman (@rhpvorderman)

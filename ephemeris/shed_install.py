@@ -66,7 +66,7 @@ def log_tool_install_error(tool, start, msg, errored_tools):
     """
     Log failed tool installations
     """
-    ensure_log_configured()
+    ensure_log_configured(__name__)
     end = dt.datetime.now()
     log.error("\t* Error installing a tool (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
               str(end - start),
@@ -85,7 +85,7 @@ def log_tool_install_success(tool, start, installed_tools):
     Log successful tool installation.
     Tools that finish in error still count as successful installs currently.
     """
-    ensure_log_configured()
+    ensure_log_configured(__name__)
     end = dt.datetime.now()
     installed_tools.append({'name': tool['name'], 'owner': tool['owner'],
                            'revision': tool['changeset_revision']})
@@ -363,7 +363,7 @@ def install_repository_revision(tool, tool_shed_client):
     """
     Adjusts tool dictionary to bioblend signature and installs single tool
     """
-    ensure_log_configured()
+    ensure_log_configured(__name__)
     tool['new_tool_panel_section_label'] = tool.pop('tool_panel_section_label')
     response = tool_shed_client.install_repository_revision(**tool)
     if isinstance(response, dict) and response.get('status', None) == 'ok':
@@ -488,7 +488,6 @@ class InstallToolManager(object):
     def install_tools(self):
         """
         """
-        ensure_log_configured()
         installation_start = dt.datetime.now()
         installed_tool_list = installed_tool_revisions(self.gi)  # installed tools list
         counter = 0
@@ -616,7 +615,7 @@ class InstallToolManager(object):
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger('/tmp/galaxy_tool_install.log')
+    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_tool_install.log')
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):

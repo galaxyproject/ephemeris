@@ -39,24 +39,24 @@ def disable_external_library_logging():
         pass
 
 
-def ensure_log_configured():
+def ensure_log_configured(name):
     # For library-style usage - just ensure a log exists and use ephemeris name.
     if 'log' not in globals():
         global log
-        log = setup_global_logger()
+        log = setup_global_logger(name)
 
 
-def setup_global_logger(file=None):
+def setup_global_logger(name, log_file=None):
     formatter = logging.Formatter('%(asctime)s %(levelname)-5s - %(message)s')
     progress = ProgressConsoleHandler()
     console = logging.StreamHandler()
     console.setFormatter(formatter)
 
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(name)
     logger.setLevel(logging.DEBUG)
     logger.addHandler(progress)
 
-    if file:
-        file_handler = logging.FileHandler(file)
+    if log_file:
+        file_handler = logging.FileHandler(log_file)
         logger.addHandler(file_handler)
     return logger

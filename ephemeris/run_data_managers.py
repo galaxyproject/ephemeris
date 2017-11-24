@@ -221,7 +221,7 @@ def _parser():
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger('/tmp/galaxy_data_manager_install.log')
+    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_data_manager_install.log')
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:

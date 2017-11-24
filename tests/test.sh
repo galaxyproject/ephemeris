@@ -36,6 +36,8 @@ start_container
 docker ps
 
 echo "Check tool installation with yaml on the commandline"
+# CD Hit was chosen since it is old and seems to be unmaintained. Last update was 2015.
+# Anyone know a smaller tool that could fit its place?
 OLD_TOOL="{'owner':'jjohnson','name':'cdhit','revisions':['34a799d173f7'],'tool_panel_section_label':'CD_HIT'}"
 shed-install -y  ${OLD_TOOL} --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml

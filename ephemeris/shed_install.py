@@ -332,7 +332,7 @@ def _flatten_tools_info(tools_info):
     """
     Flatten the dict containing info about what tools to install.
     The tool definition YAML file allows multiple revisions to be listed for
-    the same tool. To enable simple, iterattive processing of the info in this
+    the same tool. To enable simple, iterative processing of the info in this
     script, flatten the `tools_info` list to include one entry per tool revision.
     :type tools_info: list of dicts
     :param tools_info: Each dict in this list should contain info about a tool.
@@ -350,6 +350,7 @@ def _flatten_tools_info(tools_info):
         for key, value in dictionary.items():
             if key != 'revisions':
                 new_dictionary[key] = value
+        return new_dictionary
 
 
     flattened_list = []
@@ -357,13 +358,13 @@ def _flatten_tools_info(tools_info):
         revisions = tool_info.get('revisions', [])
         if len(revisions) > 1:
             for revision in revisions:
-                ti = _strip_revisions(tool_info)
-                ti['changeset_revision'] = revision
-                flattened_list.append(ti)
+                stripped_tool_info = _strip_revisions(tool_info)
+                stripped_tool_info['changeset_revision'] = revision
+                flattened_list.append(stripped_tool_info)
         elif revisions:  # A single revisions was defined so keep it
-            ti = _strip_revisions(tool_info)
-            ti['changeset_revision'] = revisions[0]
-            flattened_list.append(ti)
+            stripped_tool_info = _strip_revisions(tool_info)
+            stripped_tool_info['changeset_revision'] = revisions[0]
+            flattened_list.append(stripped_tool_info)
         else:  # Revision was not defined at all
             flattened_list.append(tool_info)
     return flattened_list
@@ -439,8 +440,7 @@ def get_install_tool_manager(options):
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     elif options.update_tools:
-        get_tool_list = GiToToolYaml(
-            gi.url)
+        get_tool_list = GiToToolYaml(gi)
         tools_info = get_tool_list.tool_list
     else:
         # An individual tool was specified on the command line

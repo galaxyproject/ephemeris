@@ -3,21 +3,22 @@
 import json
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
+from bioblend.galaxy.tools import ToolClient
 from distutils.version import StrictVersion
 
 import requests
 import yaml
 
 from .common_parser import get_common_args
-
+from . import get_galaxy_connection
 
 class GiToToolYaml:
-    def __init__(self, url,
+    def __init__(self, gi,
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False):
 
-        self.url = url
+        self.gi = gi
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
@@ -32,8 +33,8 @@ class GiToToolYaml:
         """
         Gets the toolbox elements from <galaxy_url>/api/tools
         """
-        r = requests.get("{url}/api/tools".format(url=self.url))
-        return json.loads(r.text)
+        tool_client=ToolClient(self.gi)
+        return tool_client.get_tools()
 
     def get_repositories(self):
         """
@@ -144,17 +145,18 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
-def check_galaxy_version(galaxy_url):
-    version = requests.get("{url}/api/version".format(url=galaxy_url)).json()
+def check_galaxy_version(gi):
+    version =  gi.config.get_version()
     if StrictVersion(version['version_major']) < StrictVersion('16.04'):
         raise Exception('This script needs galaxy version 16.04 or newer')
 
 
 def main():
     options = _parse_cli_options()
-    check_galaxy_version(options.galaxy)
+    gi = get_galaxy_connection(options)
+    check_galaxy_version(gi)
     gi_to_tool_yaml = GiToToolYaml(
-        url=options.galaxy,
+        gi=gi,
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision)

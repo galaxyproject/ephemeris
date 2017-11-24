@@ -1,16 +1,14 @@
 #!/usr/bin/env python
-'''Tool to extract a tool list from galaxy.'''
-import json
+"""Tool to extract a tool list from galaxy."""
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
+from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tools import ToolClient
 from distutils.version import StrictVersion
-
-import requests
 import yaml
 
+from . import check_url
 from .common_parser import get_common_args
-from . import get_galaxy_connection
 
 class GiToToolYaml:
     def __init__(self, gi,
@@ -34,7 +32,7 @@ class GiToToolYaml:
         Gets the toolbox elements from <galaxy_url>/api/tools
         """
         tool_client=ToolClient(self.gi)
-        return tool_client.get_tools()
+        return tool_client.get_tool_panel()
 
     def get_repositories(self):
         """
@@ -153,7 +151,8 @@ def check_galaxy_version(gi):
 
 def main():
     options = _parse_cli_options()
-    gi = get_galaxy_connection(options)
+    galaxy_url = check_url(options.galaxy)
+    gi = GalaxyInstance(galaxy_url)
     check_galaxy_version(gi)
     gi_to_tool_yaml = GiToToolYaml(
         gi=gi,

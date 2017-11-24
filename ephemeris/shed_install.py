@@ -93,16 +93,6 @@ def log_tool_install_success(tool, start, installed_tools):
               (tool['name'], str(end - start), tool['changeset_revision']))
 
 
-def galaxy_instance_from_tool_list_file(tool_list_file):
-    """
-    Get an instance of the `GalaxyInstance` object using the instance from the tool list file.
-    """
-    tl = load_yaml_file(tool_list_file)
-    url = tl['galaxy_instance']
-    api_key = tl['api_key']
-    return GalaxyInstance(url, api_key)
-
-
 def the_same_tool(tool_1_info, tool_2_info):
     """
     Given two dicts containing info about tools, determine if they are the same
@@ -423,11 +413,12 @@ def get_install_tool_manager(options):
     install_repository_dependencies = INSTALL_REPOSITORY_DEPENDENCIES
     install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
 
-    gi = get_galaxy_connection(options)
-    if not gi:
-        gi = galaxy_instance_from_tool_list_file(options.tool_list_file)
-
     tool_list_file = options.tool_list_file
+    gi = get_galaxy_connection(options,tool_list_file)
+    if not gi:
+       raise Exception('Could not get a galaxy connection')
+
+
     if tool_list_file:
         tool_list = load_yaml_file(tool_list_file)  # Input file contents
         tools_info = tool_list['tools']  # The list of tools to install
@@ -450,12 +441,6 @@ def get_install_tool_manager(options):
                        "tool_panel_section_label": options.tool_panel_section_label,
                        "tool_shed_url": options.tool_shed_url or MTS,
                        "revisions": yaml.load(options.revisions)}]
-
-    galaxy_url = options.galaxy or tool_list.get('galaxy_instance')
-
-    if not galaxy_url.startswith('http'):
-        log.warning('URL should start with http:// or https://. https:// chosen by default.')
-        galaxy_url = 'https://' + galaxy_url
 
     if options.skip_tool_dependencies:
         install_tool_dependencies = False
@@ -631,7 +616,7 @@ class InstallToolManager(object):
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger(include_file=True)
+    log = setup_global_logger('/tmp/galaxy_tool_install.log')
     options = _parse_cli_options()
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):

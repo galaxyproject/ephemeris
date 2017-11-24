@@ -24,7 +24,6 @@ It checks it in the following way:
 '''
 import argparse
 import json
-import logging as log
 import time
 
 import yaml
@@ -32,7 +31,8 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
-
+from . import get_galaxy_connection
+from .ephemeris_log import disable_external_library_logging, setup_global_logger
 from .common_parser import get_common_args
 
 
@@ -146,11 +146,8 @@ def parse_items(items, genomes):
 
 
 def run_dm(args):
-    url = args.galaxy or DEFAULT_URL
-    if args.api_key:
-        gi = GalaxyInstance(url=url, key=args.api_key)
-    else:
-        gi = GalaxyInstance(url=url, email=args.user, password=args.password)
+    args.galaxy = args.galaxy or DEFAULT_URL
+    gi = get_galaxy_connection(args)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
@@ -222,6 +219,9 @@ def _parser():
 
 
 def main():
+    global log
+    disable_external_library_logging()
+    log = setup_global_logger('/tmp/galaxy_tool_install.log')
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:

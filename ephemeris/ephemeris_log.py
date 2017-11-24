@@ -46,7 +46,7 @@ def ensure_log_configured():
         log = setup_global_logger()
 
 
-def setup_global_logger(include_file=False):
+def setup_global_logger(file=None):
     formatter = logging.Formatter('%(asctime)s %(levelname)-5s - %(message)s')
     progress = ProgressConsoleHandler()
     console = logging.StreamHandler()
@@ -56,7 +56,7 @@ def setup_global_logger(include_file=False):
     logger.setLevel(logging.DEBUG)
     logger.addHandler(progress)
 
-    if include_file:
-        file_handler = logging.FileHandler('/tmp/galaxy_tool_install.log')
+    if file:
+        file_handler = logging.FileHandler(file)
         logger.addHandler(file_handler)
     return logger

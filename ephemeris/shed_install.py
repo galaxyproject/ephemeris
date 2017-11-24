@@ -413,7 +413,7 @@ def get_install_tool_manager(options):
     install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
 
     tool_list_file = options.tool_list_file
-    gi = get_galaxy_connection(options, tool_list_file)
+    gi = get_galaxy_connection(options, file=tool_list_file, log=log)
     if not gi:
         raise Exception('Could not get a galaxy connection')
 

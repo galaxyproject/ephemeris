@@ -147,7 +147,7 @@ def parse_items(items, genomes):
 
 def run_dm(args):
     args.galaxy = args.galaxy or DEFAULT_URL
-    gi = get_galaxy_connection(args)
+    gi = get_galaxy_connection(args, log=log)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys

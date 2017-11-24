@@ -15,16 +15,15 @@ RAW_CONTENT_URL = "https://raw.github.com/%s/%s/master/" % (
 )
 
 
-def check_url(url):
+def check_url(url, log=None):
     if not url.startswith('http'):
-        if 'log' in globals():
-            global log
+        if log:
             log.warning('URL should start with http:// or https://. https:// chosen by default.')
         url = 'https://' + url
     return url
 
 
-def get_galaxy_connection(args, file=None):
+def get_galaxy_connection(args, file=None, log=None):
     """
     Return a Galaxy connection, given a user or an API key.
     If not given gets the arguments from the file.
@@ -36,13 +35,13 @@ def get_galaxy_connection(args, file=None):
         file_content = dict()
 
     url = args.galaxy or file_content.get('galaxy_instance')
-
-    galaxy_url = check_url(url)
+    galaxy_url = check_url(url, log)
+    api_key = args.api_key or file.get('api_key')
 
     if args.user and args.password:
         return galaxy.GalaxyInstance(url=galaxy_url, email=args.user, password=args.password)
-    elif args.api_key:
-        return galaxy.GalaxyInstance(url=galaxy_url, key=args.api_key)
+    elif api_key:
+        return galaxy.GalaxyInstance(url=galaxy_url, key=api_key)
     return None
 
 

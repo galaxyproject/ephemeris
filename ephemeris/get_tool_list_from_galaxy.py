@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 """Tool to extract a tool list from galaxy."""
+
+
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
+from distutils.version import StrictVersion
+
+import yaml
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tools import ToolClient
-from distutils.version import StrictVersion
-import yaml
 
 from . import check_url
 from .common_parser import get_common_args
+
 
 class GiToToolYaml:
     def __init__(self, gi,
@@ -25,13 +29,12 @@ class GiToToolYaml:
         self.filter_section_name_or_id_or_changeset()
         self.tool_list = {"tools": self.repository_list}
 
-
     @property
     def toolbox(self):
         """
         Gets the toolbox elements from <galaxy_url>/api/tools
         """
-        tool_client=ToolClient(self.gi)
+        tool_client = ToolClient(self.gi)
         return tool_client.get_tool_panel()
 
     def get_repositories(self):
@@ -144,7 +147,7 @@ def _parse_cli_options():
 
 
 def check_galaxy_version(gi):
-    version =  gi.config.get_version()
+    version = gi.config.get_version()
     if StrictVersion(version['version_major']) < StrictVersion('16.04'):
         raise Exception('This script needs galaxy version 16.04 or newer')
 
@@ -160,6 +163,7 @@ def main():
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision)
     gi_to_tool_yaml.write_to_yaml(options.output)
+
 
 if __name__ == "__main__":
     main()

@@ -35,15 +35,15 @@ import time
 from argparse import ArgumentParser
 
 import yaml
-from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
 from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
-from .get_tool_list_from_galaxy import GiToToolYaml
 from .ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
+from .get_tool_list_from_galaxy import GiToToolYaml
+
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -155,7 +155,7 @@ def installed_tool_revisions(gi, omit=None):
                     'owner': installed_tool['owner'],
                     'revisions': [installed_tool.get('changeset_revision', None)],
                     'tool_shed_url': 'https://' + installed_tool['tool_shed'],
-            }
+                }
                 installed_revisions_list.append(tool_info)
     return installed_revisions_list
 
@@ -279,7 +279,7 @@ def _parser():
                         dest="revisions",
                         help="The revisions of the tool repository that will be installed. "
                              "Revisions must be specified in on the command line in YAML format:"
-                            """ "['revision1','revision2']". """
+                             """ "['revision1','revision2']". """
                              "(Only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",
@@ -305,8 +305,8 @@ def _parser():
                         action="store_true",
                         dest="update_tools",
                         help="This updates all tools in the Galaxy to the latest revision. "
-                              "No tools should be specified in a tool list or via the command line "
-                              "when this option is selected.")
+                             "No tools should be specified in a tool list or via the command line "
+                             "when this option is selected.")
     return parser
 
 
@@ -341,7 +341,6 @@ def _flatten_tools_info(tools_info):
             if key != 'revisions':
                 new_dictionary[key] = value
         return new_dictionary
-
 
     flattened_list = []
     for tool_info in tools_info:
@@ -414,10 +413,9 @@ def get_install_tool_manager(options):
     install_resolver_dependencies = INSTALL_RESOLVER_DEPENDENCIES
 
     tool_list_file = options.tool_list_file
-    gi = get_galaxy_connection(options,tool_list_file)
+    gi = get_galaxy_connection(options, tool_list_file)
     if not gi:
-       raise Exception('Could not get a galaxy connection')
-
+        raise Exception('Could not get a galaxy connection')
 
     if tool_list_file:
         tool_list = load_yaml_file(tool_list_file)  # Input file contents

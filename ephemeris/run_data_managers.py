@@ -24,16 +24,16 @@ It checks it in the following way:
 '''
 import argparse
 import json
+import logging
 import time
 
 import yaml
-from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
 from . import get_galaxy_connection
-from .ephemeris_log import disable_external_library_logging, setup_global_logger
 from .common_parser import get_common_args
+from .ephemeris_log import disable_external_library_logging, setup_global_logger
 
 
 DEFAULT_URL = "http://localhost"
@@ -221,13 +221,14 @@ def _parser():
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger('/tmp/galaxy_tool_install.log')
+    log = setup_global_logger('/tmp/galaxy_data_manager_install.log')
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:
-        log.basicConfig(level=log.DEBUG)
+
+        log.setLevel(logging.DEBUG)
     else:
-        log.basicConfig(level=log.INFO)
+        log.setLevel(logging.INFO)
     log.info("Running data managers...")
     job_summary = run_dm(args)
     log.info('Finished running data managers. Results:')

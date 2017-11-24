@@ -2,7 +2,6 @@
 
 import yaml
 from bioblend import galaxy
-from .ephemeris_log import ensure_log_configured
 
 __version__ = '0.7.1.dev0'
 
@@ -14,6 +13,8 @@ PROJECT_EMAIL = 'jmchilton@gmail.com'
 RAW_CONTENT_URL = "https://raw.github.com/%s/%s/master/" % (
     PROJECT_USERAME, PROJECT_NAME
 )
+
+
 def check_url(url):
     if not url.startswith('http'):
         if 'log' in globals():
@@ -36,7 +37,7 @@ def get_galaxy_connection(args, file=None):
 
     url = args.galaxy or file_content.get('galaxy_instance')
 
-    galaxy_url=check_url(url)
+    galaxy_url = check_url(url)
 
     if args.user and args.password:
         return galaxy.GalaxyInstance(url=galaxy_url, email=args.user, password=args.password)

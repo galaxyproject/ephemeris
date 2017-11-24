@@ -1,5 +1,7 @@
 import logging
 
+global log
+
 
 class ProgressConsoleHandler(logging.StreamHandler):
     """
@@ -37,13 +39,6 @@ def disable_external_library_logging():
         logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
     except AttributeError:
         pass
-
-
-def ensure_log_configured(name):
-    # For library-style usage - just ensure a log exists and use ephemeris name.
-    if 'log' not in globals():
-        global log
-        log = setup_global_logger(name)
 
 
 def setup_global_logger(name, log_file=None):

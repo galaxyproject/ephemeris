@@ -41,9 +41,8 @@ from bioblend.toolshed import ToolShedInstance
 
 from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
-from .ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
+from .ephemeris_log import disable_external_library_logging, setup_global_logger
 from .get_tool_list_from_galaxy import GiToToolYaml
-
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -62,11 +61,18 @@ INSTALL_REPOSITORY_DEPENDENCIES = True
 INSTALL_RESOLVER_DEPENDENCIES = True
 
 
+def _ensure_log_configured(name):
+    # For library-style usage - just ensure a log exists and use ephemeris name.
+    if 'log' not in globals():
+        global log
+        log = setup_global_logger(name)
+
+
 def log_repository_install_error(repository, start, msg, errored_repositories):
     """
     Log failed tool installations
     """
-    ensure_log_configured(__name__)
+    _ensure_log_configured(__name__)
     end = dt.datetime.now()
     log.error("\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
               str(end - start),
@@ -86,7 +92,7 @@ def log_repository_install_success(repository, start, installed_repositories):
     Log successful repository installation.
     Tools that finish in error still count as successful installs currently.
     """
-    ensure_log_configured(__name__)
+    _ensure_log_configured(__name__)
     end = dt.datetime.now()
     installed_repositories.append({
         'name': repository['name'],
@@ -371,7 +377,7 @@ def install_repository_revision(repository, tool_shed_client):
     """
     Adjusts repository dictionary to bioblend signature and installs single repository
     """
-    ensure_log_configured(__name__)
+    _ensure_log_configured(__name__)
     repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
     response = tool_shed_client.install_repository_revision(**repository)
     if isinstance(response, dict) and response.get('status', None) == 'ok':

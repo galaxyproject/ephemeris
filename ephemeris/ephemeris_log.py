@@ -1,7 +1,5 @@
 import logging
 
-global log
-
 
 class ProgressConsoleHandler(logging.StreamHandler):
     """

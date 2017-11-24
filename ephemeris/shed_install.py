@@ -431,8 +431,10 @@ def get_install_tool_manager(options):
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     elif options.update_tools:
-        get_tool_list = GiToToolYaml(gi)
-        tools_info = get_tool_list.tool_list
+        get_tool_list = GiToToolYaml(gi=gi,
+                                     skip_tool_panel_section_name=False)
+        tool_list = get_tool_list.tool_list
+        tools_info = tool_list['tools']
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,

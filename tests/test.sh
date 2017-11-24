@@ -36,20 +36,21 @@ start_container
 docker ps
 
 echo "Check tool installation with yaml on the commandline"
-OLD_TOOL="{'owner':'jjohnson','tool_panel_section_id':'cdhit','name':'cdhit','revisions':['34a799d173f7']}"
-shed-install -y  $OLD_TOOL --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
+OLD_TOOL="{'owner':'jjohnson','name':'cdhit','revisions':['34a799d173f7'],'tool_panel_section_label':'CD_HIT'}"
+shed-install -y  ${OLD_TOOL} --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "34a799d173f7" result_tool_list.yaml #installed revision
 
 echo "Check update function"
 shed-install -a admin -g http://localhost:$WEB_PORT --update
+get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "28b7a43907f0" result_tool_list.yaml #latest revision
 
 start_new_container
 echo "Check tool installation with command line flags"
-shed-install --name cdhit --owner jjohnson --section cdhit --revisions "['34a799d173f7']" -a admin -g http://localhost:$WEB_PORT
+shed-install --name cdhit --owner jjohnson --section_label "CD_HIT" --revisions "['34a799d173f7']" -a admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "34a799d173f7" result_tool_list.yaml #installed revision

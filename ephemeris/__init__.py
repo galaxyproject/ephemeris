@@ -16,9 +16,9 @@ RAW_CONTENT_URL = "https://raw.github.com/%s/%s/master/" % (
 )
 def check_url(url):
     if not url.startswith('http'):
-        log = None
-        ensure_log_configured()
-        log.warning('URL should start with http:// or https://. https:// chosen by default.')
+        if 'log' in globals():
+            global log
+            log.warning('URL should start with http:// or https://. https:// chosen by default.')
         url = 'https://' + url
     return url
 

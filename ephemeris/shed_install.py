@@ -37,13 +37,13 @@ from argparse import ArgumentParser
 import yaml
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.client import ConnectionError
-from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 
 from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
-from.ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
+from .get_tool_list_from_galaxy import GiToToolYaml
+from .ephemeris_log import disable_external_library_logging, ensure_log_configured, setup_global_logger
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -120,28 +120,6 @@ def the_same_tool(tool_1_info, tool_2_info):
     return False
 
 
-def get_tool_from_repository(gi, repository):
-    """Converts a repository from ToolShedClient into tool information from
-    ToolClient"""
-    name = repository['name']
-    owner = repository['owner']
-    tool_shed = repository['tool_shed']
-    revision = repository['installed_changeset_revision']
-
-    tool_client = ToolClient(gi)
-    installed_tools = tool_client.get_tools()
-
-    for installed_tool in installed_tools:
-        tool_repository = installed_tool.get('tool_shed_repository')
-        if tool_repository:
-            # Identifiers ordered from most unique to least unique for performance reasons
-            if revision == tool_repository.get('installed_changeset_revision'):
-                if name == tool_repository.get('name'):
-                    if owner == tool_repository.get('owner'):
-                        if tool_shed == tool_repository.get('tool_shed'):
-                            return installed_tool
-    return dict()
-
 def installed_tool_revisions(gi, omit=None):
     """
     Get a list of tool revisions installed from a Tool Shed on a Galaxy instance.
@@ -155,8 +133,7 @@ def installed_tool_revisions(gi, omit=None):
                     in the tool not being included in the returned list.
     :rtype: list of dicts
     :return: Each dict in the returned list will have the following keys:
-             `name`, `owner`, `tool_shed_url`, `revisions`, `tool_panel_section_id`,
-             `tool_panel_section_name`, `versions`.
+             `name`, `owner`, `tool_shed_url`, `revisions`.
     .. seealso:: this method returns a subset of data returned by
                  `installed_tools` function
     """
@@ -183,16 +160,12 @@ def installed_tool_revisions(gi, omit=None):
                     skip = True
             # We have not processed this tool so create a list entry
             if not skip:
-                tool_specific_info = get_tool_from_repository(gi,installed_tool)
                 tool_info = {
                     'name': installed_tool['name'],
                     'owner': installed_tool['owner'],
                     'revisions': [installed_tool.get('changeset_revision', None)],
                     'tool_shed_url': 'https://' + installed_tool['tool_shed'],
-                    'tool_panel_section_id': tool_specific_info.get('panel_section_id', None),
-                    'tool_panel_section_name': tool_specific_info.get('panel_section_name', None),
-                    'versions': tool_specific_info.get('version', None)
-                }
+            }
                 installed_revisions_list.append(tool_info)
     return installed_revisions_list
 
@@ -466,7 +439,9 @@ def get_install_tool_manager(options):
     elif options.tool_yaml:
         tools_info = [yaml.load(options.tool_yaml)]
     elif options.update_tools:
-        tools_info = installed_tool_revisions(gi)
+        get_tool_list = GiToToolYaml(
+            gi.url)
+        tools_info = get_tool_list.tool_list
     else:
         # An individual tool was specified on the command line
         tools_info = [{"owner": options.owner,

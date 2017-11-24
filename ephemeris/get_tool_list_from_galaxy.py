@@ -13,20 +13,19 @@ from .common_parser import get_common_args
 
 class GiToToolYaml:
     def __init__(self, url,
-                 output_file,
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False):
 
         self.url = url
-        self.output_file = output_file
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.repository_list = self.get_repositories()
         self.merge_tool_changeset_revisions()
         self.filter_section_name_or_id_or_changeset()
-        self.write_to_yaml()
+        self.tool_list = {"tools": self.repository_list}
+
 
     @property
     def toolbox(self):
@@ -103,10 +102,9 @@ class GiToToolYaml:
             repo_list.append(repo)
         self.repository_list = repo_list
 
-    def write_to_yaml(self):
-        tool_dict = {"tools": self.repository_list}
-        with open(self.output_file, "w") as output:
-            output.write(yaml.safe_dump(tool_dict, default_flow_style=False))
+    def write_to_yaml(self, output_file):
+        with open(output_file, "w") as output:
+            output.write(yaml.safe_dump(self.tool_list, default_flow_style=False))
 
 
 def _parser():
@@ -155,12 +153,12 @@ def check_galaxy_version(galaxy_url):
 def main():
     options = _parse_cli_options()
     check_galaxy_version(options.galaxy)
-    GiToToolYaml(url=options.galaxy,
-                 output_file=options.output,
-                 include_tool_panel_section_id=options.include_tool_panel_id,
-                 skip_tool_panel_section_name=options.skip_tool_panel_name,
-                 skip_changeset_revision=options.skip_changeset_revision)
-
+    gi_to_tool_yaml = GiToToolYaml(
+        url=options.galaxy,
+        include_tool_panel_section_id=options.include_tool_panel_id,
+        skip_tool_panel_section_name=options.skip_tool_panel_name,
+        skip_changeset_revision=options.skip_changeset_revision)
+    gi_to_tool_yaml.write_to_yaml(options.output)
 
 if __name__ == "__main__":
     main()

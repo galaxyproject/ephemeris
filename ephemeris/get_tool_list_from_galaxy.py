@@ -25,7 +25,7 @@ class GiToToolYaml:
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.repository_list = self.get_repositories()
-        self.merge_tool_changeset_revisions()
+        self.repository_list = self.merge_tool_changeset_revisions()
         self.filter_section_name_or_id_or_changeset()
         self.tool_list = {"tools": self.repository_list}
 
@@ -45,9 +45,13 @@ class GiToToolYaml:
         repositories = []
         for elem in self.toolbox:
             if elem['model_class'] == 'Tool':
-                repositories.append(self.get_repo_from_tool(elem))
+                repo = self.get_repo_from_tool(elem)
+                if repo:
+                    repositories.append(repo)
             elif elem['model_class'] == 'ToolSection':
-                repositories.extend(self.get_repos_from_section(elem))
+                new_repos = self.get_repos_from_section(elem)
+                if new_repos:
+                    repositories.extend(new_repos)
         return repositories
 
     def get_repo_from_tool(self, tool):
@@ -69,28 +73,41 @@ class GiToToolYaml:
         repos = []
         for elem in section['elems']:
             if elem['model_class'] == 'Tool':
-                repos.append(self.get_repo_from_tool(elem))
+                repo = self.get_repo_from_tool(elem)
+                if repo:
+                    repos.append(repo)
             elif elem['model_class'] == 'ToolSection':
-                repos.extend(self.get_repos_from_section(elem))
-        return [repo for repo in repos if repo]
+                new_repos = self.get_repos_from_section(elem)
+                if new_repos:
+                    repos.extend(new_repos)
+        return repos
 
     def merge_tool_changeset_revisions(self):
         """
         Each installed changeset revision of a tool is listed individually.
         Merge revisions of the same tool into a list.
         """
-        tool_list = self.repository_list
-        for current_tool in tool_list:
-            for tool in tool_list:
-                if current_tool is tool:
-                    continue
-                if (tool["name"] == current_tool['name']
-                        and tool['owner'] == current_tool['owner']
-                        and tool['tool_panel_section_id'] == current_tool['tool_panel_section_id']
-                        and tool['tool_shed_url'] == current_tool['tool_shed_url']):
-                    current_tool["revisions"].extend(tool["revisions"])
-                    tool_list.remove(tool)
-            current_tool['revisions'] = list(set(current_tool['revisions']))
+        repositories = {}
+        repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
+        for i, tool in enumerate(self.repository_list):
+            repo_key = repo_key_template.format(**tool)
+            if repo_key in repositories:
+                repositories[repo_key].extend(tool['revisions'])
+            else:
+                repositories[repo_key] = tool['revisions']
+        new_repository_list = []
+        for repo_key, changeset_revisions in repositories.items():
+            changeset_revisions = list(set(changeset_revisions))
+            tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
+            new_repository_list.append(
+                {'tool_shed_url': tool_shed_url,
+                 'name': name,
+                 'owner': owner,
+                 'tool_panel_section_id': tool_panel_section_id,
+                 'tool_panel_section_label': tool_panel_section_label,
+                 'revisions': changeset_revisions}
+            )
+        return new_repository_list
 
     def filter_section_name_or_id_or_changeset(self):
         repo_list = []

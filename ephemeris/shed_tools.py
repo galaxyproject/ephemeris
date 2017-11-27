@@ -1,6 +1,12 @@
 """
 A script to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
+
+Shed-tools has two commands: update and install.
+
+Update simply updates all the tools in a Galaxy given connection details on the command line.
+
+Install allows installation of tools in multiple ways.
 Galaxy instance details and the installed tools can be provided in one of three
 ways:
 
@@ -270,8 +276,8 @@ def _parser():
     # variables.
     parser.set_defaults(
         update_tools=False,
-        tool_list_file = None,
-        tool_yaml = None,
+        tool_list_file=None,
+        tool_yaml=None,
         owner=None,
         name=None,
         tool_panel_section_id=None,

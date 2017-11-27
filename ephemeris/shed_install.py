@@ -411,6 +411,8 @@ def wait_for_install(repository, tool_shed_client, timeout=3600):
         timeout -= 10
         time.sleep(10)
         finished = install_done(repository, tool_shed_client)
+        if finished:
+            return True
     if timeout > 0:
         return True
     else:

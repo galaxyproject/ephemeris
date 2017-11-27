@@ -80,10 +80,8 @@ sleep 15
 
 echo "Restarting galaxy"
 #We restart galaxy because otherwise the data manager tables won't be watched
-#docker exec $CID supervisorctl restart galaxy:
+docker exec $CID supervisorctl restart galaxy:
 
-# Restart the entire container because supervisorctl sometimes crashes galaxy_web.
-docker restart $CID
 echo "Wait for galaxy to start"
 galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
 

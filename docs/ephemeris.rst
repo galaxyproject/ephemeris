@@ -12,6 +12,14 @@ ephemeris\.common\_parser module
     :undoc-members:
     :show-inheritance:
 
+ephemeris\.ephemeris\_log module
+--------------------------------
+
+.. automodule:: ephemeris.ephemeris_log
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ephemeris\.generate\_tool\_list\_from\_ga\_workflow\_files module
 -----------------------------------------------------------------
 
@@ -44,10 +52,10 @@ ephemeris\.setup\_data\_libraries module
     :undoc-members:
     :show-inheritance:
 
-ephemeris\.shed\_install module
--------------------------------
+ephemeris\.shed\_tools module
+-----------------------------
 
-.. automodule:: ephemeris.shed_install
+.. automodule:: ephemeris.shed_tools
     :members:
     :undoc-members:
     :show-inheritance:

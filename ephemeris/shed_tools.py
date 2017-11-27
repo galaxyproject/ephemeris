@@ -262,14 +262,32 @@ def _list_repository_categories(repository_dictionaries_list):
 def _parser():
     """construct the parser object"""
     common_arguments = get_common_args()
-    parser = ArgumentParser(
-        usage="usage: %(prog)s <options>")
+    parser = ArgumentParser()
     subparsers = parser.add_subparsers()
-    install_command_parser = subparsers.add_parser("install",
-                                                  help="This installs tools in Galaxy from the Tool Shed."
-                                                       "Use shed-install install --help for more information",
-                                                  parents=[common_arguments],
-                                                  usage="usage: %(prog)s <options>")
+
+    # A list of defaults is needed. Otherwise the shed-tools install parser will not return
+    # update_tools in the name space and shed-tool update will not return all the install
+    # variables.
+    parser.set_defaults(
+        update_tools=False,
+        tool_list_file = None,
+        tool_yaml = None,
+        owner=None,
+        name=None,
+        tool_panel_section_id=None,
+        tool_panel_section_label=None,
+        revisions=None,
+        tool_shed_url=None,
+        skip_tool_dependencies=False,
+        install_resolver_dependencies=False,
+        force_latest_revision=False
+    )
+    install_command_parser = subparsers.add_parser(
+        "install",
+        help="This installs tools in Galaxy from the Tool Shed."
+             "Use shed-tools install --help for more information",
+        parents=[common_arguments],
+        )
     install_command_parser.add_argument(
         "-t", "--toolsfile",
         dest="tool_list_file",
@@ -294,46 +312,55 @@ def _parser():
              "only applicable if the tools file is not provided).")
     install_command_parser.add_argument(
         "--section_label",
-                        default=None,
-                        dest="tool_panel_section_label",
-                        help="Galaxy tool panel section label where tool will be installed "
-                             "(if the section does not exist, it will be created; "
-                             "only applicable if the tools file is not provided).")
-    install_command_parser.add_argument("--revisions",
-                        default=None,
-                        nargs='*',
-                        dest="revisions",
-                        help="The revisions of the tool repository that will be installed. "
-                             "All revisions must be specified after this flag by a space."
-                             "Example: --revisions 0a5c7992b1ac f048033da666"
-                             "(Only applicable if the tools file is not provided).")
-    install_command_parser.add_argument("--toolshed",
-                        dest="tool_shed_url",
-                        help="The Tool Shed URL where to install the tool from. "
-                             "This is applicable only if the tool info is "
-                             "provided as an option vs. in the tools file.")
-    install_command_parser.add_argument("--skip_install_tool_dependencies",
-                        action="store_true",
-                        dest="skip_tool_dependencies",
-                        help="Skip the installation of tool dependencies using classic toolshed packages. "
-                             "Can be overwritten on a per-tool basis in the tools file.")
-    install_command_parser.add_argument("--install_resolver_dependencies",
-                        action="store_true",
-                        dest="install_resolver_dependencies",
-                        help="Install tool dependencies through resolver (e.g. conda). "
-                             "Will be ignored on galaxy releases older than 16.07. "
-                             "Can be overwritten on a per-tool basis in the tools file")
-    install_command_parser.add_argument("--latest",
-                        action="store_true",
-                        dest="force_latest_revision",
-                        help="Will override the revisions in the tools file and always install the latest revision.")
+        default=None,
+        dest="tool_panel_section_label",
+        help="Galaxy tool panel section label where tool will be installed "
+             "(if the section does not exist, it will be created; "
+             "only applicable if the tools file is not provided).")
+    install_command_parser.add_argument(
+        "--revisions",
+        default=None,
+        nargs='*',
+        dest="revisions",
+        help="The revisions of the tool repository that will be installed. "
+             "All revisions must be specified after this flag by a space."
+             "Example: --revisions 0a5c7992b1ac f048033da666"
+             "(Only applicable if the tools file is not provided).")
+    install_command_parser.add_argument(
+        "--toolshed",
+        dest="tool_shed_url",
+        help="The Tool Shed URL where to install the tool from. "
+             "This is applicable only if the tool info is "
+             "provided as an option vs. in the tools file.")
+    install_command_parser.add_argument(
+        "--skip_install_tool_dependencies",
+        action="store_true",
+        dest="skip_tool_dependencies",
+        help="Skip the installation of tool dependencies using classic toolshed packages. "
+             "Can be overwritten on a per-tool basis in the tools file.")
+    install_command_parser.add_argument(
+        "--install_resolver_dependencies",
+        action="store_true",
+        dest=""
+             "",
+        help="Install tool dependencies through resolver (e.g. conda). "
+             "Will be ignored on galaxy releases older than 16.07. "
+             "Can be overwritten on a per-tool basis in the tools file")
+    install_command_parser.add_argument(
+        "--latest",
+        action="store_true",
+        dest="force_latest_revision",
+        help="Will override the revisions in the tools file and always install the latest revision.")
 
-    update_command_parser = subparsers.add_parser("update",
-                                                  help="This updates all tools in Galaxy to the latest revision."
-                                                       "Use shed-install update --help for more information",
-                                                  parents=[common_arguments],
-                                                  usage="usage: %(prog)s <options>")
-    update_command_parser.set_defaults(update_tools=True)
+    update_command_parser = subparsers.add_parser(
+        "update",
+        help="This updates all tools in Galaxy to the latest revision."
+             "Use shed-tools update --help for more information",
+        parents=[common_arguments])
+    update_command_parser.set_defaults(
+        update_tools=True,
+    )
+
     return parser
 
 

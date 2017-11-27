@@ -52,7 +52,7 @@ grep "28b7a43907f0" result_tool_list.yaml #latest revision
 
 start_new_container
 echo "Check tool installation with command line flags"
-shed-install --name cdhit --owner jjohnson --section_label "CD_HIT" --revisions "['34a799d173f7']" -a admin -g http://localhost:$WEB_PORT
+shed-install --name cdhit --owner jjohnson --section_label "CD_HIT" --revisions 34a799d173f7 -a admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "34a799d173f7" result_tool_list.yaml #installed revision
@@ -79,7 +79,10 @@ sleep 15
 
 echo "Restarting galaxy"
 #We restart galaxy because otherwise the data manager tables won't be watched
-docker exec $CID supervisorctl restart galaxy:
+#docker exec $CID supervisorctl restart galaxy:
+
+# Restart the entire container because supervisorctl sometimes crashes galaxy_web.
+docker restart $CID
 echo "Wait for galaxy to start"
 galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
 

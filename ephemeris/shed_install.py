@@ -188,7 +188,7 @@ def installed_repositories(gi, omit=None):
                 - `tool_panel_shed_repositories` with a list of repositories available in the
                 tool panel that were installed on the target Galaxy instance
                 from the Tool Shed;
-                - `tool_panel_custom_tools` with a list of repositories available in
+                - `tool_panel_custom_tools` with a list of tools available in
                 the tool panel that were not installed via the Tool Shed;
                 - `shed_repositories` with a list of repositories returned from the
                 `installed_repository_revisions` function and complemented with a
@@ -203,7 +203,7 @@ def installed_repositories(gi, omit=None):
     """
     if not omit:
         omit = []
-    tool_panel_repos = []  # The repositories from tools available in the tool panel and installable via a TS
+    tool_panel_repos = []  # The Tool Shed repositories of tools available in the tool panel and installable via a TS
     custom_tools = []  # Tools available in the tool panel but custom-installed
 
     panel_tool_list = gi.tools.get_tool_panel()
@@ -290,10 +290,11 @@ def _parser():
                              "only applicable if the tools file is not provided).")
     parser.add_argument("--revisions",
                         default=None,
+                        nargs='*',
                         dest="revisions",
                         help="The revisions of the tool repository that will be installed. "
-                             "Revisions must be specified in on the command line in YAML format:"
-                             """ "['revision1','revision2']". """
+                             "All revisions must be specified after this flag by a space."
+                             "Example: --revisions 0a5c7992b1ac f048033da666"
                              "(Only applicable if the tools file is not provided).")
     parser.add_argument("--toolshed",
                         dest="tool_shed_url",
@@ -318,7 +319,7 @@ def _parser():
     parser.add_argument("--update",
                         action="store_true",
                         dest="update_tools",
-                        help="This updates all tools in the Galaxy to the latest revision. "
+                        help="This updates all tools in Galaxy to the latest revision. "
                              "No tools should be specified in a tool list or via the command line "
                              "when this option is selected.")
     return parser
@@ -457,7 +458,7 @@ def get_install_repository_manager(options):
             "tool_panel_section_id": options.tool_panel_section_id,
             "tool_panel_section_label": options.tool_panel_section_label,
             "tool_shed_url": options.tool_shed_url or MTS,
-            "revisions": yaml.load(options.revisions)
+            "revisions": options.revisions
         }]
 
     if options.skip_tool_dependencies:

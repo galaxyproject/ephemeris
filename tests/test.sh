@@ -45,7 +45,7 @@ grep "cdhit" result_tool_list.yaml
 grep "34a799d173f7" result_tool_list.yaml #installed revision
 
 echo "Check update function"
-shed-install -a admin -g http://localhost:$WEB_PORT --update
+shed-install update -a admin -g http://localhost:$WEB_PORT
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml
 grep "cdhit" result_tool_list.yaml
 grep "28b7a43907f0" result_tool_list.yaml #latest revision

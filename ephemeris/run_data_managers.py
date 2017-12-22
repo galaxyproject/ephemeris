@@ -24,16 +24,16 @@ It checks it in the following way:
 '''
 import argparse
 import json
-import logging as log
+import logging
 import time
 
 import yaml
-from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
-
+from . import get_galaxy_connection
 from .common_parser import get_common_args
+from .ephemeris_log import disable_external_library_logging, setup_global_logger
 
 
 DEFAULT_URL = "http://localhost"
@@ -146,11 +146,8 @@ def parse_items(items, genomes):
 
 
 def run_dm(args):
-    url = args.galaxy or DEFAULT_URL
-    if args.api_key:
-        gi = GalaxyInstance(url=url, key=args.api_key)
-    else:
-        gi = GalaxyInstance(url=url, email=args.user, password=args.password)
+    args.galaxy = args.galaxy or DEFAULT_URL
+    gi = get_galaxy_connection(args, log=log)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
@@ -222,12 +219,16 @@ def _parser():
 
 
 def main():
+    global log
+    disable_external_library_logging()
+    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_data_manager_install.log')
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:
-        log.basicConfig(level=log.DEBUG)
+
+        log.setLevel(logging.DEBUG)
     else:
-        log.basicConfig(level=log.INFO)
+        log.setLevel(logging.INFO)
     log.info("Running data managers...")
     job_summary = run_dm(args)
     log.info('Finished running data managers. Results:')

@@ -31,12 +31,7 @@ project_root = os.path.dirname(cwd)
 # version is used.
 sys.path.insert(0, project_root)
 
-from recommonmark.parser import CommonMarkParser
 import sphinx_rtd_theme
-
-source_parsers = {
-    '.md': CommonMarkParser,
-}
 
 import ephemeris as project_module
 

@@ -6,10 +6,18 @@ History
 .. to_doc
 
 ---------------------
-0.7.1.dev0
+0.8.1.dev0
 ---------------------
 
-    
+---------------------
+0.8.0 (2017-12-29)
+---------------------
+
+* Many new documentation enhancements (thanks to @rhpvorderman, and others)
+* rename of shed-install to shed-tools and add a new --latest and --revision argument (thanks to @rhpvorderman)
+* many fixes and new tests by (thanks to @mvdbeek)
+* Parallelization of run-data-managers (thanks to @rhpvorderman)
+* ephemeris will now use https by default instead of http (thanks to @bgruening)
 
 ---------------------
 0.7.0 (2017-06-27)

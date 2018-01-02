@@ -19,6 +19,8 @@ History
 * rename of shed-install to shed-tools and add a new --latest and --revision argument (thanks to @rhpvorderman)
 * many fixes and new tests by (thanks to @mvdbeek)
 * Parallelization of run-data-managers (thanks to @rhpvorderman)
+* run-data-managers now uses more advanced templating for less repetitive input yamls (thanks to @rhpvorderman)
+* run-data-managers now checks if a genome index is already present before running the data manager (thanks to @rhpvorderman)
 * ephemeris will now use https by default instead of http (thanks to @bgruening)
 
 ---------------------

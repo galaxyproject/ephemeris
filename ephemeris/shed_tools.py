@@ -405,7 +405,7 @@ def _flatten_repo_info(repositories):
     flattened_list = []
     for repo_info in repositories:
         revisions = repo_info.get('revisions', [])
-        if len(revisions) > 1:
+        if revisions is not None and len(revisions) > 1:
             for revision in revisions:
                 stripped_repo_info = _strip_revisions(repo_info)
                 stripped_repo_info['changeset_revision'] = revision

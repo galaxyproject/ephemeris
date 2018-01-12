@@ -11,6 +11,9 @@
 .. image:: https://coveralls.io/repos/galaxyproject/ephemeris/badge.svg?branch=master
    :target: https://coveralls.io/r/galaxyproject/ephemeris?branch=master
 
+.. image:: https://api.codacy.com/project/badge/Grade/73873ffd3ff04c46a0c5ee75b37bb5bb
+   :target: https://www.codacy.com/app/jmchilton/ephemeris?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=galaxyproject/ephemeris&amp;utm_campaign=Badge_Grade
+
 Ephemeris is a small Python library and set of scripts for managing the
 bootstrapping of Galaxy_ plugins - tools, index data, and workflows.
 

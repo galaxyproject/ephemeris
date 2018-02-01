@@ -26,7 +26,7 @@ def _parser():
     parser.add_argument("-w", "--workflow_path",
                         required=True,
                         help='Path to a workflow file or a directory with multiple workflow files ending with ".ga"')
-    parser.add_argument("-p", "--publish_workflows",
+    parser.add_argument("--publish_workflows",
                         required=False,
                         action='store_true',
                         help='Flag to publish all imported workflows, so that they are viewable by other users')

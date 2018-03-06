@@ -157,6 +157,9 @@ def _parser():
                              "Use this if you would like to use the list to update all the tools in"
                              "your galaxy instance using shed-install."
                         )
+    parser.add_argument("-get_dms", "--get_data_managers",
+                        action="store_true",
+                        help="Include the data managers in the tool list")
     return parser
 
 
@@ -183,7 +186,8 @@ def main():
         gi=gi,
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
-        skip_changeset_revision=options.skip_changeset_revision)
+        skip_changeset_revision=options.skip_changeset_revision,
+        get_data_managers=options.get_data_managers)
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

@@ -493,7 +493,8 @@ def get_install_repository_manager(options):
     elif options.update_tools:
         get_repository_list = GiToToolYaml(
             gi=gi,
-            skip_tool_panel_section_name=False
+            skip_tool_panel_section_name=False,
+            get_data_managers=True
         )
         repository_list = get_repository_list.tool_list
         repositories = repository_list['tools']

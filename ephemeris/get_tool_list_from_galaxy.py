@@ -10,6 +10,7 @@ import yaml
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tools import ToolClient
 
+from . import get_galaxy_connection
 from . import check_url
 from .common_parser import get_common_args
 
@@ -38,6 +39,15 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tool_panel()
 
+    @property
+    def tool_list(self):
+        """
+        gets a tool list from the toolclient
+        :return:
+        """
+        tool_client = ToolClient(self.gi)
+        return tool_client.get_tools()
+
     def get_repositories(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
@@ -49,14 +59,16 @@ class GiToToolYaml:
                 repo = self.get_repo_from_tool(elem)
                 if repo:
                     repositories.append(repo)
-            if self.get_data_managers and elem['model_class'] == 'DataManagerTool':
-                repo=self.get_repo_from_tool(elem)
-                if repo:
-                    repositories.append(repo)
             elif elem['model_class'] == 'ToolSection':
                 new_repos = self.get_repos_from_section(elem)
                 if new_repos:
                     repositories.extend(new_repos)
+        if self.get_data_managers:
+            for tool in self.tool_list:
+                if tool.get("model_class") == 'DataManagerTool':
+                    repositories.append(self.get_repo_from_tool(tool))
+                    repositories.append(self.get_repo_from_tool(tool))
+
         return repositories
 
     def get_repo_from_tool(self, tool):
@@ -133,11 +145,8 @@ class GiToToolYaml:
 
 def _parser():
     '''Creates the parser object.'''
-    parent = get_common_args(login_required=False)
+    parent = get_common_args(login_required=True)
     parser = ArgumentParser(parents=[parent],
-                            usage="usage: python %(prog)s <options>",
-                            epilog='Example usage: python get_tool_yml_from_gi.py '
-                                   '-g https://usegalaxy.org/ -o tool_list.yml',
                             formatter_class=ArgumentDefaultsHelpFormatter)
     parser.add_argument("-o", "--output-file",
                         required=True,
@@ -159,7 +168,7 @@ def _parser():
                         )
     parser.add_argument("-get_dms", "--get_data_managers",
                         action="store_true",
-                        help="Include the data managers in the tool list")
+                        help="Include the data managers in the tool list. Requires login details")
     return parser
 
 
@@ -179,8 +188,7 @@ def check_galaxy_version(gi):
 
 def main():
     options = _parse_cli_options()
-    galaxy_url = check_url(options.galaxy)
-    gi = GalaxyInstance(galaxy_url)
+    gi = get_galaxy_connection(options)
     check_galaxy_version(gi)
     gi_to_tool_yaml = GiToToolYaml(
         gi=gi,

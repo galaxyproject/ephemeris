@@ -73,6 +73,16 @@ shed-tools install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://loca
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_post.yaml
 grep 4d82cf59895e result_tool_list_post.yaml && grep 0b4e36026794 result_tool_list_post.yaml  # this means both revisions have been successfully installed.
 
+# Test whether get-tool-list is able to fetch data managers
+echo "get-tool-list should not return data managers"
+get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_post.yaml
+grep -v data_manager_sam_fasta_index_builder result_tool_list_post.yaml
+echo "get-tool-list with an api key should not return data managers"
+get-tool-list -g http://localhost:$WEB_PORT -a admin -o result_tool_list_post.yaml
+grep -v data_manager_sam_fasta_index_builder result_tool_list_post.yaml
+echo "get-tool-list with an api_key and --get_data_mangers should return data managers"
+get-tool-list -g http://localhost:$WEB_PORT -a admin --get_data_managers -o result_tool_list_post.yaml
+grep data_manager_sam_fasta_index_builder result_tool_list_post.yaml
 
 
 echo "Wait a few seconds before restarting galaxy"

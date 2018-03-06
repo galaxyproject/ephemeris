@@ -67,7 +67,7 @@ class GiToToolYaml:
             for tool in self.tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(self.get_repo_from_tool(tool))
-                    repositories.append(self.get_repo_from_tool(tool))
+
 
         return repositories
 

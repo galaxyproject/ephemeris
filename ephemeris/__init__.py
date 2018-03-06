@@ -23,7 +23,7 @@ def check_url(url, log=None):
     return url
 
 
-def get_galaxy_connection(args, file=None, log=None):
+def get_galaxy_connection(args, file=None, log=None, login_required=True):
     """
     Return a Galaxy connection, given a user or an API key.
     If not given gets the arguments from the file.
@@ -42,6 +42,8 @@ def get_galaxy_connection(args, file=None, log=None):
         return galaxy.GalaxyInstance(url=galaxy_url, email=args.user, password=args.password)
     elif api_key:
         return galaxy.GalaxyInstance(url=galaxy_url, key=api_key)
+    elif not login_required:
+        return galaxy.GalaxyInstance(url=galaxy_url)
     return None
 
 

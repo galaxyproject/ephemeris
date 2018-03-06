@@ -11,7 +11,6 @@ from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tools import ToolClient
 
 from . import get_galaxy_connection
-from . import check_url
 from .common_parser import get_common_args
 
 
@@ -188,7 +187,7 @@ def check_galaxy_version(gi):
 
 def main():
     options = _parse_cli_options()
-    gi = get_galaxy_connection(options)
+    gi = get_galaxy_connection(options, login_required=False)
     check_galaxy_version(gi)
     gi_to_tool_yaml = GiToToolYaml(
         gi=gi,

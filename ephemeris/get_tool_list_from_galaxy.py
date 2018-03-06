@@ -18,12 +18,13 @@ class GiToToolYaml:
     def __init__(self, gi,
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
-                 skip_changeset_revision=False):
-
+                 skip_changeset_revision=False,
+                 get_data_managers=False):
         self.gi = gi
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
+        self.get_data_managers=get_data_managers
         self.repository_list = self.get_repositories()
         self.repository_list = self.merge_tool_changeset_revisions()
         self.filter_section_name_or_id_or_changeset()
@@ -46,6 +47,10 @@ class GiToToolYaml:
         for elem in self.toolbox:
             if elem['model_class'] == 'Tool':
                 repo = self.get_repo_from_tool(elem)
+                if repo:
+                    repositories.append(repo)
+            if self.get_data_managers and elem['model_class'] == 'DataManagerTool':
+                repo=self.get_repo_from_tool(elem)
                 if repo:
                     repositories.append(repo)
             elif elem['model_class'] == 'ToolSection':

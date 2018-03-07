@@ -7,7 +7,6 @@ from argparse import ArgumentParser
 from distutils.version import StrictVersion
 
 import yaml
-from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tools import ToolClient
 
 from . import get_galaxy_connection
@@ -24,7 +23,7 @@ class GiToToolYaml:
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
-        self.get_data_managers=get_data_managers
+        self.get_data_managers = get_data_managers
         self.repository_list = self.get_repositories()
         self.repository_list = self.merge_tool_changeset_revisions()
         self.filter_section_name_or_id_or_changeset()
@@ -66,8 +65,6 @@ class GiToToolYaml:
             for tool in self.tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(self.get_repo_from_tool(tool))
-
-
         return repositories
 
     def get_repo_from_tool(self, tool):

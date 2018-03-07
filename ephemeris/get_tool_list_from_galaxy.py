@@ -38,7 +38,7 @@ class GiToToolYaml:
         return tool_client.get_tool_panel()
 
     @property
-    def tool_list(self):
+    def installed_tool_list(self):
         """
         gets a tool list from the toolclient
         :return:
@@ -62,7 +62,7 @@ class GiToToolYaml:
                 if new_repos:
                     repositories.extend(new_repos)
         if self.get_data_managers:
-            for tool in self.tool_list:
+            for tool in self.installed_tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(self.get_repo_from_tool(tool))
         return repositories

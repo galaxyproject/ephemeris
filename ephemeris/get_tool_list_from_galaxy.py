@@ -76,7 +76,7 @@ class GiToToolYaml:
         """
         repositories = {}
         repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
-        for i, tool in enumerate(self.repository_list):
+        for tool in self.repository_list:
             repo_key = repo_key_template.format(**tool)
             if repo_key in repositories:
                 repositories[repo_key].extend(tool['revisions'])

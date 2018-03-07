@@ -40,6 +40,7 @@ import sys
 import time
 from argparse import ArgumentParser
 
+import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
@@ -488,7 +489,7 @@ def get_install_repository_manager(options):
         install_tool_dependencies = repository_list.get(
             'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
-        repositories = load_yaml_file(options.tool_yaml)
+        repositories = yaml.safe_load(options.tool_yaml)
     elif options.update_tools:
         get_repository_list = GiToToolYaml(
             gi=gi,

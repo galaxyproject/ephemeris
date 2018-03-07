@@ -16,7 +16,7 @@ DEV_REQUIREMENTS="${PROJECT_DIRECTORY}/dev-requirements.txt"
 cd $PROJECT_DIRECTORY
 
 
-WORKING_DIRECTORY=`mktemp -d -t testXXXXXX`
+WORKING_DIRECTORY=$(mktemp -d -t testXXXXXX)
 cp -r "$PROJECT_DIRECTORY"/{.coveragerc,setup.cfg,tests,project_templates} "$WORKING_DIRECTORY"
 
 cd "$WORKING_DIRECTORY"

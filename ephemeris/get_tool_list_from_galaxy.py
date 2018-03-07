@@ -67,8 +67,6 @@ class GiToToolYaml:
                     repositories.append(get_repo_from_tool(tool))
         return repositories
 
-
-
     def merge_tool_changeset_revisions(self):
         """
         Each installed changeset revision of a tool is listed individually.
@@ -141,6 +139,7 @@ def _parser():
                         help="Include the data managers in the tool list. Requires login details")
     return parser
 
+
 def get_repo_from_tool(tool):
     """
     Get the minimum items required for re-installing a (list of) tools
@@ -156,6 +155,7 @@ def get_repo_from_tool(tool):
             'tool_panel_section_label': tool['panel_section_name']}
     return repo
 
+
 def get_repos_from_section(section):
     repos = []
     for elem in section['elems']:
@@ -168,6 +168,7 @@ def get_repos_from_section(section):
             if new_repos:
                 repos.extend(new_repos)
     return repos
+
 
 def _parse_cli_options():
     """

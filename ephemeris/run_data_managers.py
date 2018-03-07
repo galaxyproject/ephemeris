@@ -27,11 +27,11 @@ import json
 import logging
 import time
 
-import yaml
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
 from . import get_galaxy_connection
+from . import load_yaml_file
 from .common_parser import get_common_args
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
 
@@ -147,7 +147,8 @@ def parse_items(items, genomes):
 
 def run_dm(args):
     args.galaxy = args.galaxy or DEFAULT_URL
-    gi = get_galaxy_connection(args, log=log)
+    conf = load_yaml_file(args.config)
+    gi = get_galaxy_connection(args, log=log, file=args.config, login_required=True)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
     genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
@@ -158,9 +159,8 @@ def run_dm(args):
     number_skipped_jobs = 0
     all_failed_jobs = []
     all_successful_jobs = []
-
-    conf = yaml.load(open(args.config))
     genomes = conf.get('genomes', '')
+
     for dm in conf.get('data_managers'):
         items = parse_items(dm.get('items', ['']), genomes)
         job_list = []

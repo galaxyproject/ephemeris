@@ -23,7 +23,7 @@ def setup_data_libraries(gi, data):
 
     folders = dict()
 
-    libraries = yaml.load(data)
+    libraries = yaml.safe_load(data)
     for lib in libraries['libraries']:
         folders[lib['name']] = lib['files']
 

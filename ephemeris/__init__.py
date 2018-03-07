@@ -52,7 +52,7 @@ def load_yaml_file(filename):
     Load YAML from the `tool_list_file` and return a dict with the content.
     """
     with open(filename, 'r') as f:
-        dictionary = yaml.load(f)
+        dictionary = yaml.safe_load(f)
     return dictionary
 
 

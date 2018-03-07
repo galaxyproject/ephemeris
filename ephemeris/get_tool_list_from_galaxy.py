@@ -54,46 +54,20 @@ class GiToToolYaml:
         repositories = []
         for elem in self.toolbox:
             if elem['model_class'] == 'Tool':
-                repo = self.get_repo_from_tool(elem)
+                repo = get_repo_from_tool(elem)
                 if repo:
                     repositories.append(repo)
             elif elem['model_class'] == 'ToolSection':
-                new_repos = self.get_repos_from_section(elem)
+                new_repos = get_repos_from_section(elem)
                 if new_repos:
                     repositories.extend(new_repos)
         if self.get_data_managers:
             for tool in self.installed_tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
-                    repositories.append(self.get_repo_from_tool(tool))
+                    repositories.append(get_repo_from_tool(tool))
         return repositories
 
-    def get_repo_from_tool(self, tool):
-        """
-        Get the minimum items required for re-installing a (list of) tools
-        """
-        if not tool.get('tool_shed_repository', None):
-            return {}
-        tsr = tool['tool_shed_repository']
-        repo = {'name': tsr['name'],
-                'owner': tsr['owner'],
-                'tool_shed_url': tsr['tool_shed'],
-                'revisions': [tsr['changeset_revision']],
-                'tool_panel_section_id': tool['panel_section_id'],
-                'tool_panel_section_label': tool['panel_section_name']}
-        return repo
 
-    def get_repos_from_section(self, section):
-        repos = []
-        for elem in section['elems']:
-            if elem['model_class'] == 'Tool':
-                repo = self.get_repo_from_tool(elem)
-                if repo:
-                    repos.append(repo)
-            elif elem['model_class'] == 'ToolSection':
-                new_repos = self.get_repos_from_section(elem)
-                if new_repos:
-                    repos.extend(new_repos)
-        return repos
 
     def merge_tool_changeset_revisions(self):
         """
@@ -167,6 +141,33 @@ def _parser():
                         help="Include the data managers in the tool list. Requires login details")
     return parser
 
+def get_repo_from_tool(tool):
+    """
+    Get the minimum items required for re-installing a (list of) tools
+    """
+    if not tool.get('tool_shed_repository', None):
+        return {}
+    tsr = tool['tool_shed_repository']
+    repo = {'name': tsr['name'],
+            'owner': tsr['owner'],
+            'tool_shed_url': tsr['tool_shed'],
+            'revisions': [tsr['changeset_revision']],
+            'tool_panel_section_id': tool['panel_section_id'],
+            'tool_panel_section_label': tool['panel_section_name']}
+    return repo
+
+def get_repos_from_section(section):
+    repos = []
+    for elem in section['elems']:
+        if elem['model_class'] == 'Tool':
+            repo = get_repo_from_tool(elem)
+            if repo:
+                repos.append(repo)
+        elif elem['model_class'] == 'ToolSection':
+            new_repos = get_repos_from_section(elem)
+            if new_repos:
+                repos.extend(new_repos)
+    return repos
 
 def _parse_cli_options():
     """

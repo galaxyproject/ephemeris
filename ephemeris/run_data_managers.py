@@ -190,7 +190,6 @@ def run_dm(args):
         if failed_jobs:
             if not args.ignore_errors:
                 raise Exception('Not all jobs successful! aborting...')
-                break
             else:
                 log.error('Not all jobs successful! ignoring...')
         all_successful_jobs += successful_jobs

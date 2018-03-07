@@ -19,9 +19,9 @@ function start_container {
     # We start the image with the -P flag that published all exposed container ports
     # to random free ports on the host, since on OS X the container can't be reached
     # through the internal network (https://docs.docker.com/docker-for-mac/networking/#i-cannot-ping-my-containers)
-    CID=`docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable`
+    CID=$(docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable)
     # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
-    WEB_PORT=`docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID`
+    WEB_PORT=$(docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID)
     echo "Wait for galaxy to start"
     galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
 }
@@ -124,7 +124,7 @@ run-data-managers -a admin -g http://localhost:$WEB_PORT --config "$TEST_DATA"/r
 cat data_manager_output.txt
 
 echo "Number of skipped jobs should be 6"
-data_manager_already_installed=$(cat data_manager_output.txt | grep -i "Skipped jobs: 6" -c)
+data_manager_already_installed=$(grep -i "Skipped jobs: 6" -c data_manager_output.txt)
 if [ $data_manager_already_installed -ne 1 ]
     then
         echo "ERROR: Not all already installed genomes were skipped"

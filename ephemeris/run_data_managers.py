@@ -75,41 +75,48 @@ def wait(gi, job_list):
             time.sleep(30)
     return successful_jobs, failed_jobs
 
+class DataManagers:
+    def __init__(self,galaxy_instance,configuration,log,overwrite=False,ignore_errors=False):
+        self.gi = galaxy_instance
+        self.config = configuration
+        self.log = log
+        self.overwrite = overwrite
+        self.ignore_erros = ignore_errors
+        self.tool_data_client = ToolDataClient(self.gi)
+        # In order of importance!
+        self.possible_name_keys = ['name', 'sequence_name']
 
-def data_table_entry_exists(tool_data_client, data_table_name, entry, column='value'):
-    '''Checks whether an entry exists in the a specified column in the data_table.'''
-    try:
-        data_table_content = tool_data_client.show_data_table(data_table_name)
-    except Exception:
-        raise Exception('Table "%s" does not exist' % (data_table_name))
+    def data_table_entry_exists(self, data_table_name, entry, column='value'):
+        '''Checks whether an entry exists in the a specified column in the data_table.'''
+        try:
+            data_table_content = self.tool_data_client.show_data_table(data_table_name)
+        except Exception:
+            raise Exception('Table "%s" does not exist' % (data_table_name))
 
-    try:
-        column_index = data_table_content.get('columns').index(column)
-    except IndexError:
-        raise IndexError('Column "%s" does not exist in %s' % (column, data_table_name))
+        try:
+            column_index = data_table_content.get('columns').index(column)
+        except IndexError:
+            raise IndexError('Column "%s" does not exist in %s' % (column, data_table_name))
 
-    for field in data_table_content.get('fields'):
-        if field[column_index] == entry:
-            return True
-    return False
+        for field in data_table_content.get('fields'):
+            if field[column_index] == entry:
+                return True
+        return False
 
+    def get_name_from_inputs(self,input_dict):
+        '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns False'''
+        for key in self.possible_name_keys:
+            if key in input_dict:
+                return input_dict.get(key)
+        return False
 
-def get_name_from_inputs(input_dict):
-    '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns False'''
-    possible_keys = ['name', 'sequence_name']  # In order of importance!
-    for key in possible_keys:
-        if key in input_dict:
-            return input_dict.get(key)
-    return False
-
-
-def get_value_from_inputs(input_dict):
-    '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns False'''
-    possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
-    for key in possible_keys:
-        if key in input_dict:
-            return input_dict.get(key)
-    return False
+    def get_value_from_inputs(self,input_dict):
+        '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns False'''
+        possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
+        for key in possible_keys:
+            if key in input_dict:
+                return input_dict.get(key)
+        return False
 
 
 def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict):

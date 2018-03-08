@@ -27,6 +27,7 @@ import json
 import logging
 import time
 
+from argparse import Namespace
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
@@ -75,16 +76,55 @@ def wait(gi, job_list):
             time.sleep(30)
     return successful_jobs, failed_jobs
 
+
+def run_job(galaxy_instance, tool_id, tool_inputs, history_id=None, log = None):
+    job = galaxy_instance.tools.run_tool(history_id=history_id, tool_id=tool_id, tool_inputs=tool_inputs)
+    if log:
+        log.info('Dispatched job %i. Running "%s" with parameters: %s' % (job['outputs'][0]['hid'], tool_id, tool_inputs))
+    return job
+
+def get_first_valid_entry(input_dict,key_list):
+    '''Iterates over key_list and returns the value of the first key that exists in the dictionary. Or returns None'''
+    for key in key_list:
+        if key in input_dict:
+            return input_dict.get(key)
+    return None
+
+
+
 class DataManagers:
-    def __init__(self,galaxy_instance,configuration,log,overwrite=False,ignore_errors=False):
+    def __init__(self,galaxy_instance,configuration,overwrite=False,ignore_errors=False):
         self.gi = galaxy_instance
         self.config = configuration
-        self.log = log
         self.overwrite = overwrite
         self.ignore_erros = ignore_errors
         self.tool_data_client = ToolDataClient(self.gi)
-        # In order of importance!
-        self.possible_name_keys = ['name', 'sequence_name']
+        self.possible_name_keys = ['name', 'sequence_name'] # In order of importance!
+        self.possible_value_keys = ['value', 'sequence_id', 'dbkey'] # In order of importance!
+        self.data_managers = self.conf.get()
+        self.genomes=genomes = self.conf.get('genomes', '')
+
+    def get_dm_jobs(self, dm):
+        '''Gets the job entries for a single dm'''
+        job_list = []
+        items = parse_items(dm.get('items', ['']), genomes)
+        for item in items:
+
+            dm_id = dm['id']
+            params = dm['params']
+            inputs = dict()
+            # Iterate over all parameters, replace occurences of {{item}} with the current processing item
+            # and create the tool_inputs dict for running the data manager job
+            for param in params:
+                key, value = list(param.items())[0]
+                value_template = Template(value)
+                value = value_template.render(item=item)
+                inputs.update({key: value})
+
+            data_tables = dm.get('data_table_reload', [])
+
+            job = Namespace(tool_id=dm_id,inputs=inputs,data_tables=data_tables)
+            job_list.append(job)
 
     def data_table_entry_exists(self, data_table_name, entry, column='value'):
         '''Checks whether an entry exists in the a specified column in the data_table.'''
@@ -103,43 +143,27 @@ class DataManagers:
                 return True
         return False
 
-    def get_name_from_inputs(self,input_dict):
-        '''Returns the value that will most likely be recorded in the "name" column of the datatable. Or returns False'''
-        for key in self.possible_name_keys:
-            if key in input_dict:
-                return input_dict.get(key)
-        return False
+    def input_entries_exist_in_data_tables(self, data_tables, input_dict):
+        '''Checks whether name and value entries from the input are already present in the data tables.
+        If an entry is missing in of the tables, this function returns False'''
+        value_entry = get_first_valid_entry(input_dict,self.possible_value_keys)
+        name_entry = get_first_valid_entry(input_dict,self.possible_name_keys)
 
-    def get_value_from_inputs(self,input_dict):
-        '''Returns the value that will most likely be recorded in the "value" column of the datatable. Or returns False'''
-        possible_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
-        for key in possible_keys:
-            if key in input_dict:
-                return input_dict.get(key)
-        return False
+        # Return False if name and value entries are both None
+        if not value_entry and not name_entry:
+            return False
 
-
-def input_entries_exist_in_data_tables(tool_data_client, data_tables, input_dict):
-    '''Checks whether name and value entries from the input are already present in the data tables.
-    If an entry is missing in of the tables, this function returns False'''
-    value_entry = get_value_from_inputs(input_dict)
-    name_entry = get_name_from_inputs(input_dict)
-
-    # Return False if name and value entries are both False
-    if not value_entry and not name_entry:
-        return False
-
-    # Check every data table for existance of name and value
-    # Return False as soon as entry is not present
-    for data_table in data_tables:
-        if value_entry:
-            if not data_table_entry_exists(tool_data_client, data_table, value_entry, column='value'):
-                return False
-        if name_entry:
-            if not data_table_entry_exists(tool_data_client, data_table, name_entry, column='name'):
-                return False
-    # If all checks are passed the entries are present in the database tables.
-    return True
+        # Check every data table for existence of name and value
+        # Return False as soon as entry is not present
+        for data_table in data_tables:
+            if value_entry:
+                if not self.data_table_entry_exists(data_table, value_entry, column='value'):
+                    return False
+            if name_entry:
+                if not self.data_table_entry_exists(data_table, name_entry, column='name'):
+                    return False
+        # If all checks are passed the entries are present in the database tables.
+        return True
 
 
 def parse_items(items, genomes):
@@ -158,10 +182,13 @@ def run_dm(args):
     gi = get_galaxy_connection(args, log=log, file=args.config, login_required=True)
     # should test valid connection
     # The following should throw a ConnectionError when invalid API key or password
-    genomes = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
-    log.info('Number of possible dbkeys: %s' % str(len(genomes)))
+    dbkeys = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
+    log.info('Number of possible dbkeys: %s' % str(len(dbkeys)))
 
-    tool_data_client = ToolDataClient(gi)
+    data_managers = DataManagers(galaxy_instance=gi,
+                                 configuration=conf,
+                                 overwrite=args.overwrite,
+                                 ignore_errors=args.ignore_errors)
 
     number_skipped_jobs = 0
     all_failed_jobs = []

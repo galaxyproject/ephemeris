@@ -83,6 +83,14 @@ def run_job(galaxy_instance, tool_id, tool_inputs, history_id=None, log = None):
         log.info('Dispatched job %i. Running "%s" with parameters: %s' % (job['outputs'][0]['hid'], tool_id, tool_inputs))
     return job
 
+
+def run_job_list(galaxy_instance, job_list, log = None):
+    running_job_list = []
+    for job in job_list:
+        running_job = run_job(galaxy_instance,job.get('tool_id'),job.get('inputs'),history_id=job.get('history_id', None), log = log)
+        running_job_list.append(running_job)
+    return running_job_list
+
 def get_first_valid_entry(input_dict,key_list):
     '''Iterates over key_list and returns the value of the first key that exists in the dictionary. Or returns None'''
     for key in key_list:
@@ -101,13 +109,17 @@ class DataManagers:
         self.tool_data_client = ToolDataClient(self.gi)
         self.possible_name_keys = ['name', 'sequence_name'] # In order of importance!
         self.possible_value_keys = ['value', 'sequence_id', 'dbkey'] # In order of importance!
-        self.data_managers = self.conf.get()
-        self.genomes=genomes = self.conf.get('genomes', '')
+        self.data_managers = self.conf.get('data_managers')
+        self.genomes = self.conf.get('genomes', '')
+        self.source_tables = ['']
+        self.skipped_jobs = []
+        self.successful_jobs = []
+        self.failed_jobs = []
 
-    def get_dm_jobs(self, dm):
+    def get_dm_jobs(self, dm,log=None):
         '''Gets the job entries for a single dm'''
         job_list = []
-        items = parse_items(dm.get('items', ['']), genomes)
+        items = self.parse_items(dm.get('items', ['']))
         for item in items:
 
             dm_id = dm['id']
@@ -121,10 +133,15 @@ class DataManagers:
                 value = value_template.render(item=item)
                 inputs.update({key: value})
 
-            data_tables = dm.get('data_table_reload', [])
+            job=dict(tool_id=dm_id,inputs=inputs)
 
-            job = Namespace(tool_id=dm_id,inputs=inputs,data_tables=data_tables)
-            job_list.append(job)
+            data_tables = dm.get('data_table_reload', [])
+            if self.input_entries_exist_in_data_tables(data_tables,inputs):
+                if log:
+                    log.info('%s already run for %s' % (dm_id, inputs))
+                self.skipped_jobs.append(job)
+            else:
+                job_list.append(job)
 
     def data_table_entry_exists(self, data_table_name, entry, column='value'):
         '''Checks whether an entry exists in the a specified column in the data_table.'''
@@ -166,14 +183,28 @@ class DataManagers:
         return True
 
 
-def parse_items(items, genomes):
-    if bool(genomes):
-        items_template = Template(json.dumps(items))
-        rendered_items = items_template.render(genomes=json.dumps(genomes))
-        # Remove trailing " if present
-        rendered_items = rendered_items.strip('"')
-        items = json.loads(rendered_items)
-    return items
+    def parse_items(self, items):
+        if bool(self.genomes):
+            items_template = Template(json.dumps(items))
+            rendered_items = items_template.render(genomes=json.dumps(self.genomes))
+            # Remove trailing " if present
+            rendered_items = rendered_items.strip('"')
+            items = json.loads(rendered_items)
+        return items
+
+    def run(self,log=None):
+        fetch_jobs = []
+        index_jobs = []
+        for dm in self.data_managers:
+            data_tables = dm.get('data_table_reload', [])
+            # TODO: LOGIC HERE WRONG
+            for data_table in data_tables:
+                if data_table in self.source_tables:
+                    fetch_jobs.append(self.get_dm_jobs(dm,log))
+                else:
+                    index_jobs.append(self.get_dm_jobs(dm,log))
+        a =[]
+
 
 
 def run_dm(args):
@@ -213,7 +244,7 @@ def run_dm(args):
             data_tables = dm.get('data_table_reload', [])
             # Only run if not run before.
             if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
-                log.info('%s already run for %s' % (dm_id, inputs))
+                e
                 number_skipped_jobs += 1
             else:
                 # run the DM-job

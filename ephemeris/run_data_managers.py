@@ -38,6 +38,7 @@ from .ephemeris_log import disable_external_library_logging, setup_global_logger
 
 
 DEFAULT_URL = "http://localhost"
+DEFAULT_SOURCE_TABLES = ["all_fasta", "gemini_databases"]
 
 
 def wait(gi, job_list, log):
@@ -95,7 +96,7 @@ class DataManagers:
         self.possible_value_keys = ['value', 'sequence_id', 'dbkey'] # In order of importance!
         self.data_managers = self.conf.get('data_managers')
         self.genomes = self.conf.get('genomes', '')
-        self.source_tables = ['']
+        self.source_tables = DEFAULT_SOURCE_TABLES
         self.fetch_jobs = []
         self.skipped_fetch_jobs = []
         self.index_jobs = []
@@ -201,12 +202,16 @@ class DataManagers:
 
     def run(self, log, ignore_errors=False,overwrite=False):
         self.initiate_job_lists()
+        all_succesful_jobs = []
+        all_failed_jobs = []
+        all_skipped_jobs = []
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []
             for skipped_job in skipped_jobs:
                 if overwrite:
                     log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
+                    all_skipped_jobs.append(skipped_job)
                 else:
                     log.info('%s already run for %s. Entry will be overwritten.' % (skipped_job["tool_id"], skipped_job["inputs"]))
                     jobs.append(skipped_job)
@@ -215,74 +220,25 @@ class DataManagers:
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], job["tool_id"], job["tool_inputs"]))
                 job_list.append(started_job)
 
-            successful_jobs, failed_jobs = wait(self.gi,job_list)
+            successful_jobs, failed_jobs = wait(self.gi,job_list, log)
             if failed_jobs:
                 if not ignore_errors:
                     log.error('Not all jobs successful! aborting...')
                     raise Exception('Not all jobs successful! aborting...')
                 else:
                     log.warning('Not all jobs successful! ignoring...')
-            return successful_jobs, failed_jobs
+            all_succesful_jobs.extend(successful_jobs)
+            all_failed_jobs.extend(failed_jobs)
 
+        log.info("Running data managers that populate the following source data tables: %s"  % self.source_tables)
+        run_jobs(self.fetch_jobs, self.skipped_fetch_jobs)
+        log.info("Running data managers that index sequences.")
+        run_jobs(self.index_jobs, self.skipped_index_jobs)
 
-
-def run_dm(args):
-    args.galaxy = args.galaxy or DEFAULT_URL
-    conf = load_yaml_file(args.config)
-    gi = get_galaxy_connection(args, log=log, file=args.config, login_required=True)
-    # should test valid connection
-    # The following should throw a ConnectionError when invalid API key or password
-    dbkeys = gi.genomes.get_genomes()  # Does not get genomes but preconfigured dbkeys
-    log.info('Number of possible dbkeys: %s' % str(len(dbkeys)))
-
-    data_managers = DataManagers(galaxy_instance=gi,
-                                 configuration=conf,
-                                 overwrite=args.overwrite,
-                                 ignore_errors=args.ignore_errors)
-
-    number_skipped_jobs = 0
-    all_failed_jobs = []
-    all_successful_jobs = []
-    genomes = conf.get('genomes', '')
-
-    for dm in conf.get('data_managers'):
-        items = parse_items(dm.get('items', ['']), genomes)
-        job_list = []
-        for item in items:
-            dm_id = dm['id']
-            params = dm['params']
-            inputs = dict()
-            # Iterate over all parameters, replace occurences of {{item}} with the current processing item
-            # and create the tool_inputs dict for running the data manager job
-            for param in params:
-                key, value = list(param.items())[0]
-                value_template = Template(value)
-                value = value_template.render(item=item)
-                inputs.update({key: value})
-
-            data_tables = dm.get('data_table_reload', [])
-            # Only run if not run before.
-            if input_entries_exist_in_data_tables(tool_data_client, data_tables, inputs) and not args.overwrite:
-                e
-                number_skipped_jobs += 1
-            else:
-                # run the DM-job
-                job = gi.tools.run_tool(history_id=None, tool_id=dm_id, tool_inputs=inputs)
-                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], dm_id, inputs))
-                job_list.append(job)
-        successful_jobs, failed_jobs = wait(gi, job_list)
-        if failed_jobs:
-            if not args.ignore_errors:
-                raise Exception('Not all jobs successful! aborting...')
-            else:
-                log.error('Not all jobs successful! ignoring...')
-        all_successful_jobs += successful_jobs
-        all_failed_jobs += failed_jobs
-    job_summary = dict()
-    job_summary['successful_jobs'] = len(all_successful_jobs)
-    job_summary['failed_jobs'] = len(all_failed_jobs)
-    job_summary['skipped_jobs'] = number_skipped_jobs
-    return job_summary
+        log.info('Finished running data managers. Results:')
+        log.info('Successful jobs: %i ' % len(all_succesful_jobs))
+        log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
+        log.info('Failed jobs: %i ' % len(all_failed_jobs))
 
 
 def _parser():
@@ -308,17 +264,12 @@ def main():
     parser = _parser()
     args = parser.parse_args()
     if args.verbose:
-
         log.setLevel(logging.DEBUG)
     else:
         log.setLevel(logging.INFO)
-    log.info("Running data managers...")
-    job_summary = run_dm(args)
-    log.info('Finished running data managers. Results:')
-    log.info('Successful jobs: %i ' % job_summary['successful_jobs'])
-    log.info('Skipped jobs: %i ' % job_summary['skipped_jobs'])
-    log.info('Failed jobs: %i ' % job_summary['failed_jobs'])
-
+    gi = get_galaxy_connection(args,file=args.config,log=log,login_required=True)
+    data_managers = DataManagers(gi,args.config)
+    data_managers.run(log,args.ignore_errors,args.overwrite)
 
 if __name__ == '__main__':
     main()

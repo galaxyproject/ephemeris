@@ -42,7 +42,7 @@ DEFAULT_SOURCE_TABLES = ["all_fasta", "gemini_databases"]
 
 def wait(gi, job_list, log):
     """
-        Waits until a data_manager is finished or failed.
+        Waits until all jobs in a list are finished or failed.
         It will check the state of the created datasets every 30s.
         It will return a tuple: ( finished_jobs, failed_jobs )
     """
@@ -87,6 +87,10 @@ def get_first_valid_entry(input_dict, key_list):
 
 class DataManagers:
     def __init__(self, galaxy_instance, configuration):
+        """
+        :param galaxy_instance: A GalaxyInstance object (import from bioblend.galaxy)
+        :param configuration: A dictionary. Examples in the ephemeris documentation.
+        """
         self.gi = galaxy_instance
         self.config = configuration
         self.tool_data_client = ToolDataClient(self.gi)
@@ -101,6 +105,11 @@ class DataManagers:
         self.skipped_index_jobs = []
 
     def initiate_job_lists(self):
+        """
+        Determines which data managers should be run to populate the data tables.
+        Distinguishes between fetch jobs (download files) and index jobs.
+        :return: populate self.fetch_jobs, self.skipped_fetch_jobs, self.index_jobs and self.skipped_index_jobs
+        """
         self.fetch_jobs = []
         self.skipped_fetch_jobs = []
         self.index_jobs = []
@@ -115,7 +124,7 @@ class DataManagers:
                 self.skipped_index_jobs.extend(skipped_jobs)
 
     def get_dm_jobs(self, dm):
-        """Gets the job entries for a single dm
+        """Gets the job entries for a single dm. Puts entries that already present in skipped_job_list.
         :returns job_list, skipped_job_list"""
         job_list = []
         skipped_job_list = []
@@ -142,7 +151,8 @@ class DataManagers:
         return job_list, skipped_job_list
 
     def dm_is_fetcher(self, dm):
-        """Checks whether the data manager fetches a sequence.
+        """Checks whether the data manager fetches a sequence instead of indexing.
+        This is based on the source table.
         :returns True if dm is a fetcher. False if it is not."""
         data_tables = dm.get('data_table_reload', [])
         for data_table in data_tables:
@@ -190,6 +200,11 @@ class DataManagers:
         return True
 
     def parse_items(self, items):
+        """
+        Parses items with jinja2.
+        :param items: the items to be parsed
+        :return: the parsed items
+        """
         if bool(self.genomes):
             items_template = Template(json.dumps(items))
             rendered_items = items_template.render(genomes=json.dumps(self.genomes))
@@ -199,6 +214,12 @@ class DataManagers:
         return items
 
     def run(self, log, ignore_errors=False, overwrite=False):
+        """
+        Runs the data managers.
+        :param log: The log to be used.
+        :param ignore_errors: Ignore erroring data_managers. Continue regardless.
+        :param overwrite: Overwrite existing entries in data tables
+        """
         self.initiate_job_lists()
         all_succesful_jobs = []
         all_failed_jobs = []
@@ -246,7 +267,8 @@ def _parser():
 
     parser = argparse.ArgumentParser(
         parents=[parent],
-        description='Running Galaxy data managers in a defined order with defined parameters.')
+        description='Running Galaxy data managers in a defined order with defined parameters.'
+                    "'watch_tool_data_dir' in galaxy config should be set to true.'")
     parser.add_argument("--config", required=True,
                         help="Path to the YAML config file with the list of data managers and data to install.")
     parser.add_argument("--overwrite", action="store_true",
@@ -257,7 +279,6 @@ def _parser():
 
 
 def main():
-    #global log
     disable_external_library_logging()
     log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_data_manager_install.log')
     parser = _parser()

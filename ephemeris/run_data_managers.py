@@ -215,8 +215,8 @@ class DataManagers:
                              (skipped_job["tool_id"], skipped_job["inputs"]))
                     jobs.append(skipped_job)
             for job in jobs:
-                started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["tool_inputs"])
-                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], job["tool_id"], job["tool_inputs"]))
+                started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"])
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (started_job['outputs'][0]['hid'], job["tool_id"], job["inputs"]))
                 job_list.append(started_job)
 
             successful_jobs, failed_jobs = wait(self.gi, job_list, log)

@@ -40,7 +40,7 @@ from .ephemeris_log import disable_external_library_logging, setup_global_logger
 DEFAULT_URL = "http://localhost"
 
 
-def wait(gi, job_list):
+def wait(gi, job_list, log):
     """
         Waits until a data_manager is finished or failed.
         It will check the state of the created datasets every 30s.
@@ -77,20 +77,6 @@ def wait(gi, job_list):
     return successful_jobs, failed_jobs
 
 
-def run_job(galaxy_instance, tool_id, tool_inputs, history_id=None, log = None):
-    job = galaxy_instance.tools.run_tool(history_id=history_id, tool_id=tool_id, tool_inputs=tool_inputs)
-    if log:
-        log.info('Dispatched job %i. Running "%s" with parameters: %s' % (job['outputs'][0]['hid'], tool_id, tool_inputs))
-    return job
-
-
-def run_job_list(galaxy_instance, job_list, log = None):
-    running_job_list = []
-    for job in job_list:
-        running_job = run_job(galaxy_instance,job.get('tool_id'),job.get('inputs'),history_id=job.get('history_id', None), log = log)
-        running_job_list.append(running_job)
-    return running_job_list
-
 def get_first_valid_entry(input_dict,key_list):
     '''Iterates over key_list and returns the value of the first key that exists in the dictionary. Or returns None'''
     for key in key_list:
@@ -101,27 +87,41 @@ def get_first_valid_entry(input_dict,key_list):
 
 
 class DataManagers:
-    def __init__(self,galaxy_instance,configuration,overwrite=False,ignore_errors=False):
+    def __init__(self,galaxy_instance,configuration):
         self.gi = galaxy_instance
         self.config = configuration
-        self.overwrite = overwrite
-        self.ignore_erros = ignore_errors
         self.tool_data_client = ToolDataClient(self.gi)
         self.possible_name_keys = ['name', 'sequence_name'] # In order of importance!
         self.possible_value_keys = ['value', 'sequence_id', 'dbkey'] # In order of importance!
         self.data_managers = self.conf.get('data_managers')
         self.genomes = self.conf.get('genomes', '')
         self.source_tables = ['']
-        self.skipped_jobs = []
-        self.successful_jobs = []
-        self.failed_jobs = []
+        self.fetch_jobs = []
+        self.skipped_fetch_jobs = []
+        self.index_jobs = []
+        self.skipped_index_jobs = []
 
-    def get_dm_jobs(self, dm,log=None):
-        '''Gets the job entries for a single dm'''
+    def initiate_job_lists(self):
+        self.fetch_jobs = []
+        self.skipped_fetch_jobs = []
+        self.index_jobs = []
+        self.skipped_index_jobs = []
+        for dm in self.data_managers:
+            jobs, skipped_jobs = self.get_dm_jobs(dm)
+            if self.dm_is_fetcher(dm):
+                self.fetch_jobs.extend(jobs)
+                self.skipped_fetch_jobs.extend(skipped_jobs)
+            else:
+                self.index_jobs.extend(jobs)
+                self.skipped_index_jobs.extend(skipped_jobs)
+
+    def get_dm_jobs(self, dm):
+        '''Gets the job entries for a single dm
+        :returns job_list, skipped_job_list'''
         job_list = []
+        skipped_job_list = []
         items = self.parse_items(dm.get('items', ['']))
         for item in items:
-
             dm_id = dm['id']
             params = dm['params']
             inputs = dict()
@@ -137,14 +137,22 @@ class DataManagers:
 
             data_tables = dm.get('data_table_reload', [])
             if self.input_entries_exist_in_data_tables(data_tables,inputs):
-                if log:
-                    log.info('%s already run for %s' % (dm_id, inputs))
-                self.skipped_jobs.append(job)
+                skipped_job_list.append(job)
             else:
                 job_list.append(job)
+        return job_list, skipped_job_list
+
+    def dm_is_fetcher(self,dm):
+        """Checks whether the data manager fetches a sequence.
+        :returns True if dm is a fetcher. False if it is not."""
+        data_tables = dm.get('data_table_reload', [])
+        for data_table in data_tables:
+            if data_table in self.source_tables:
+                return True
+        return False
 
     def data_table_entry_exists(self, data_table_name, entry, column='value'):
-        '''Checks whether an entry exists in the a specified column in the data_table.'''
+        """Checks whether an entry exists in the a specified column in the data_table."""
         try:
             data_table_content = self.tool_data_client.show_data_table(data_table_name)
         except Exception:
@@ -182,7 +190,6 @@ class DataManagers:
         # If all checks are passed the entries are present in the database tables.
         return True
 
-
     def parse_items(self, items):
         if bool(self.genomes):
             items_template = Template(json.dumps(items))
@@ -192,18 +199,30 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self,log=None):
-        fetch_jobs = []
-        index_jobs = []
-        for dm in self.data_managers:
-            data_tables = dm.get('data_table_reload', [])
-            # TODO: LOGIC HERE WRONG
-            for data_table in data_tables:
-                if data_table in self.source_tables:
-                    fetch_jobs.append(self.get_dm_jobs(dm,log))
+    def run(self, log, ignore_errors=False,overwrite=False):
+        self.initiate_job_lists()
+
+        def run_jobs(jobs, skipped_jobs):
+            job_list = []
+            for skipped_job in skipped_jobs:
+                if overwrite:
+                    log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
                 else:
-                    index_jobs.append(self.get_dm_jobs(dm,log))
-        a =[]
+                    log.info('%s already run for %s. Entry will be overwritten.' % (skipped_job["tool_id"], skipped_job["inputs"]))
+                    jobs.append(skipped_job)
+            for job in jobs:
+                started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["tool_inputs"])
+                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], job["tool_id"], job["tool_inputs"]))
+                job_list.append(started_job)
+
+            successful_jobs, failed_jobs = wait(self.gi,job_list)
+            if failed_jobs:
+                if not ignore_errors:
+                    log.error('Not all jobs successful! aborting...')
+                    raise Exception('Not all jobs successful! aborting...')
+                else:
+                    log.warning('Not all jobs successful! ignoring...')
+            return successful_jobs, failed_jobs
 
 
 
@@ -283,7 +302,7 @@ def _parser():
 
 
 def main():
-    global log
+    #global log
     disable_external_library_logging()
     log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_data_manager_install.log')
     parser = _parser()

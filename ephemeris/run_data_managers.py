@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''Run-data-managers is a tool for provisioning data on a galaxy instance.
+"""Run-data-managers is a tool for provisioning data on a galaxy instance.
 
 Run-data-managers has the ability to run multiple data managers that are interdependent.
 When a reference genome is needed for bwa-mem for example, Run-data-managers
@@ -21,13 +21,12 @@ It checks it in the following way:
   the "value" column in the data table already has this entry.
   Value takes precedence over sequence_id which takes precedence over dbkey.
 * If none of the above input variables are specified the data manager will always run.
-'''
+"""
 import argparse
 import json
 import logging
 import time
 
-from argparse import Namespace
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
@@ -78,24 +77,23 @@ def wait(gi, job_list, log):
     return successful_jobs, failed_jobs
 
 
-def get_first_valid_entry(input_dict,key_list):
-    '''Iterates over key_list and returns the value of the first key that exists in the dictionary. Or returns None'''
+def get_first_valid_entry(input_dict, key_list):
+    """Iterates over key_list and returns the value of the first key that exists in the dictionary. Or returns None"""
     for key in key_list:
         if key in input_dict:
             return input_dict.get(key)
     return None
 
 
-
 class DataManagers:
-    def __init__(self,galaxy_instance,configuration):
+    def __init__(self, galaxy_instance, configuration):
         self.gi = galaxy_instance
         self.config = configuration
         self.tool_data_client = ToolDataClient(self.gi)
-        self.possible_name_keys = ['name', 'sequence_name'] # In order of importance!
-        self.possible_value_keys = ['value', 'sequence_id', 'dbkey'] # In order of importance!
-        self.data_managers = self.conf.get('data_managers')
-        self.genomes = self.conf.get('genomes', '')
+        self.possible_name_keys = ['name', 'sequence_name']  # In order of importance!
+        self.possible_value_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
+        self.data_managers = self.config.get('data_managers')
+        self.genomes = self.config.get('genomes', '')
         self.source_tables = DEFAULT_SOURCE_TABLES
         self.fetch_jobs = []
         self.skipped_fetch_jobs = []
@@ -117,8 +115,8 @@ class DataManagers:
                 self.skipped_index_jobs.extend(skipped_jobs)
 
     def get_dm_jobs(self, dm):
-        '''Gets the job entries for a single dm
-        :returns job_list, skipped_job_list'''
+        """Gets the job entries for a single dm
+        :returns job_list, skipped_job_list"""
         job_list = []
         skipped_job_list = []
         items = self.parse_items(dm.get('items', ['']))
@@ -134,16 +132,16 @@ class DataManagers:
                 value = value_template.render(item=item)
                 inputs.update({key: value})
 
-            job=dict(tool_id=dm_id,inputs=inputs)
+            job = dict(tool_id=dm_id, inputs=inputs)
 
             data_tables = dm.get('data_table_reload', [])
-            if self.input_entries_exist_in_data_tables(data_tables,inputs):
+            if self.input_entries_exist_in_data_tables(data_tables, inputs):
                 skipped_job_list.append(job)
             else:
                 job_list.append(job)
         return job_list, skipped_job_list
 
-    def dm_is_fetcher(self,dm):
+    def dm_is_fetcher(self, dm):
         """Checks whether the data manager fetches a sequence.
         :returns True if dm is a fetcher. False if it is not."""
         data_tables = dm.get('data_table_reload', [])
@@ -157,7 +155,7 @@ class DataManagers:
         try:
             data_table_content = self.tool_data_client.show_data_table(data_table_name)
         except Exception:
-            raise Exception('Table "%s" does not exist' % (data_table_name))
+            raise Exception('Table "%s" does not exist' % data_table_name)
 
         try:
             column_index = data_table_content.get('columns').index(column)
@@ -170,10 +168,10 @@ class DataManagers:
         return False
 
     def input_entries_exist_in_data_tables(self, data_tables, input_dict):
-        '''Checks whether name and value entries from the input are already present in the data tables.
-        If an entry is missing in of the tables, this function returns False'''
-        value_entry = get_first_valid_entry(input_dict,self.possible_value_keys)
-        name_entry = get_first_valid_entry(input_dict,self.possible_name_keys)
+        """Checks whether name and value entries from the input are already present in the data tables.
+        If an entry is missing in of the tables, this function returns False"""
+        value_entry = get_first_valid_entry(input_dict, self.possible_value_keys)
+        name_entry = get_first_valid_entry(input_dict, self.possible_name_keys)
 
         # Return False if name and value entries are both None
         if not value_entry and not name_entry:
@@ -200,7 +198,7 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log, ignore_errors=False,overwrite=False):
+    def run(self, log, ignore_errors=False, overwrite=False):
         self.initiate_job_lists()
         all_succesful_jobs = []
         all_failed_jobs = []
@@ -213,14 +211,15 @@ class DataManagers:
                     log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
                     all_skipped_jobs.append(skipped_job)
                 else:
-                    log.info('%s already run for %s. Entry will be overwritten.' % (skipped_job["tool_id"], skipped_job["inputs"]))
+                    log.info('%s already run for %s. Entry will be overwritten.' %
+                             (skipped_job["tool_id"], skipped_job["inputs"]))
                     jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["tool_inputs"])
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' % (job['outputs'][0]['hid'], job["tool_id"], job["tool_inputs"]))
                 job_list.append(started_job)
 
-            successful_jobs, failed_jobs = wait(self.gi,job_list, log)
+            successful_jobs, failed_jobs = wait(self.gi, job_list, log)
             if failed_jobs:
                 if not ignore_errors:
                     log.error('Not all jobs successful! aborting...')
@@ -230,7 +229,7 @@ class DataManagers:
             all_succesful_jobs.extend(successful_jobs)
             all_failed_jobs.extend(failed_jobs)
 
-        log.info("Running data managers that populate the following source data tables: %s"  % self.source_tables)
+        log.info("Running data managers that populate the following source data tables: %s" % self.source_tables)
         run_jobs(self.fetch_jobs, self.skipped_fetch_jobs)
         log.info("Running data managers that index sequences.")
         run_jobs(self.index_jobs, self.skipped_index_jobs)
@@ -242,7 +241,7 @@ class DataManagers:
 
 
 def _parser():
-    '''returns the parser object.'''
+    """returns the parser object."""
     parent = get_common_args()
 
     parser = argparse.ArgumentParser(
@@ -267,9 +266,11 @@ def main():
         log.setLevel(logging.DEBUG)
     else:
         log.setLevel(logging.INFO)
-    gi = get_galaxy_connection(args,file=args.config,log=log,login_required=True)
-    data_managers = DataManagers(gi,args.config)
-    data_managers.run(log,args.ignore_errors,args.overwrite)
+    gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
+    config = load_yaml_file(args.config)
+    data_managers = DataManagers(gi, config)
+    data_managers.run(log, args.ignore_errors, args.overwrite)
+
 
 if __name__ == '__main__':
     main()

@@ -229,12 +229,12 @@ class DataManagers:
             job_list = []
             for skipped_job in skipped_jobs:
                 if overwrite:
-                    log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
-                    all_skipped_jobs.append(skipped_job)
-                else:
                     log.info('%s already run for %s. Entry will be overwritten.' %
                              (skipped_job["tool_id"], skipped_job["inputs"]))
                     jobs.append(skipped_job)
+                else:
+                    log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
+                    all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"])
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' %

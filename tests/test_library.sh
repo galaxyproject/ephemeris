@@ -4,7 +4,7 @@ set -eu
 set -o pipefail
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-TEST_DATA=${EPHEMERIS_TEST_DATA:-"$CURRENT_DIR"}
+export TEST_DATA=${EPHEMERIS_TEST_DATA:-"$CURRENT_DIR"}
 # The exposed web port may change to 443 in the future
 INTERNAL_EXPOSED_WEB_PORT=80
 

@@ -37,7 +37,7 @@ from .ephemeris_log import disable_external_library_logging, setup_global_logger
 
 
 DEFAULT_URL = "http://localhost"
-DEFAULT_SOURCE_TABLES = ["all_fasta", "gemini_databases"]
+DEFAULT_SOURCE_TABLES = ["all_fasta"]
 
 
 def wait(gi, job_list, log):

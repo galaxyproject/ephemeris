@@ -18,5 +18,3 @@ source $TEST_DATA/test_shed_tools.sh
 source $TEST_DATA/test_workflow_and_data.sh
 source $TEST_DATA/test_run_data_managers.sh
 
-# Remove running container
-docker rm -f $CID

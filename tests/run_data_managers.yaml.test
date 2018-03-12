@@ -11,7 +11,7 @@ genomes:
       id: NoroVirCHA7A011
 
 data_managers:
-    - id: toolshed.g2.bx.psu.edu/repos/devteam/data_manager_fetch_genome_dbkeys_all_fasta/data_manager_fetch_genome_all_fasta_dbkey/0.0.2
+    - id: data_manager_fetch_genome_all_fasta_dbkey
       params:
         - 'dbkey_source|dbkey_source_selector': 'new'
         - 'dbkey_source|dbkey': '{{ item.id }}'
@@ -33,3 +33,12 @@ data_managers:
       items: "{{ genomes }}"
       data_table_reload:
         - fasta_indexes
+
+    - id: bwa_mem_index_builder_data_manager
+      params:
+        - 'all_fasta_source': '{{ item.id }}'
+        - 'sequence_name': '{{ item.name }}'
+        - 'sequence_id': '{{ item.id }}'
+      items: "{{ genomes }}"
+      data_table_reload:
+        - bwa_mem_indexes

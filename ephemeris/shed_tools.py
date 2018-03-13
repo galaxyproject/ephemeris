@@ -489,11 +489,12 @@ def get_install_repository_manager(options):
         install_tool_dependencies = repository_list.get(
             'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
-        repositories = [yaml.load(options.tool_yaml)]
+        repositories = [yaml.safe_load(options.tool_yaml)]
     elif options.update_tools:
         get_repository_list = GiToToolYaml(
             gi=gi,
-            skip_tool_panel_section_name=False
+            skip_tool_panel_section_name=False,
+            get_data_managers=True
         )
         repository_list = get_repository_list.tool_list
         repositories = repository_list['tools']

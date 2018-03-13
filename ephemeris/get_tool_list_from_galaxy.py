@@ -120,21 +120,21 @@ def _parser():
                         required=True,
                         dest="output",
                         help="tool_list.yml output file")
-    parser.add_argument("-include_id", "--include_tool_panel_id",
+    parser.add_argument("--include_tool_panel_id",
                         action="store_true",
                         help="Include tool_panel_id in tool_list.yml ? "
                              "Use this only if the tool panel id already exists. See "
                              "https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample")
-    parser.add_argument("-skip_name", "--skip_tool_panel_name",
+    parser.add_argument("--skip_tool_panel_name",
                         action="store_true",
                         help="Do not include tool_panel_name in tool_list.yml ?")
-    parser.add_argument("-skip_changeset", "--skip_changeset_revision",
+    parser.add_argument("--skip_changeset_revision",
                         action="store_true",
                         help="Do not include the changeset revision when generating the tool list."
                              "Use this if you would like to use the list to update all the tools in"
                              "your galaxy instance using shed-install."
                         )
-    parser.add_argument("-get_dms", "--get_data_managers",
+    parser.add_argument("--get_data_managers",
                         action="store_true",
                         help="Include the data managers in the tool list. Requires login details")
     return parser

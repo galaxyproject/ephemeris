@@ -270,6 +270,11 @@ def _parser():
     common_arguments = get_common_args()
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
+    common_arguments.add_argument("--log_file",
+                                  dest="log_file",
+                                  help="Where the log file should be stored. "
+                                       "Default is a file in your system's temp folder",
+                                  default=None)
 
     # A list of defaults is needed. Otherwise the shed-tools install parser will not return
     # update_tools in the name space and shed-tool update will not return all the install
@@ -735,8 +740,9 @@ class InstallToolManager(object):
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_tool_install.log')
     options = _parse_cli_options()
+    log = setup_global_logger(name=__name__, log_file=options.log_file)
+
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
         if options.update_tools:

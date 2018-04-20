@@ -22,7 +22,7 @@ is currently too small to support full and open governance at this time. In
 order to keep things evolving quickly, it is better to keep procedures and
 process to a minimum and centralize important decisions with a trusted
 developer. The BDFN is explicitly meant to be replaced with a more formal and
-democratice process if the project grows to a sufficient size or importance.
+democratic process if the project grows to a sufficient size or importance.
 
 The *committers* group is the group of trusted developers and advocates who
 manage the Ephemeris code base. They assume many roles required to achieve

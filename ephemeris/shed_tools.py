@@ -267,14 +267,9 @@ def _list_repository_categories(repository_dictionaries_list):
 
 def _parser():
     """construct the parser object"""
-    common_arguments = get_common_args()
+    common_arguments = get_common_args(log_file=True)
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
-    common_arguments.add_argument("--log_file",
-                                  dest="log_file",
-                                  help="Where the log file should be stored. "
-                                       "Default is a file in your system's temp folder",
-                                  default=None)
 
     # A list of defaults is needed. Otherwise the shed-tools install parser will not return
     # update_tools in the name space and shed-tool update will not return all the install

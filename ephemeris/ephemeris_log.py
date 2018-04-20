@@ -1,4 +1,5 @@
 import logging
+import tempfile
 
 
 class ProgressConsoleHandler(logging.StreamHandler):
@@ -49,7 +50,9 @@ def setup_global_logger(name, log_file=None):
     logger.setLevel(logging.DEBUG)
     logger.addHandler(progress)
 
-    if log_file:
-        file_handler = logging.FileHandler(log_file)
-        logger.addHandler(file_handler)
+    if not log_file:
+        log_file, path = tempfile.mkstemp()
+    file_handler = logging.FileHandler(log_file)
+    logger.addHandler(file_handler)
+    logger.info("Storing log file in: {0}".format(log_file))
     return logger

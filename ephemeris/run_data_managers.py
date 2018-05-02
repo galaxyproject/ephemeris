@@ -264,7 +264,7 @@ class DataManagers:
 
 def _parser():
     """returns the parser object."""
-    parent = get_common_args()
+    parent = get_common_args(log_file=True)
 
     parser = argparse.ArgumentParser(
         parents=[parent],
@@ -281,9 +281,9 @@ def _parser():
 
 def main():
     disable_external_library_logging()
-    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_data_manager_install.log')
     parser = _parser()
     args = parser.parse_args()
+    log = setup_global_logger(name=__name__, log_file=args.log_file)
     if args.verbose:
         log.setLevel(logging.DEBUG)
     else:

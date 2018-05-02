@@ -267,7 +267,7 @@ def _list_repository_categories(repository_dictionaries_list):
 
 def _parser():
     """construct the parser object"""
-    common_arguments = get_common_args()
+    common_arguments = get_common_args(log_file=True)
     parser = ArgumentParser()
     subparsers = parser.add_subparsers()
 
@@ -735,8 +735,9 @@ class InstallToolManager(object):
 def main():
     global log
     disable_external_library_logging()
-    log = setup_global_logger(name=__name__, log_file='/tmp/galaxy_tool_install.log')
     options = _parse_cli_options()
+    log = setup_global_logger(name=__name__, log_file=options.log_file)
+
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
         if options.update_tools:

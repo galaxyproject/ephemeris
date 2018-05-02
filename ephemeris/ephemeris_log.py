@@ -1,4 +1,5 @@
 import logging
+import tempfile
 
 
 class ProgressConsoleHandler(logging.StreamHandler):
@@ -49,7 +50,13 @@ def setup_global_logger(name, log_file=None):
     logger.setLevel(logging.DEBUG)
     logger.addHandler(progress)
 
-    if log_file:
-        file_handler = logging.FileHandler(log_file)
-        logger.addHandler(file_handler)
+    if not log_file:
+        # delete = false is chosen here because it is always nice to have a log file
+        # ready if you need to debug. Not having the "if only I had set a log file"
+        # moment after the fact.
+        temp = tempfile.NamedTemporaryFile(prefix="ephemeris_", delete=False)
+        log_file = temp.name
+    file_handler = logging.FileHandler(log_file)
+    logger.addHandler(file_handler)
+    logger.info("Storing log file in: {0}".format(log_file))
     return logger

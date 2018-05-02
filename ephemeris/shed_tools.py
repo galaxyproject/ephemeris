@@ -275,7 +275,6 @@ def _parser():
     # update_tools in the name space and shed-tool update will not return all the install
     # variables.
     parser.set_defaults(
-        update_tools=False,
         tool_list_file=None,
         tool_yaml=None,
         owner=None,
@@ -294,6 +293,9 @@ def _parser():
              "Use shed-tools install --help for more information",
         parents=[common_arguments],
         )
+    install_command_parser.set_defaults(
+        update_tools=False
+    )
     install_command_parser.add_argument(
         "-t", "--toolsfile",
         dest="tool_list_file",

@@ -11,7 +11,56 @@ from bioblend import galaxy
 from .common_parser import get_common_args
 
 
-def setup_data_libraries(gi, data):
+def create_legacy(gi, desc):
+    destination = desc["destination"]
+    if destination["type"] != "library":
+        raise Exception("Only libraries may be created with pre-18.05 Galaxies using this script.")
+    library_name = destination.get("name")
+    library_description = destination.get("description")
+    library_synopsis = destination.get("synopsis")
+
+    lib = gi.libraries.create_library(library_name, library_description, library_synopsis)
+    lib_id = lib['id']
+    folder_id = None
+
+    def populate_items(base_folder_id, has_items):
+        if "items" in has_items:
+            name = has_items.get("name")
+            folder_id = base_folder_id
+            if name:
+                folder = gi.libraries.create_folder(lib_id, name, base_folder_id=base_folder_id)
+                folder_id = folder[0]["id"]
+            for item in has_items["items"]:
+                populate_items(folder_id, item)
+        else:
+            src = has_items["src"]
+            if src != "url":
+                raise Exception("For pre-18.05 Galaxies only support URLs src items are supported.")
+
+            gi.libraries.upload_file_from_url(
+                lib_id,
+                has_items['url'],
+                folder_id=base_folder_id,
+                file_type=has_items['ext']
+            )
+
+    populate_items(folder_id, desc)
+
+
+def create_batch_api(gi, desc):
+    hc = galaxy.histories.HistoryClient(gi)
+    tc = galaxy.tools.ToolClient(gi)
+
+    history = hc.create_history()
+    url = "%s/tools/fetch" % gi.url
+    payload = {
+        'targets': [desc],
+        'history_id': history["id"]
+    }
+    tc._post(payload=payload, url=url)
+
+
+def setup_data_libraries(gi, data, training=False, legacy=False):
     """
     Load files into a Galaxy data library.
     By default all test-data tools from all installed tools
@@ -20,28 +69,55 @@ def setup_data_libraries(gi, data):
 
     log.info("Importing data libraries.")
     jc = galaxy.jobs.JobsClient(gi)
+    config = galaxy.config.ConfigClient(gi)
+    version = config.get_version()
 
-    folders = dict()
+    if legacy:
+        create_func = create_legacy
+    else:
+        version_major = version.get("version_major", "16.01")
+        create_func = create_batch_api if version_major >= "18.05" else create_legacy
 
-    libraries = yaml.safe_load(data)
-    for lib in libraries['libraries']:
-        folders[lib['name']] = lib['files']
+    library_def = yaml.safe_load(data)
 
-    if folders:
-        log.info("Create 'Test Data' library.")
-        lib = gi.libraries.create_library('Training Data', 'Data pulled from online archives.')
-        lib_id = lib['id']
+    def normalize_items(has_items):
+        # Synchronize Galaxy batch format with older training material style.
+        if "files" in has_items:
+            items = has_items.pop("files")
+            has_items["items"] = items
 
-        for fname, urls in folders.items():
-            log.info("Creating folder: %s" % fname)
-            folder = gi.libraries.create_folder(lib_id, fname)
-            for url in urls:
-                gi.libraries.upload_file_from_url(
-                    lib_id,
-                    url['url'],
-                    folder_id=folder[0]['id'],
-                    file_type=url['file_type']
-                )
+        items = has_items.get("items", [])
+        for item in items:
+            normalize_items(item)
+            src = item.get("src")
+            url = item.get("url")
+            if src is None and url:
+                item["src"] = "url"
+            if "file_type" in item:
+                ext = item.pop("file_type")
+                item["ext"] = ext
+
+    # Normalize library definitions to allow older ephemeris style and native Galaxy batch
+    # upload formats.
+    if "libraries" in library_def:
+        # File contains multiple definitions.
+        library_def["items"] = library_def.pop("libraries")
+
+    if "destination" not in library_def:
+        library_def["destination"] = {"type": "library"}
+    destination = library_def["destination"]
+
+    if training:
+        destination["name"] = destination.get("name", 'Training Data')
+        destination["description"] = destination.get("description", 'Data pulled from online archives.')
+    else:
+        destination["name"] = destination.get("name", 'New Data Library')
+        destination["description"] = destination.get("description", '')
+
+    normalize_items(library_def)
+
+    if library_def:
+        create_func(gi, library_def)
 
         no_break = True
         while True:
@@ -62,9 +138,13 @@ def _parser():
     parent = get_common_args()
     parser = argparse.ArgumentParser(
         parents=[parent],
-        description='Populate the Galaxy data library with test data.'
+        description='Populate the Galaxy data library with data.'
     )
     parser.add_argument('-i', '--infile', required=True, type=argparse.FileType('r'))
+    parser.add_argument('--training', default=False, action="store_true",
+                        help="Set defaults that make sense for training data.")
+    parser.add_argument('--legacy', default=False, action="store_true",
+                        help="Use legacy APIs even for newer Galaxies that should have a batch upload API enabled.")
     return parser
 
 
@@ -80,7 +160,7 @@ def main():
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 
-    setup_data_libraries(gi, args.infile)
+    setup_data_libraries(gi, args.infile, training=args.training, legacy=args.legacy)
 
 
 if __name__ == '__main__':

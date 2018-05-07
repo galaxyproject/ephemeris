@@ -1,9 +1,19 @@
-libraries:
-    - name: "Test data"
-      files:
-        - url: https://raw.githubusercontent.com/eteriSokhoyan/test-data/master/cliques-high-representatives.fa
-          file_type: fasta
-    - name: "Test data segmentation-fold"
-      files:
-        - url: https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
-          file_type: xml
+destination:
+  type: library
+  name: "Cool Training Library"
+  description: "A longer description."
+  synopsis: "Optional - does anyone ever set this?"
+items:
+  - name: "Test Folder 1"
+    description: "Description of what is in Test Folder 1"  # Only populated with new API.
+    items:
+      - url: https://raw.githubusercontent.com/eteriSokhoyan/test-data/master/cliques-high-representatives.fa
+        src: url
+        ext: fasta
+        info: "A cool longer description."  # Only populated with new API.
+        dbkey: "hg19"  # Only populated with new API.
+  - name: "Test data segmentation-fold"
+    items:
+      - url: https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
+        src: url
+        ext: xml

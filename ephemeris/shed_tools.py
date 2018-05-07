@@ -36,6 +36,8 @@ Galaxy's configuration directory and set Galaxy configuration option
 # bioblend, pyyaml
 
 import datetime as dt
+import json
+import re
 import sys
 import time
 from argparse import ArgumentParser
@@ -44,11 +46,12 @@ import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
+from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 from . import get_galaxy_connection, load_yaml_file
 from .common_parser import get_common_args
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-from .get_tool_list_from_galaxy import GiToToolYaml
+from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 
 # If no toolshed is specified for a tool/tool-suite, the Main Tool Shed is taken
 MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
@@ -65,6 +68,8 @@ MTS = 'https://toolshed.g2.bx.psu.edu/'  # Main Tool Shed
 INSTALL_TOOL_DEPENDENCIES = False
 INSTALL_REPOSITORY_DEPENDENCIES = True
 INSTALL_RESOLVER_DEPENDENCIES = True
+EXIT_CODE_INSTALL_ERRORS = 1
+EXIT_CODE_TOOL_TEST_ERRORS = 2
 
 
 def _ensure_log_configured(name):
@@ -275,6 +280,7 @@ def _parser():
     # update_tools in the name space and shed-tool update will not return all the install
     # variables.
     parser.set_defaults(
+        action="install",
         tool_list_file=None,
         tool_yaml=None,
         owner=None,
@@ -285,7 +291,12 @@ def _parser():
         tool_shed_url=None,
         skip_tool_dependencies=False,
         install_resolver_dependencies=False,
-        force_latest_revision=False
+        force_latest_revision=False,
+        test=False,
+        test_user_api_key=None,
+        test_user="ephemeris@galaxyproject.org",
+        test_json="tool_test_output.json",
+        test_existing=False,
     )
     install_command_parser = subparsers.add_parser(
         "install",
@@ -296,22 +307,51 @@ def _parser():
     install_command_parser.set_defaults(
         update_tools=False
     )
-    install_command_parser.add_argument(
-        "-t", "--toolsfile",
-        dest="tool_list_file",
-        help="Tools file to use (see tool_list.yaml.sample)",)
-    install_command_parser.add_argument(
-        "-y", "--yaml_tool",
-        dest="tool_yaml",
-        help="Install tool represented by yaml string",)
-    install_command_parser.add_argument(
-        "--name",
-        help="The name of the tool to install (only applicable "
-             "if the tools file is not provided).")
-    install_command_parser.add_argument(
-        "--owner",
-        help="The owner of the tool to install (only applicable "
-             "if the tools file is not provided).")
+    update_command_parser = subparsers.add_parser(
+        "update",
+        help="This updates all tools in Galaxy to the latest revision. "
+             "Use shed-tools update --help for more information",
+        parents=[common_arguments])
+
+    test_command_parser = subparsers.add_parser(
+        "test",
+        help="This tests the supplied list of tools in Galaxy. "
+             "Use shed-tools test --help for more information",
+        parents=[common_arguments])
+
+    for command_parser in [install_command_parser, test_command_parser]:
+        command_parser.add_argument(
+            "-t", "--toolsfile",
+            dest="tool_list_file",
+            help="Tools file to use (see tool_list.yaml.sample)",)
+        command_parser.add_argument(
+            "-y", "--yaml_tool",
+            dest="tool_yaml",
+            help="Install tool represented by yaml string",)
+        command_parser.add_argument(
+            "--name",
+            help="The name of the tool to install (only applicable "
+                 "if the tools file is not provided).")
+        command_parser.add_argument(
+            "--owner",
+            help="The owner of the tool to install (only applicable "
+                 "if the tools file is not provided).")
+        command_parser.add_argument(
+            "--revisions",
+            default=None,
+            nargs='*',
+            dest="revisions",
+            help="The revisions of the tool repository that will be installed. "
+                 "All revisions must be specified after this flag by a space."
+                 "Example: --revisions 0a5c7992b1ac f048033da666"
+                 "(Only applicable if the tools file is not provided).")
+        command_parser.add_argument(
+            "--toolshed",
+            dest="tool_shed_url",
+            help="The Tool Shed URL where to install the tool from. "
+                 "This is applicable only if the tool info is "
+                 "provided as an option vs. in the tools file.")
+
     install_command_parser.add_argument(
         "--section",
         dest="tool_panel_section_id",
@@ -325,21 +365,6 @@ def _parser():
         help="Galaxy tool panel section label where tool will be installed "
              "(if the section does not exist, it will be created; "
              "only applicable if the tools file is not provided).")
-    install_command_parser.add_argument(
-        "--revisions",
-        default=None,
-        nargs='*',
-        dest="revisions",
-        help="The revisions of the tool repository that will be installed. "
-             "All revisions must be specified after this flag by a space."
-             "Example: --revisions 0a5c7992b1ac f048033da666"
-             "(Only applicable if the tools file is not provided).")
-    install_command_parser.add_argument(
-        "--toolshed",
-        dest="tool_shed_url",
-        help="The Tool Shed URL where to install the tool from. "
-             "This is applicable only if the tool info is "
-             "provided as an option vs. in the tools file.")
     install_command_parser.add_argument(
         "--skip_install_tool_dependencies",
         action="store_true",
@@ -360,13 +385,75 @@ def _parser():
         dest="force_latest_revision",
         help="Will override the revisions in the tools file and always install the latest revision.")
 
-    update_command_parser = subparsers.add_parser(
-        "update",
-        help="This updates all tools in Galaxy to the latest revision."
-             "Use shed-tools update --help for more information",
-        parents=[common_arguments])
+    for command_parser in [update_command_parser, install_command_parser]:
+        command_parser.add_argument(
+            "--test",
+            action="store_true",
+            dest="test",
+            help="Run tool tests on install tools, requires Galaxy 18.05 or newer."
+        )
+        command_parser.add_argument(
+            "--test_existing",
+            action="store_true",
+            help="If testing tools during install, also run tool tests on repositories already installed "
+                 "(i.e. skipped repositories)."
+        )
+        command_parser.add_argument(
+            "--test_json",
+            dest="test_json",
+            help="If testing tools, record tool test output to specified file. "
+                 "This file can be turned into reports with ``planemo test_reports <output.json>``."
+        )
+        command_parser.add_argument(
+            "--test_user_api_key",
+            dest="test_json",
+            help="If testing tools, a user is needed to execute the tests. "
+                 "This can be different the --api_key which is assumed to be an admin key. "
+                 "If --api_key is a valid user (e.g. it is not a master API key) this does "
+                 "not need to be specified and --api_key will be reused."
+        )
+        command_parser.add_argument(
+            "--test_user",
+            dest="test_json",
+            help="If testing tools, a user is needed to execute the tests. "
+                 "If --api_key is a master api key (i.e. not tied to a real user) and "
+                 "--test_user_api_key isn't specified, this user email will be used. This "
+                 "user will be created if needed."
+        )
+
+    # Same test_json as above but language modified for test instead of install/update.
+    test_command_parser.add_argument(
+        "--test_json",
+        dest="test_json",
+        help="Record tool test output to specified file. "
+             "This file can be turned into reports with ``planemo test_reports <output.json>``."
+    )
+
+    test_command_parser.add_argument(
+        "--test_user_api_key",
+        dest="test_user_api_key",
+        help="A user is needed to execute the tests. "
+             "This can be different the --api_key which is assumed to be an admin key. "
+             "If --api_key is a valid user (e.g. it is not a master API key) this does "
+             "not need to be specified and --api_key will be reused."
+    )
+    test_command_parser.add_argument(
+        "--test_user",
+        dest="test_user",
+        help="A user is needed to execute the tests. "
+             "If --api_key is a master api key (i.e. not tied to a real user) and "
+             "--test_user_api_key isn't specified, this user email will be used. This "
+             "user will be created if needed."
+    )
+
     update_command_parser.set_defaults(
-        update_tools=True,
+        action="update",
+        update_tools=True
+    )
+
+    test_command_parser.set_defaults(
+        action="test",
+        update_tools=False
     )
 
     return parser
@@ -492,7 +579,7 @@ def get_install_repository_manager(options):
             'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         repositories = [yaml.safe_load(options.tool_yaml)]
-    elif options.update_tools:
+    elif options.action == "update":
         get_repository_list = GiToToolYaml(
             gi=gi,
             skip_tool_panel_section_name=False,
@@ -521,14 +608,19 @@ def get_install_repository_manager(options):
 
     install_resolver_dependencies = options.install_resolver_dependencies or install_resolver_dependencies
 
-    force_latest_revision = options.force_latest_revision or options.update_tools
+    force_latest_revision = options.force_latest_revision or options.action == "update"
 
     return InstallToolManager(repositories=repositories,
                               gi=gi,
                               default_install_tool_dependencies=install_tool_dependencies,
                               default_install_repository_dependencies=install_repository_dependencies,
                               default_install_resolver_dependencies=install_resolver_dependencies,
-                              force_latest_revision=force_latest_revision
+                              force_latest_revision=force_latest_revision,
+                              test=options.test,
+                              test_user=options.test_user,
+                              test_user_api_key=options.test_user_api_key,
+                              test_existing=options.test_existing,
+                              test_json=options.test_json,
                               )
 
 
@@ -541,7 +633,12 @@ class InstallToolManager(object):
                  default_install_resolver_dependencies=INSTALL_RESOLVER_DEPENDENCIES,
                  default_install_repository_dependencies=INSTALL_REPOSITORY_DEPENDENCIES,
                  require_tool_panel_info=True,
-                 force_latest_revision=False):
+                 force_latest_revision=False,
+                 test=False,
+                 test_user_api_key=None,
+                 test_user="ephemeris@galaxyproject.org",
+                 test_existing=False,
+                 test_json="tool_test_output.json"):
         self.repositories = repositories
         self.gi = gi
         self.tsc = ToolShedClient(self.gi)
@@ -553,9 +650,16 @@ class InstallToolManager(object):
         self.errored_repositories = []
         self.skipped_repositories = []
         self.installed_repositories = []
+        self.test = test
+        self.test_existing = test_existing
+        self.test_json = test_json
+        self.test_user_api_key = test_user_api_key
+        self.test_user = test_user
+        self.tests_passed = []
+        self.test_exceptions = []
 
     def install_repositories(self):
-        """
+        """Attempt to ensure each repository in ``self.repositories`` is installed.
         """
         installation_start = dt.datetime.now()
         installed_repositories_list = installed_repository_revisions(self.gi)  # installed tools list
@@ -659,8 +763,90 @@ class InstallToolManager(object):
                 t.get('changeset_revision', "")
             ) for t in self.errored_repositories])
         )
-        log.info("All repositories have been processed.")
+        log.info("All repositories have been installed.")
+        if self.test:
+            target_repositories = self.installed_repositories
+            if self.test_existing:
+                target_repositories += self.skipped_repositories
+            self.test_repositories(target_repositories=target_repositories)
         log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
+
+    def test_repositories(self, target_repositories=None):
+        """Run tool tests for each tool in supplied repositories list or ``self.repositories``.
+        """
+        tool_test_start = dt.datetime.now()
+        if target_repositories is None:
+            # Consider a variant of this that doesn't even consume a tool list YAML? target
+            # something like installed_repository_revisions(self.gi)
+            target_repositories = self.repositories
+        installed_tools = []
+        for target_repository in target_repositories:
+            repo_tools = tools_for_repository(self.gi, target_repository)
+            installed_tools.extend(repo_tools)
+
+        all_test_results = []
+
+        for tool in installed_tools:
+            tool_test_results = self._test_tool(tool)
+            all_test_results.extend(tool_test_results)
+
+        report_obj = {
+            'version': '0.1',
+            'tests': all_test_results,
+        }
+        with open(self.test_json or "tool_test_output.json", "w") as f:
+            json.dump(report_obj, f)
+        log.info("Passed tool tests ({0}): {1}".format(
+            len(self.tests_passed),
+            [t for t in self.tests_passed])
+        )
+        log.info("Failed tool tests ({0}): {1}".format(
+            len(self.test_exceptions),
+            [t[0] for t in self.test_exceptions])
+        )
+        log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
+
+    def _test_tool(self, tool):
+        test_user_api_key = self.test_user_api_key
+        if test_user_api_key is None:
+            whoami = self.gi.make_get_request(self.gi.url + "/whoami").json()
+            if whoami is not None:
+                test_user_api_key = self.gi.key
+        galaxy_interactor_kwds = {
+            "galaxy_url": re.sub('/api', '', self.gi.url),
+            "master_api_key": self.gi.key,
+            "api_key": None,  # TODO
+            "keep_outputs_dir": '',
+        }
+        if test_user_api_key is None:
+            galaxy_interactor_kwds["test_user"] = self.test_user
+        galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
+        tool_id = tool["id"]
+        tool_version = tool["version"]
+        tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        test_indices = list(range(len(tool_test_dicts)))
+        tool_test_results = []
+
+        for test_index in test_indices:
+            test_id = tool_id + "-" + str(test_index)
+
+            def register(job_data):
+                tool_test_results.append({
+                    'id': test_id,
+                    'has_data': True,
+                    'data': job_data,
+                })
+
+            try:
+                verify_tool(
+                    tool_id, galaxy_interactor, test_index=test_index, tool_version=tool_version,
+                    register_job_data=register, quiet=True
+                )
+                self.tests_passed.append(test_id)
+            except Exception as e:
+                self.test_exceptions.append((test_id, e))
+
+        return tool_test_results
 
     def create_repository_install_payload(self, repository_info):
         """
@@ -739,23 +925,27 @@ def main():
     disable_external_library_logging()
     options = _parse_cli_options()
     log = setup_global_logger(name=__name__, log_file=options.log_file)
-
+    install_tool_manager = None
     if options.tool_list_file or options.tool_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
-        if options.update_tools:
-            sys.exit("--update can not be used together with tools to be installed.")
+        if options.action == "update":
+            sys.exit("update command can not be used together with tools to be installed.")
         install_tool_manager = get_install_repository_manager(options)
-        install_tool_manager.install_repositories()
-        if install_tool_manager.errored_repositories:
-            sys.exit(1)
+        if options.action == "test":
+            install_tool_manager.test_repositories()
+        else:
+            install_tool_manager.install_repositories()
     elif options.update_tools:
         install_tool_manager = get_install_repository_manager(options)
         install_tool_manager.install_repositories()
-        if install_tool_manager.errored_repositories:
-            sys.exit(1)
     else:
         sys.exit("Must provide a tool list file, individual tools info , a list of data manager tasks or issue the update command. "
                  "Look at usage.")
+
+    if install_tool_manager.errored_repositories:
+        sys.exit(EXIT_CODE_INSTALL_ERRORS)
+    elif install_tool_manager.test_exceptions:
+        sys.exit(EXIT_CODE_TOOL_TEST_ERRORS)
 
 
 if __name__ == "__main__":

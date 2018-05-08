@@ -18,6 +18,7 @@ workflow-install -a admin -g http://localhost:$WEB_PORT -w "$TEST_DATA"/test_wor
 echo "Populate data libraries"
 setup-data-libraries --user admin@galaxy.org -p admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example.yaml
 setup-data-libraries -a admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example.yaml
+setup-data-libraries -a admin -g http://localhost:$WEB_PORT -i "$TEST_DATA"/library_data_example_legacy.yaml
 
 echo "Get tool list from Galaxy"
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list.yaml

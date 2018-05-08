@@ -1,0 +1,9 @@
+libraries:
+    - name: "Test data"
+      files:
+        - url: https://raw.githubusercontent.com/eteriSokhoyan/test-data/master/cliques-high-representatives.fa
+          file_type: fasta
+    - name: "Test data segmentation-fold"
+      files:
+        - url: https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
+          file_type: xml

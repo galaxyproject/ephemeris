@@ -13,6 +13,47 @@ from . import get_galaxy_connection
 from .common_parser import get_common_args
 
 
+def get_tool_panel(gi):
+    tool_client = ToolClient(gi)
+    return tool_client.get_tool_panel()
+
+
+def tools_for_repository(gi, repository):
+    tool_shed_url = repository.get('tool_shed_url')
+    name = repository['name']
+    owner = repository['owner']
+    changeset_revision = repository.get('changeset_revision')
+
+    tools = []
+
+    def handle_tool(tool_elem):
+        if not tool_elem.get('tool_shed_repository', None):
+            return
+        tsr = tool_elem['tool_shed_repository']
+        if tsr['name'] != name or tsr['owner'] != owner:
+            return
+
+        if tool_shed_url and tsr['tool_shed'] != tool_shed_url:
+            return
+
+        if changeset_revision and changeset_revision != tsr["changeset_revision"]:
+            return
+
+        tools.append(tool_elem)
+
+    walk_tools(get_tool_panel(gi), handle_tool)
+
+    return tools
+
+
+def walk_tools(tool_panel, f):
+    for elem in tool_panel:
+        if elem['model_class'] == 'Tool':
+            f(elem)
+        elif elem['model_class'] == 'ToolSection':
+            walk_tools(elem.get("elems", []), f)
+
+
 class GiToToolYaml:
     def __init__(self, gi,
                  include_tool_panel_section_id=False,
@@ -34,8 +75,7 @@ class GiToToolYaml:
         """
         Gets the toolbox elements from <galaxy_url>/api/tools
         """
-        tool_client = ToolClient(self.gi)
-        return tool_client.get_tool_panel()
+        return get_tool_panel(self.gi)
 
     @property
     def installed_tool_list(self):
@@ -52,15 +92,14 @@ class GiToToolYaml:
         Parse these accordingly to get a list of repositories.
         """
         repositories = []
-        for elem in self.toolbox:
-            if elem['model_class'] == 'Tool':
-                repo = get_repo_from_tool(elem)
-                if repo:
-                    repositories.append(repo)
-            elif elem['model_class'] == 'ToolSection':
-                new_repos = get_repos_from_section(elem)
-                if new_repos:
-                    repositories.extend(new_repos)
+
+        def record_repo(tool_elem):
+            repo = get_repo_from_tool(tool_elem)
+            if repo:
+                repositories.append(repo)
+
+        walk_tools(self.toolbox, record_repo)
+
         if self.get_data_managers:
             for tool in self.installed_tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
@@ -154,20 +193,6 @@ def get_repo_from_tool(tool):
             'tool_panel_section_id': tool['panel_section_id'],
             'tool_panel_section_label': tool['panel_section_name']}
     return repo
-
-
-def get_repos_from_section(section):
-    repos = []
-    for elem in section['elems']:
-        if elem['model_class'] == 'Tool':
-            repo = get_repo_from_tool(elem)
-            if repo:
-                repos.append(repo)
-        elif elem['model_class'] == 'ToolSection':
-            new_repos = get_repos_from_section(elem)
-            if new_repos:
-                repos.extend(new_repos)
-    return repos
 
 
 def _parse_cli_options():

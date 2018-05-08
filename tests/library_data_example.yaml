@@ -15,5 +15,7 @@ items:
   - name: "Test data segmentation-fold"
     items:
       - url: https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
+        name: workflow-test_cd-box_kturns.xml  # Only populated with new API.
+        info: Downloaded from https://raw.githubusercontent.com/yhoogstrate/segmentation-fold/55d0bb28b01e613844ca35cf21fa41379fd72770/scripts/energy-estimation-utility/tests/test-data/workflow-test_cd-box_kturns.xml
         src: url
         ext: xml

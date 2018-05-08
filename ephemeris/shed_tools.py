@@ -303,7 +303,7 @@ def _parser():
         help="This installs tools in Galaxy from the Tool Shed."
              "Use shed-tools install --help for more information",
         parents=[common_arguments],
-        )
+    )
     install_command_parser.set_defaults(
         update_tools=False
     )

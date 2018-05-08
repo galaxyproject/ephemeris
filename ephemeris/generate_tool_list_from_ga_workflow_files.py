@@ -58,7 +58,7 @@ def translate_workflow_dictionary_to_tool_list(tool_dictionary, panel_label):
     tool_list = []
     for tool in starting_tool_list:
         sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revisions': [tool['changeset_revision']],
-                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://'+tool['tool_shed']}
+                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://' + tool['tool_shed']}
         tool_list.append(sub_dic)
     return tool_list
 
@@ -75,10 +75,10 @@ def reduce_tool_list(tool_list):
         for tool in tool_list:
             if current_tool is tool:
                 continue
-            if (tool["name"] == current_tool['name']
-                    and tool['owner'] == current_tool['owner']
-                    and tool['tool_panel_section_label'] == current_tool['tool_panel_section_label']
-                    and tool['tool_shed_url'] == current_tool['tool_shed_url']):
+            if (tool["name"] == current_tool['name'] and
+                    tool['owner'] == current_tool['owner'] and
+                    tool['tool_panel_section_label'] == current_tool['tool_panel_section_label'] and
+                    tool['tool_shed_url'] == current_tool['tool_shed_url']):
                 current_tool["revisions"].extend(tool["revisions"])
                 tool_list.remove(tool)
         current_tool['revisions'] = list(set(current_tool['revisions']))

@@ -329,6 +329,10 @@ def _parser():
             dest="tool_yaml",
             help="Install tool represented by yaml string",)
         command_parser.add_argument(
+            "-d", "--yaml_data_manager",
+            dest="data_manager_yaml",
+            help="Install tools represented in a data manager yaml file",)
+        command_parser.add_argument(
             "--name",
             help="The name of the tool to install (only applicable "
                  "if the tools file is not provided).")
@@ -579,6 +583,20 @@ def get_install_repository_manager(options):
             'install_tool_dependencies', INSTALL_TOOL_DEPENDENCIES)
     elif options.tool_yaml:
         repositories = [yaml.safe_load(options.tool_yaml)]
+    elif options.data_manager_yaml:
+        repositories = list()
+        dms = yaml.load(open(options.data_manager_yaml))
+        for dm in dms['data_managers']:
+            tokens = dm['id'].split('/')
+            owner = tokens[2]
+            tool_shed_url = tokens[0]
+            repo_name = tokens[3]
+            repositories.append({
+                "owner": owner,
+                "name": repo_name,
+                "tool_panel_section_label": 'Data Managers',
+                "tool_shed_url": tool_shed_url,
+                })
     elif options.action == "update":
         get_repository_list = GiToToolYaml(
             gi=gi,
@@ -926,7 +944,7 @@ def main():
     options = _parse_cli_options()
     log = setup_global_logger(name=__name__, log_file=options.log_file)
     install_tool_manager = None
-    if options.tool_list_file or options.tool_yaml or \
+    if options.tool_list_file or options.tool_yaml or options.data_manager_yaml or \
             options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
         if options.action == "update":
             sys.exit("update command can not be used together with tools to be installed.")

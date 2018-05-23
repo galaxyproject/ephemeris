@@ -1,9 +1,10 @@
+
 # -*- coding: utf-8 -*-
 
 import yaml
 from bioblend import galaxy
 
-__version__ = '0.8.1.dev0'
+__version__ = '0.9.0.dev0'
 
 PROJECT_NAME = "ephemeris"
 PROJECT_OWNER = PROJECT_USERAME = "galaxyproject"

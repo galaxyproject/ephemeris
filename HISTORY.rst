@@ -6,10 +6,32 @@ History
 .. to_doc
 
 ---------------------
-0.8.1.dev0
+0.9.0.dev0
 ---------------------
 
-    
+* Update data managers when updating tools (thanks to `@rhpvorderman`_).
+  `Pull Request 78`_, `Issue 69`_
+* Run data managers aggressive parallelization and refactoring (thanks to
+  `@rhpvorderman`_).
+  `Pull Request 79`_
+* Makes publishing of imported workflows available (thanks to `@pcm32`_).
+  `Pull Request 74`_
+* Add option to test tools on update/install for Galaxy 18.05 (thanks to `@jmchilton`_).
+  `Pull Request 81`_
+* Upload 2.0 support for data library creation (thanks to `@jmchilton`_).
+  `Pull Request 89`_
+* Fixes to revision parsing in tools.yaml (thanks to `@bgruening`_).
+  `Pull Request 70`_
+* Add Codacy monitoring and badge (thanks to `@jmchilton`_).
+  `Pull Request 73`_
+* Fix typo in project organization document (thanks to `@blankenberg`_).
+  `Pull Request 86`_
+* Fix hardcoded log paths (thanks to `@rhpvorderman`_).
+  `Pull Request 85`_
+* Fix ``shed-tools`` update argparse handling (thanks to `@rhpvorderman`_).
+  `Pull Request 88`_
+* Fix a few lint issues (thanks to `@jmchilton`_).
+  `Pull Request 90`_
 
 ---------------------
 0.8.0 (2017-12-29)
@@ -97,6 +119,25 @@ History
 * Setup project, pull in scripts from `ansible-galaxy-tools
   <https://github.com/galaxyproject/ansible-galaxy-tools>`__
   and adapt them for usage as a library.
+
+.. github_links
+.. _Pull Request 74: https://github.com/galaxyproject/ephemeris/pull/74
+.. _Issue 69: https://github.com/galaxyproject/ephemeris/issues/69
+.. _Pull Request 73: https://github.com/galaxyproject/ephemeris/pull/73
+.. _Pull Request 78: https://github.com/galaxyproject/ephemeris/pull/78
+.. _Pull Request 70: https://github.com/galaxyproject/ephemeris/pull/70
+.. _Pull Request 86: https://github.com/galaxyproject/ephemeris/pull/86
+.. _Pull Request 79: https://github.com/galaxyproject/ephemeris/pull/79
+.. _Pull Request 85: https://github.com/galaxyproject/ephemeris/pull/85
+.. _Pull Request 81: https://github.com/galaxyproject/ephemeris/pull/81
+.. _Pull Request 90: https://github.com/galaxyproject/ephemeris/pull/90
+.. _Pull Request 89: https://github.com/galaxyproject/ephemeris/pull/89
+.. _Pull Request 88: https://github.com/galaxyproject/ephemeris/pull/88
+.. _@bgruening: https://github.com/bgruening
+.. _@blankenberg: https://github.com/blankenberg
+.. _@rhpvorderman: https://github.com/rhpvorderman
+.. _@pcm32: https://github.com/pcm32
+.. _@jmchilton: https://github.com/jmchilton
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

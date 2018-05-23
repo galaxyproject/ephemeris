@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.9.0.dev0
+0.9.0 (2018-05-23)
 ---------------------
 
 * Update data managers when updating tools (thanks to `@rhpvorderman`_).

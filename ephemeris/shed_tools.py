@@ -533,7 +533,11 @@ def wait_for_install(repository, tool_shed_client, timeout=3600):
     Returns True if install finished, returns False when timeout is exceeded.
     """
     def install_done(tool, tool_shed_client):
-        installed_repo_list = tool_shed_client.get_repositories()
+        try:
+            installed_repo_list = tool_shed_client.get_repositories()
+        except ConnectionError as e:
+            log.warning('Failed to get repositories list: %s', str(e))
+            return False
         for installing_repo in installed_repo_list:
             if (tool['name'] == installing_repo['name']) and (installing_repo['owner'] == tool['owner']):
                 if installing_repo['status'] not in ['Installed', 'Error']:

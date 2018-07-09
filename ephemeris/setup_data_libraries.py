@@ -19,30 +19,63 @@ def create_legacy(gi, desc):
     library_description = destination.get("description")
     library_synopsis = destination.get("synopsis")
 
-    lib = gi.libraries.create_library(library_name, library_description, library_synopsis)
-    lib_id = lib['id']
+    #Check to see if the library already exists. If it does, do not recreate it. If it doesn't, create it.
+    lib_id = None
+    print("Library name: " + str(library_name))
+    rmt_lib_list = gi.libraries.get_libraries(name=library_name, deleted=False)
+    #Now we need to check if the library has been deleted since deleted=False still returns the deleted libraries!
+    not_deleted_rmt_lib_list = []
     folder_id = None
+
+    if rmt_lib_list:
+        for x in rmt_lib_list:
+            if not x['deleted']:
+                not_deleted_rmt_lib_list.append(x)
+    if not_deleted_rmt_lib_list:
+        lib_id = not_deleted_rmt_lib_list[0]['id']
+        print("Library already exists! id: " + str(lib_id))
+        folder_id=gi.libraries.show_library(lib_id)['root_folder_id']
+    else:
+        lib = gi.libraries.create_library(library_name, library_description, library_synopsis)
+        lib_id = lib['id']
+        folder_id = lib['root_folder_id']
 
     def populate_items(base_folder_id, has_items):
         if "items" in has_items:
             name = has_items.get("name")
             folder_id = base_folder_id
             if name:
-                folder = gi.libraries.create_folder(lib_id, name, base_folder_id=base_folder_id)
-                folder_id = folder[0]["id"]
+                #Check to see if the folder already exists, if it doesn't create it.
+                rmt_folder_list = []
+                folder = gi.libraries.get_folders(lib_id, folder_id)
+                new_folder_name = "/" + name
+                if folder and not folder[0]['name'] == "/":
+                    new_folder_name = folder[0]['name'] + "/" + name
+                rmt_folder_list = gi.libraries.get_folders(lib_id, name=new_folder_name)    
+                if rmt_folder_list:
+                    folder_id = rmt_folder_list[0]['id']
+                else:
+                    folder = gi.libraries.create_folder(lib_id, name, base_folder_id=base_folder_id)
+                    folder_id = folder[0]["id"]
             for item in has_items["items"]:
                 populate_items(folder_id, item)
         else:
             src = has_items["src"]
             if src != "url":
                 raise Exception("For pre-18.05 Galaxies only support URLs src items are supported.")
-
-            gi.libraries.upload_file_from_url(
-                lib_id,
-                has_items['url'],
-                folder_id=base_folder_id,
-                file_type=has_items['ext']
-            )
+            rmt_library_files = gi.folders.show_folder(base_folder_id, contents=True)['folder_contents']
+            file_names = []
+            for item in rmt_library_files:
+                if item['type'] == 'file':
+                    file_names.append(item['name'])
+            if has_items['url'] not in file_names:
+                gi.libraries.upload_file_from_url(
+                    lib_id,
+                    has_items['url'],
+                    folder_id=base_folder_id,
+                    file_type=has_items['ext']
+                )
+        return None
 
     populate_items(folder_id, desc)
 

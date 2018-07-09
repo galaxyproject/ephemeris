@@ -51,7 +51,7 @@ def create_legacy(gi, desc):
                 new_folder_name = "/" + name
                 if folder and not folder[0]['name'] == "/":
                     new_folder_name = folder[0]['name'] + "/" + name
-                rmt_folder_list = gi.libraries.get_folders(lib_id, name=new_folder_name)    
+                rmt_folder_list = gi.libraries.get_folders(lib_id, name=new_folder_name)
                 if rmt_folder_list:
                     folder_id = rmt_folder_list[0]['id']
                 else:

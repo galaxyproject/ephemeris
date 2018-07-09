@@ -19,11 +19,11 @@ def create_legacy(gi, desc):
     library_description = destination.get("description")
     library_synopsis = destination.get("synopsis")
 
-    #Check to see if the library already exists. If it does, do not recreate it. If it doesn't, create it.
+    # Check to see if the library already exists. If it does, do not recreate it. If it doesn't, create it.
     lib_id = None
     print("Library name: " + str(library_name))
     rmt_lib_list = gi.libraries.get_libraries(name=library_name, deleted=False)
-    #Now we need to check if the library has been deleted since deleted=False still returns the deleted libraries!
+    # Now we need to check if the library has been deleted since deleted=False still returns the deleted libraries!
     not_deleted_rmt_lib_list = []
     folder_id = None
 
@@ -34,7 +34,7 @@ def create_legacy(gi, desc):
     if not_deleted_rmt_lib_list:
         lib_id = not_deleted_rmt_lib_list[0]['id']
         print("Library already exists! id: " + str(lib_id))
-        folder_id=gi.libraries.show_library(lib_id)['root_folder_id']
+        folder_id = gi.libraries.show_library(lib_id)['root_folder_id']
     else:
         lib = gi.libraries.create_library(library_name, library_description, library_synopsis)
         lib_id = lib['id']
@@ -45,7 +45,7 @@ def create_legacy(gi, desc):
             name = has_items.get("name")
             folder_id = base_folder_id
             if name:
-                #Check to see if the folder already exists, if it doesn't create it.
+                # Check to see if the folder already exists, if it doesn't create it.
                 rmt_folder_list = []
                 folder = gi.libraries.get_folders(lib_id, folder_id)
                 new_folder_name = "/" + name

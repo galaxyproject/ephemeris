@@ -38,25 +38,35 @@ from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 from .shed_tools_args import parser
 from . import get_galaxy_connection
 import datetime as dt
+from collections import namedtuple
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
 
-    def __init__(self, galaxy_instance, log):
+    def __init__(self,
+                 galaxy_instance,
+                 log):
         """Initialize a new tool manager"""
         self.gi = galaxy_instance
         self.log = log
+        self.default_toolshed = default_toolshed
 
     @property
     def installed_tools(self):
         """Get currently installed tools"""
-        tool_list = GiToToolYaml(
+        return GiToToolYaml(
             gi=self.gi,
             skip_tool_panel_section_name=False,
             get_data_managers=True,
-            flatten_revisions=False
+            flatten_revisions=False # We want all the revisions to be there
         ).tool_list.get("tools")
-        return _flatten_repo_info(tool_list)
+
+
+    @property
+    def installed_repos(self):
+        _flatten_repo_info(self.installed_tools)
+
+
 
 
     def log_repository_install_error(self, repository, start, msg, errored_repositories):
@@ -111,26 +121,30 @@ class InstallToolManager(object):
             self.log.debug("\tRepository {0} is already installed.".format(repository['name']))
         return response
 
-    def filter_installed_tools(self,tools):
+    def filter_installed_repos(self,tools):
+        """This filters a list of tools"""
         not_installed_tools = []
+        already_installed_tools = []
         for tool in iter(tools):
             for installed_tool in iter(self.installed_tools):
-                if not the_same_repository(installed_tool, tool):
+                if the_same_repository(installed_tool, tool):
+                    already_installed_tools.append(tool)
+                else:
                     not_installed_tools.append(tool)
+        return not_installed_tools, already_installed_tools
 
 
-    def install_tools(self, tools):
+    def install_tools(self, tools,
+                 default_toolshed='https://toolshed.g2.bx.psu.edu/'):
         """Install a list of tools on the current galaxy"""
         installation_start = dt.datetime.now()
         counter = 0
         total_num_repositories = len(tools)
         flattened_tool_list = _flatten_repo_info(tools)
+        not_installed_tools, already_installed_tools = self.filter_installed_tools(flattened_tool_list)
 
 
-
-        #TODO: Implement code to filter the tool list for already installed tools
-
-        for tool in flattened_tool_list:
+        for tool in not_installed_tools:
             counter += 1
             start = dt.datetime.now()
             self.log.debug(
@@ -157,6 +171,14 @@ class InstallToolManager(object):
         else:
             to_be_tested_tools = tools
         # Insert code here to test the tools
+
+def format_tool_shed_url(tool_shed_url):
+    formatted_tool_shed_url = tool_shed_url
+    if not formatted_tool_shed_url.endswith('/'):
+        formatted_tool_shed_url += '/'
+    if not formatted_tool_shed_url.startswith('http'):
+        formatted_tool_shed_url = 'https://' + formatted_tool_shed_url
+    return formatted_tool_shed_url
 
 def the_same_repository(repo_1_info, repo_2_info):
     """
@@ -189,7 +211,7 @@ def _flatten_repo_info(repositories):
              values, those will be returned as separate list items.
     """
     flattened_list = []
-    for repo_info in repositories:
+    for repo_info in iter(repositories):
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
             del repo_info['revisions']

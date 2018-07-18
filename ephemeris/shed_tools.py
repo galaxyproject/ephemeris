@@ -33,3 +33,38 @@ running this script to install the tools, make sure to place such file into
 Galaxy's configuration directory and set Galaxy configuration option
 `tool_config_file` to include it.
 """
+
+from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
+
+class InstallToolManager(object):
+    """Manages the installation of new tools on a galaxy instance"""
+    def __init__(self,galaxy_instance):
+        """Initialize a new tool manager"""
+        self.gi = galaxy_instance
+
+    @property
+    def installed_tools(self):
+        """Get currently installed tools"""
+        return GiToToolYaml(
+            gi=self.gi,
+            skip_tool_panel_section_name=False,
+            get_data_managers=True
+        ).tool_list.get("tools")
+
+    def install_tools(self,tools, log):
+        """Install a list of tools on the current galaxy"""
+        # Insert code here to install tools
+
+    def update_tools(self,log, tools=None):
+        if tools is None:
+            to_be_updated_tools=self.installed_tools
+        else:
+            to_be_updated_tools= tools
+        # Insert code here to update tools
+
+    def test_tools(self, log, tools=None):
+        if tools is None:
+            to_be_tested_tools=self.installed_tools
+        else:
+            to_be_tested_tools= tools
+        # Insert code here to test the tools

@@ -41,6 +41,7 @@ import datetime as dt
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 from bioblend.galaxy.client import ConnectionError
+import time
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
@@ -210,7 +211,7 @@ class InstallToolManager(object):
                               (repository['name'], repository['changeset_revision']))
                 elif "504" in e.message:
                     log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
-                    success = wait_for_install(repository=repository, tool_shed_client=self.tsc, timeout=3600)
+                    success = self.wait_for_install(repository=repository, log=log, timeout=3600)
                     if success:
                         log_repository_install_success(
                             repository=repository,
@@ -258,6 +259,31 @@ class InstallToolManager(object):
             if log:
                 log.debug("\tRepository {0} is already installed.".format(repository['name']))
         return response
+
+    def wait_for_install(self, repository, log=None, timeout=3600):
+        """
+        If nginx times out, we look into the list of installed repositories
+        and try to determine if a tool of the same namer/owner is still installing.
+        Returns True if install finished successfully, returns False when timeout is exceeded or installation has failed.
+        """
+        start= dt.datetime.now()
+        while  (dt.datetime.now() - start) < timeout:
+            try:
+                installed_repo_list = self.tool_shed_client.get_repositories()
+                for installing_repo in installed_repo_list:
+                    if (repository['name'] == installing_repo['name']) and (installing_repo['owner'] == repository['owner']):
+                        if installing_repo['status'] == 'Installed':
+                            return True
+                        elif installing_repo['status'] == 'Error':
+                            return False
+                        else:
+                            time.sleep(10)
+            except ConnectionError as e:
+                if log:
+                    log.warning('Failed to get repositories list: %s', str(e))
+                time.sleep(10)
+        return False
+
 
 def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info):
     repo = dict()

@@ -165,6 +165,30 @@ def the_same_repository(repo_1_info, repo_2_info):
         return True
     return False
 
+def _flatten_repo_info(repositories):
+    """
+    Flatten the dict containing info about what tools to install.
+    The tool definition YAML file allows multiple revisions to be listed for
+    the same tool. To enable simple, iterative processing of the info in this
+    script, flatten the `tools_info` list to include one entry per tool revision.
+    :type repositories: list of dicts
+    :param repositories: Each dict in this list should contain info about a tool.
+    :rtype: list of dicts
+    :return: Return a list of dicts that correspond to the input argument such
+             that if an input element contained `revisions` key with multiple
+             values, those will be returned as separate list items.
+    """
+    flattened_list = []
+    for repo_info in repositories:
+        revisions = repo_info.get('revisions', [])
+        if 'revisions' in repo_info:
+            del repo_info['revisions']
+            for revision in revisions:
+                repo_info['changeset_revision'] = revision
+                flattened_list.append(repo_info)
+        else:  # Revision was not defined at all
+            flattened_list.append(repo_info)
+    return flattened_list
 
 def get_tool_list_from_args(args):
     """Helper method to get a tool list """

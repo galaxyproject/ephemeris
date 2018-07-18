@@ -38,18 +38,17 @@ from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 from .shed_tools_args import parser
 from . import get_galaxy_connection
 import datetime as dt
-from collections import namedtuple
+from bioblend.galaxy.toolshed import ToolShedClient
+from bioblend.toolshed import ToolShedInstance
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
 
     def __init__(self,
-                 galaxy_instance,
-                 log):
+                 galaxy_instance):
         """Initialize a new tool manager"""
         self.gi = galaxy_instance
-        self.log = log
-        self.default_toolshed = default_toolshed
+        self.tool_shed_client = ToolShedClient(self.gi)
 
     @property
     def installed_tools(self):
@@ -67,87 +66,41 @@ class InstallToolManager(object):
         _flatten_repo_info(self.installed_tools)
 
 
-
-
-    def log_repository_install_error(self, repository, start, msg, errored_repositories):
-        """
-        Log failed tool installations
-        """
-        end = dt.datetime.now()
-        self.log.error(
-            "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
-            str(end - start),
-            repository.get('name', ""),
-            repository.get('owner', ""),
-            repository.get('changeset_revision', ""),
-            msg)
-        errored_repositories.append({
-            'name': repository.get('name', ""),
-            'owner': repository.get('owner', ""),
-            'revision': repository.get('changeset_revision', ""),
-            'error': msg})
-
-    def log_repository_install_success(self, repository, start, installed_repositories):
-        """
-        Log successful repository installation.
-        Tools that finish in error still count as successful installs currently.
-        """
-        end = dt.datetime.now()
-        installed_repositories.append({
-            'name': repository['name'],
-            'owner': repository['owner'],
-            'revision': repository['changeset_revision']})
-        self.log.debug(
-            "\trepository %s installed successfully (in %s) at revision %s" % (
-                repository['name'],
-                str(end - start),
-                repository['changeset_revision']
-            )
-        )
-
-    def install_repository_revision(self, repository, tool_shed_client):
-        """
-        Adjusts repository dictionary to bioblend signature and installs single repository
-        """
-        repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
-        response = tool_shed_client.install_repository_revision(**repository)
-        if isinstance(response, dict) and response.get('status', None) == 'ok':
-            # This rare case happens if a repository is already installed but
-            # was not recognised as such in the above check. In such a
-            # case the return value looks like this:
-            # {u'status': u'ok', u'message': u'No repositories were
-            #  installed, possibly because the selected repository has
-            #  already been installed.'}
-            self.log.debug("\tRepository {0} is already installed.".format(repository['name']))
-        return response
-
-    def filter_installed_repos(self,tools):
+    def filter_installed_repos(self, repos):
         """This filters a list of tools"""
-        not_installed_tools = []
-        already_installed_tools = []
-        for tool in iter(tools):
+        not_installed_repos = []
+        already_installed_repos = []
+        for repo in iter(repos):
             for installed_tool in iter(self.installed_tools):
-                if the_same_repository(installed_tool, tool):
-                    already_installed_tools.append(tool)
+                if the_same_repository(installed_tool, repo):
+                    already_installed_repos.append(repo)
                 else:
-                    not_installed_tools.append(tool)
-        return not_installed_tools, already_installed_tools
+                    not_installed_repos.append(repo)
+        return not_installed_repos, already_installed_repos
 
 
-    def install_tools(self, tools,
-                 default_toolshed='https://toolshed.g2.bx.psu.edu/'):
+    def install_tools(self,
+                      tools,
+                      log = None,
+                      force_latest_revision=False,
+                      default_toolshed='https://toolshed.g2.bx.psu.edu/',
+                      default_install_tool_dependencies=False,
+                      default_install_resolver_dependencies=True,
+                      default_install_repository_dependencies=True):
         """Install a list of tools on the current galaxy"""
         installation_start = dt.datetime.now()
         counter = 0
         total_num_repositories = len(tools)
         flattened_tool_list = _flatten_repo_info(tools)
+
         not_installed_tools, already_installed_tools = self.filter_installed_tools(flattened_tool_list)
 
 
         for tool in not_installed_tools:
             counter += 1
             start = dt.datetime.now()
-            self.log.debug(
+            if log:
+                log.debug(
                 '(%s/%s) Installing repository %s from %s to section "%s" at revision %s (TRT: %s)' % (
                     counter, total_num_repositories,
                     tool['name'],
@@ -155,8 +108,8 @@ class InstallToolManager(object):
                     tool['tool_panel_section_id'] or tool['tool_panel_section_label'] or "",
                     tool['changeset_revision'],
                     dt.datetime.now() - installation_start
+                    )
                 )
-            )
 
     def update_tools(self, tools=None):
         if tools is None:
@@ -171,6 +124,24 @@ class InstallToolManager(object):
         else:
             to_be_tested_tools = tools
         # Insert code here to test the tools
+
+    def install_repository_revision(self, repository, log=None):
+        """
+        Adjusts repository dictionary to bioblend signature and installs single repository
+        """
+        repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
+        response = self.tool_shed_client.install_repository_revision(**repository)
+        if isinstance(response, dict) and response.get('status', None) == 'ok':
+            # This rare case happens if a repository is already installed but
+            # was not recognised as such in the above check. In such a
+            # case the return value looks like this:
+            # {u'status': u'ok', u'message': u'No repositories were
+            #  installed, possibly because the selected repository has
+            #  already been installed.'}
+            if log:
+                log.debug("\tRepository {0} is already installed.".format(repository['name']))
+        return response
+
 
 def format_tool_shed_url(tool_shed_url):
     formatted_tool_shed_url = tool_shed_url
@@ -214,7 +185,7 @@ def _flatten_repo_info(repositories):
     for repo_info in iter(repositories):
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
-            del repo_info['revisions']
+            repo_info.pop('revisions', None) # Set default to avoid key error
             for revision in revisions:
                 repo_info['changeset_revision'] = revision
                 flattened_list.append(repo_info)
@@ -228,20 +199,57 @@ def get_tool_list_from_args(args):
     tools = []
     return tools
 
+def log_repository_install_error(self, repository, start, msg, errored_repositories):
+    """
+    Log failed tool installations
+    """
+    end = dt.datetime.now()
+    self.log.error(
+        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
+        str(end - start),
+        repository.get('name', ""),
+        repository.get('owner', ""),
+        repository.get('changeset_revision', ""),
+        msg)
+    errored_repositories.append({
+        'name': repository.get('name', ""),
+        'owner': repository.get('owner', ""),
+        'revision': repository.get('changeset_revision', ""),
+        'error': msg})
+
+def log_repository_install_success(self, repository, start, installed_repositories):
+    """
+    Log successful repository installation.
+    Tools that finish in error still count as successful installs currently.
+    """
+    end = dt.datetime.now()
+    installed_repositories.append({
+        'name': repository['name'],
+        'owner': repository['owner'],
+        'revision': repository['changeset_revision']})
+    self.log.debug(
+        "\trepository %s installed successfully (in %s) at revision %s" % (
+            repository['name'],
+            str(end - start),
+            repository['changeset_revision']
+        )
+    )
+
+
 
 def main():
     disable_external_library_logging()
     args = parser().parse_args()
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
-    install_tool_manager = InstallToolManager(gi, log=log)
+    install_tool_manager = InstallToolManager(gi)
     tools = get_tool_list_from_args(args)
     if args.action == "update":
         install_tool_manager.update_tools(tools)
     elif args.action == "test":
         install_tool_manager.install_tools(tools)
     elif args.action == "install":
-        install_tool_manager.test_tools(tools)
+        install_tool_manager.test_tools(tools,log=log)
     else:
         raise Exception("This point in the code should not be reached. Please contact the developers.")
 

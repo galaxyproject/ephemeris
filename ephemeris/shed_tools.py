@@ -37,7 +37,7 @@ from ephemeris_log import setup_global_logger, disable_external_library_logging
 from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 from .shed_tools_args import parser
 from . import get_galaxy_connection
-
+import datetime as dt
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
@@ -55,6 +55,42 @@ class InstallToolManager(object):
             skip_tool_panel_section_name=False,
             get_data_managers=True
         ).tool_list.get("tools")
+
+    def log_repository_install_error(self, repository, start, msg, errored_repositories):
+        """
+        Log failed tool installations
+        """
+        end = dt.datetime.now()
+        self.log.error(
+            "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
+            str(end - start),
+            repository.get('name', ""),
+            repository.get('owner', ""),
+            repository.get('changeset_revision', ""),
+            msg)
+        errored_repositories.append({
+            'name': repository.get('name', ""),
+            'owner': repository.get('owner', ""),
+            'revision': repository.get('changeset_revision', ""),
+            'error': msg})
+
+    def log_repository_install_success(self, repository, start, installed_repositories):
+        """
+        Log successful repository installation.
+        Tools that finish in error still count as successful installs currently.
+        """
+        end = dt.datetime.now()
+        installed_repositories.append({
+            'name': repository['name'],
+            'owner': repository['owner'],
+            'revision': repository['changeset_revision']})
+        self.log.debug(
+            "\trepository %s installed successfully (in %s) at revision %s" % (
+                repository['name'],
+                str(end - start),
+                repository['changeset_revision']
+            )
+        )
 
     def install_tools(self, tools):
         """Install a list of tools on the current galaxy"""

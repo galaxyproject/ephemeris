@@ -59,15 +59,15 @@ class GiToToolYaml:
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False,
-                 get_data_managers=False):
+                 get_data_managers=False,
+                 flatten_revisions=True):
         self.gi = gi
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
-        self.repository_list = self.merge_tool_changeset_revisions()
-        self.filter_section_name_or_id_or_changeset()
-        self.tool_list = {"tools": self.repository_list}
+        self.flatten_revisions=flatten_revisions
+
 
     @property
     def toolbox(self):
@@ -85,7 +85,7 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tools()
 
-    @propery
+    @property
     def repository_list(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
@@ -106,6 +106,12 @@ class GiToToolYaml:
                     repositories.append(get_repo_from_tool(tool))
         return repositories
 
+    @property
+    def tool_list(self):
+        repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list)
+        if self.flatten_revisions:
+            repo_list = self.merge_tool_changeset_revisions(repo_list)
+        {"tools": repo_list}
 
     def merge_tool_changeset_revisions(self):
         """
@@ -134,17 +140,17 @@ class GiToToolYaml:
             )
         return new_repository_list
 
-    def filter_section_name_or_id_or_changeset(self):
-        repo_list = []
-        for repo in self.repository_list:
+    def filter_section_name_or_id_or_changeset(self, repository_list):
+        new_repo_list = []
+        for repo in repository_list:
             if self.skip_tool_panel_section_name:
                 del repo['tool_panel_section_label']
             if not self.include_tool_panel_section_id:
                 del repo['tool_panel_section_id']
             if self.skip_changeset_revision:
                 del repo['revisions']
-            repo_list.append(repo)
-        self.repository_list = repo_list
+            new_repo_list.append(repo)
+        return new_repo_list
 
     def write_to_yaml(self, output_file):
         with open(output_file, "w") as output:

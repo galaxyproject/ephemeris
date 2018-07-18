@@ -35,12 +35,17 @@ Galaxy's configuration directory and set Galaxy configuration option
 """
 from ephemeris_log import setup_global_logger, disable_external_library_logging
 from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
+from .shed_tools_args import parser
+from . import get_galaxy_connection
+
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
-    def __init__(self,galaxy_instance):
+
+    def __init__(self, galaxy_instance, log):
         """Initialize a new tool manager"""
         self.gi = galaxy_instance
+        self.log = log
 
     @property
     def installed_tools(self):
@@ -51,51 +56,47 @@ class InstallToolManager(object):
             get_data_managers=True
         ).tool_list.get("tools")
 
-    def install_tools(self,tools, log):
+    def install_tools(self, tools):
         """Install a list of tools on the current galaxy"""
         # Insert code here to install tools
 
-    def update_tools(self,log, tools=None):
+    def update_tools(self, tools=None):
         if tools is None:
-            to_be_updated_tools=self.installed_tools
+            to_be_updated_tools = self.installed_tools
         else:
-            to_be_updated_tools= tools
+            to_be_updated_tools = tools
         # Insert code here to update tools
 
-    def test_tools(self, log, tools=None):
+    def test_tools(self, tools=None):
         if tools is None:
-            to_be_tested_tools=self.installed_tools
+            to_be_tested_tools = self.installed_tools
         else:
-            to_be_tested_tools= tools
+            to_be_tested_tools = tools
         # Insert code here to test the tools
 
 
-def main():
-    global log
-    disable_external_library_logging()
-    options = _parse_cli_options()
-    log = setup_global_logger(name=__name__, log_file=options.log_file)
-    install_tool_manager = None
-    if options.tool_list_file or options.tool_yaml or \
-            options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
-        if options.action == "update":
-            sys.exit("update command can not be used together with tools to be installed.")
-        install_tool_manager = get_install_repository_manager(options)
-        if options.action == "test":
-            install_tool_manager.test_repositories()
-        else:
-            install_tool_manager.install_repositories()
-    elif options.update_tools:
-        install_tool_manager = get_install_repository_manager(options)
-        install_tool_manager.install_repositories()
-    else:
-        sys.exit("Must provide a tool list file, individual tools info , a list of data manager tasks or issue the update command. "
-                 "Look at usage.")
+def get_tool_list_from_args(args):
+    """Helper method to get a tool list """
+    # PLACEHOLDER
+    tools = []
+    return tools
 
-    if install_tool_manager.errored_repositories:
-        sys.exit(EXIT_CODE_INSTALL_ERRORS)
-    elif install_tool_manager.test_exceptions:
-        sys.exit(EXIT_CODE_TOOL_TEST_ERRORS)
+
+def main():
+    disable_external_library_logging()
+    args = parser().parse_args()
+    log = setup_global_logger(name=__name__, log_file=args.log_file)
+    gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
+    install_tool_manager = InstallToolManager(gi, log=log)
+    tools = get_tool_list_from_args(args)
+    if args.action == "update":
+        install_tool_manager.update_tools(tools)
+    elif args.action == "test":
+        install_tool_manager.install_tools(tools)
+    elif args.action == "install":
+        install_tool_manager.test_tools(tools)
+    else:
+        raise Exception("This point in the code should not be reached. Please contact the developers.")
 
 
 if __name__ == "__main__":

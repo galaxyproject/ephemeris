@@ -151,7 +151,7 @@ class GiToToolYaml:
 
 
 def _parser():
-    '''Creates the parser object.'''
+    """Creates the parser object."""
     parent = get_common_args(login_required=True)
     parser = ArgumentParser(parents=[parent],
                             formatter_class=ArgumentDefaultsHelpFormatter)

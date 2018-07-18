@@ -3,7 +3,7 @@
 from argparse import ArgumentParser
 from .common_parser import get_common_args
 
-def _parser():
+def parser():
     """construct the parser object"""
     common_arguments = get_common_args(log_file=True)
     parser = ArgumentParser()

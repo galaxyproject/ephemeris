@@ -53,7 +53,8 @@ class InstallToolManager(object):
         return GiToToolYaml(
             gi=self.gi,
             skip_tool_panel_section_name=False,
-            get_data_managers=True
+            get_data_managers=True,
+            flatten_revisions=False
         ).tool_list.get("tools")
 
 
@@ -117,7 +118,6 @@ class InstallToolManager(object):
         flattened_tool_list = []  # TODO: Implement/copy method to flatten tool list for revisions
 
         #TODO: Implement code to filter the tool list for already installed tools
-        #TODO: Implement code in get_tool_list to get the repository list without the squashed revisions
         #TODO: Prevent code duplication all methods concerning tool lists should be in the get-tool-ist file
 
         for tool in flattened_tool_list:
@@ -147,6 +147,23 @@ class InstallToolManager(object):
         else:
             to_be_tested_tools = tools
         # Insert code here to test the tools
+
+def the_same_repository(repo_1_info, repo_2_info):
+    """
+    Given two dicts containing info about tools, determine if they are the same
+    tool.
+    Each of the dicts must have the following keys: `name`, `owner`, and
+    (either `tool_shed` or `tool_shed_url`).
+    """
+    t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
+    t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
+
+    if repo_1_info.get('name') == repo_2_info.get('name') and \
+       repo_1_info.get('owner') == repo_2_info.get('owner') and \
+        repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision') and \
+       (t1ts in t2ts or t2ts in t1ts):
+        return True
+    return False
 
 
 def get_tool_list_from_args(args):

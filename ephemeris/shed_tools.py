@@ -50,12 +50,13 @@ class InstallToolManager(object):
     @property
     def installed_tools(self):
         """Get currently installed tools"""
-        return GiToToolYaml(
+        tool_list = GiToToolYaml(
             gi=self.gi,
             skip_tool_panel_section_name=False,
             get_data_managers=True,
             flatten_revisions=False
         ).tool_list.get("tools")
+        return _flatten_repo_info(tool_list)
 
 
     def log_repository_install_error(self, repository, start, msg, errored_repositories):
@@ -110,15 +111,24 @@ class InstallToolManager(object):
             self.log.debug("\tRepository {0} is already installed.".format(repository['name']))
         return response
 
+    def filter_installed_tools(self,tools):
+        not_installed_tools = []
+        for tool in iter(tools):
+            for installed_tool in iter(self.installed_tools):
+                if not the_same_repository(installed_tool, tool):
+                    not_installed_tools.append(tool)
+
+
     def install_tools(self, tools):
         """Install a list of tools on the current galaxy"""
         installation_start = dt.datetime.now()
         counter = 0
         total_num_repositories = len(tools)
-        flattened_tool_list = []  # TODO: Implement/copy method to flatten tool list for revisions
+        flattened_tool_list = _flatten_repo_info(tools)
+
+
 
         #TODO: Implement code to filter the tool list for already installed tools
-        #TODO: Prevent code duplication all methods concerning tool lists should be in the get-tool-ist file
 
         for tool in flattened_tool_list:
             counter += 1
@@ -155,14 +165,14 @@ def the_same_repository(repo_1_info, repo_2_info):
     Each of the dicts must have the following keys: `name`, `owner`, and
     (either `tool_shed` or `tool_shed_url`).
     """
-    t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
-    t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
-
-    if repo_1_info.get('name') == repo_2_info.get('name') and \
-       repo_1_info.get('owner') == repo_2_info.get('owner') and \
-        repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision') and \
-       (t1ts in t2ts or t2ts in t1ts):
-        return True
+    # Sort from most unique to least unique for fast comparison.
+    if repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
+        if repo_1_info.get('name') == repo_2_info.get('name'):
+            if repo_1_info.get('owner') == repo_2_info.get('owner'):
+                t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
+                t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
+                if (t1ts in t2ts or t2ts in t1ts):
+                    return True
     return False
 
 def _flatten_repo_info(repositories):
@@ -180,8 +190,8 @@ def _flatten_repo_info(repositories):
     """
     flattened_list = []
     for repo_info in repositories:
-        revisions = repo_info.get('revisions', [])
         if 'revisions' in repo_info:
+            revisions = repo_info.get('revisions', [])
             del repo_info['revisions']
             for revision in revisions:
                 repo_info['changeset_revision'] = revision

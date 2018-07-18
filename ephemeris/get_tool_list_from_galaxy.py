@@ -65,7 +65,6 @@ class GiToToolYaml:
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
-        self.repository_list = self.get_repositories()
         self.repository_list = self.merge_tool_changeset_revisions()
         self.filter_section_name_or_id_or_changeset()
         self.tool_list = {"tools": self.repository_list}
@@ -86,7 +85,8 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tools()
 
-    def get_repositories(self):
+    @propery
+    def repository_list(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
         Parse these accordingly to get a list of repositories.
@@ -105,6 +105,7 @@ class GiToToolYaml:
                 if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(get_repo_from_tool(tool))
         return repositories
+
 
     def merge_tool_changeset_revisions(self):
         """

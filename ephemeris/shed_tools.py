@@ -56,6 +56,7 @@ class InstallToolManager(object):
             get_data_managers=True
         ).tool_list.get("tools")
 
+
     def log_repository_install_error(self, repository, start, msg, errored_repositories):
         """
         Log failed tool installations
@@ -92,9 +93,46 @@ class InstallToolManager(object):
             )
         )
 
+    def install_repository_revision(self, repository, tool_shed_client):
+        """
+        Adjusts repository dictionary to bioblend signature and installs single repository
+        """
+        repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
+        response = tool_shed_client.install_repository_revision(**repository)
+        if isinstance(response, dict) and response.get('status', None) == 'ok':
+            # This rare case happens if a repository is already installed but
+            # was not recognised as such in the above check. In such a
+            # case the return value looks like this:
+            # {u'status': u'ok', u'message': u'No repositories were
+            #  installed, possibly because the selected repository has
+            #  already been installed.'}
+            self.log.debug("\tRepository {0} is already installed.".format(repository['name']))
+        return response
+
     def install_tools(self, tools):
         """Install a list of tools on the current galaxy"""
-        # Insert code here to install tools
+        installation_start = dt.datetime.now()
+        counter = 0
+        total_num_repositories = len(tools)
+        flattened_tool_list = []  # TODO: Implement/copy method to flatten tool list for revisions
+
+        #TODO: Implement code to filter the tool list for already installed tools
+        #TODO: Implement code in get_tool_list to get the repository list without the squashed revisions
+        #TODO: Prevent code duplication all methods concerning tool lists should be in the get-tool-ist file
+
+        for tool in flattened_tool_list:
+            counter += 1
+            start = dt.datetime.now()
+            self.log.debug(
+                '(%s/%s) Installing repository %s from %s to section "%s" at revision %s (TRT: %s)' % (
+                    counter, total_num_repositories,
+                    tool['name'],
+                    tool['owner'],
+                    tool['tool_panel_section_id'] or tool['tool_panel_section_label'] or "",
+                    tool['changeset_revision'],
+                    dt.datetime.now() - installation_start
+                )
+            )
 
     def update_tools(self, tools=None):
         if tools is None:

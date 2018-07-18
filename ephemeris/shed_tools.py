@@ -33,7 +33,7 @@ running this script to install the tools, make sure to place such file into
 Galaxy's configuration directory and set Galaxy configuration option
 `tool_config_file` to include it.
 """
-
+from ephemeris_log import setup_global_logger, disable_external_library_logging
 from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 
 class InstallToolManager(object):
@@ -68,3 +68,35 @@ class InstallToolManager(object):
         else:
             to_be_tested_tools= tools
         # Insert code here to test the tools
+
+
+def main():
+    global log
+    disable_external_library_logging()
+    options = _parse_cli_options()
+    log = setup_global_logger(name=__name__, log_file=options.log_file)
+    install_tool_manager = None
+    if options.tool_list_file or options.tool_yaml or \
+            options.name and options.owner and (options.tool_panel_section_id or options.tool_panel_section_label):
+        if options.action == "update":
+            sys.exit("update command can not be used together with tools to be installed.")
+        install_tool_manager = get_install_repository_manager(options)
+        if options.action == "test":
+            install_tool_manager.test_repositories()
+        else:
+            install_tool_manager.install_repositories()
+    elif options.update_tools:
+        install_tool_manager = get_install_repository_manager(options)
+        install_tool_manager.install_repositories()
+    else:
+        sys.exit("Must provide a tool list file, individual tools info , a list of data manager tasks or issue the update command. "
+                 "Look at usage.")
+
+    if install_tool_manager.errored_repositories:
+        sys.exit(EXIT_CODE_INSTALL_ERRORS)
+    elif install_tool_manager.test_exceptions:
+        sys.exit(EXIT_CODE_TOOL_TEST_ERRORS)
+
+
+if __name__ == "__main__":
+    main()

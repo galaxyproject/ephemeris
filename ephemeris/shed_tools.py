@@ -388,7 +388,7 @@ def complete_repo_information(tool, default_toolshed_url, require_tool_panel_inf
         raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
             repo.get('name')))
     repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
-    repo['changeset_revision'] = get_changeset_revisions(repo, force_latest_revision)
+    repo = get_changeset_revisions(repo, force_latest_revision)
     repo['install_repository_dependencies'] = tool.get('install_repository_dependencies',
                                                        default_install_repository_dependencies)
     repo['install_resolver_dependencies'] = tool.get('install_resolver_dependencies',

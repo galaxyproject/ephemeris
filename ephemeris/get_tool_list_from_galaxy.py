@@ -106,35 +106,8 @@ class GiToToolYaml:
     def tool_list(self):
         repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list())
         if self.flatten_revisions:
-            repo_list = self.merge_tool_changeset_revisions(repo_list)
+            repo_list = merge_tool_changeset_revisions(repo_list)
         return {"tools": repo_list}
-
-    def merge_tool_changeset_revisions(self, repository_list):
-        """
-        Each installed changeset revision of a tool is listed individually.
-        Merge revisions of the same tool into a list.
-        """
-        repositories = {}
-        repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
-        for tool in repository_list:
-            repo_key = repo_key_template.format(**tool)
-            if repo_key in repositories:
-                repositories[repo_key].extend(tool['revisions'])
-            else:
-                repositories[repo_key] = tool['revisions']
-        new_repository_list = []
-        for repo_key, changeset_revisions in repositories.items():
-            changeset_revisions = list(set(changeset_revisions))
-            tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
-            new_repository_list.append(
-                {'tool_shed_url': tool_shed_url,
-                 'name': name,
-                 'owner': owner,
-                 'tool_panel_section_id': tool_panel_section_id,
-                 'tool_panel_section_label': tool_panel_section_label,
-                 'revisions': changeset_revisions}
-            )
-        return new_repository_list
 
     def filter_section_name_or_id_or_changeset(self, repository_list):
         new_repo_list = []
@@ -151,6 +124,34 @@ class GiToToolYaml:
     def write_to_yaml(self, output_file):
         with open(output_file, "w") as output:
             output.write(yaml.safe_dump(self.tool_list, default_flow_style=False))
+
+
+def merge_tool_changeset_revisions(repository_list):
+    """
+    Each installed changeset revision of a tool is listed individually.
+    Merge revisions of the same tool into a list.
+    """
+    repositories = {}
+    repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
+    for tool in repository_list:
+        repo_key = repo_key_template.format(**tool)
+        if repo_key in repositories:
+            repositories[repo_key].extend(tool['revisions'])
+        else:
+            repositories[repo_key] = tool['revisions']
+    new_repository_list = []
+    for repo_key, changeset_revisions in repositories.items():
+        changeset_revisions = list(set(changeset_revisions))
+        tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
+        new_repository_list.append(
+            {'tool_shed_url': tool_shed_url,
+             'name': name,
+             'owner': owner,
+             'tool_panel_section_id': tool_panel_section_id,
+             'tool_panel_section_label': tool_panel_section_label,
+             'revisions': changeset_revisions}
+        )
+    return new_repository_list
 
 
 def _parser():

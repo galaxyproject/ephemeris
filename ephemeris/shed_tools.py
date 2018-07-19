@@ -533,6 +533,8 @@ def main():
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_tool_manager = InstallToolManager(gi)
 
+    tool_list = {}
+    tools = []
     ### Get which tools need to be installed
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
@@ -540,22 +542,24 @@ def main():
     elif args.tool_yaml:
         tools = [yaml.safe_load(args.tool_yaml)]
     elif args.name and args.owner:
-        tools =[{
-            "owner": args.owner,
-            "name": args.name,
-            "tool_panel_section_id": args.tool_panel_section_id,
-            "tool_panel_section_label": args.tool_panel_section_label,
-            "tool_shed_url": args.toolshed_url,
-            "revisions": args.revisions
-        }]
-    else:
-        tools = []
+        tools =[dict(
+            owner= args.owner,
+            name= args.name,
+            tool_panel_section_id= args.tool_panel_section_id,
+            tool_panel_section_label= args.tool_panel_section_label,
+            tool_shed_url= args.toolshed_url,
+            revisions = args.revisions
+        )]
 
-
+    install_tool_dependencies = tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies
+    install_repository_dependencies = tool_list.get("install_repository_depencies") or not args.skip_tool_dependencies
+    install_resolver_dependencies = tool_list.get("install_resolver_dependencies") or args.install_resolver_dependencies
     if args.action == "update":
-        install_tool_manager.update_tools(tools)
+        install_tool_manager.update_tools(
+            tools = tools,
+        log = log)
     elif args.action == "test":
-        install_tool_manager.test_tools(tools)
+        install_tool_manager.test_tools(tools, log=log)
     elif args.action == "install":
         install_tool_manager.install_tools(tools, log=log)
     else:

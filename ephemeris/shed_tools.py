@@ -33,21 +33,22 @@ running this script to install the tools, make sure to place such file into
 Galaxy's configuration directory and set Galaxy configuration option
 `tool_config_file` to include it.
 """
-from ephemeris_log import setup_global_logger, disable_external_library_logging
-from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
-from .shed_tools_args import parser
-from . import get_galaxy_connection
 import datetime as dt
 import json
 import re
-from bioblend.galaxy.toolshed import ToolShedClient
-from bioblend.toolshed import ToolShedInstance
-from bioblend.galaxy.client import ConnectionError
 import time
 from collections import namedtuple
-from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
-from . import load_yaml_file
+
 import yaml
+from bioblend.galaxy.client import ConnectionError
+from bioblend.galaxy.toolshed import ToolShedClient
+from bioblend.toolshed import ToolShedInstance
+from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
+
+from . import get_galaxy_connection, load_yaml_file
+from .ephemeris_log import disable_external_library_logging, setup_global_logger
+from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
+from .shed_tools_args import parser
 
 
 class InstallToolManager(object):
@@ -359,7 +360,7 @@ class InstallToolManager(object):
                 installed_repo_list = self.tool_shed_client.get_repositories()
                 for installing_repo in installed_repo_list:
                     if (repository['name'] == installing_repo['name']) and (
-                        installing_repo['owner'] == repository['owner']):
+                            installing_repo['owner'] == repository['owner']):
                         if installing_repo['status'] == 'Installed':
                             return True
                         elif installing_repo['status'] == 'Error':
@@ -383,7 +384,7 @@ def complete_repo_information(tool, default_toolshed_url, require_tool_panel_inf
     repo['tool_panel_section_id'] = tool.get('tool_panel_section_id')
     repo['tool_panel_section_label'] = tool.get('tool_panel_section_label')
     if require_tool_panel_info and repo['tool_panel_section_id'] is None and repo[
-        'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
+            'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
         raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
             repo.get('name')))
     repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
@@ -457,7 +458,7 @@ def log_repository_install_success(repository, start, log):
 def log_repository_install_skip(repository, counter, total_num_repositories, log):
     log.debug(
         "({0}/{1}) repository {2} already installed at revision {3}. Skipping."
-            .format(
+        .format(
             counter,
             total_num_repositories,
             repository['name'],
@@ -535,7 +536,8 @@ def main():
 
     tool_list = {}
     tools = []
-    ### Get which tools need to be installed
+
+    # Get which tools need to be installed
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
         tools = tool_list['tools']
@@ -550,6 +552,8 @@ def main():
             tool_shed_url=args.toolshed_url,
             revisions=args.revisions
         )]
+
+    # Get some of the other installation arguments
     kwargs = dict(
         install_tool_dependencies=tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies,
         install_repository_dependencies=tool_list.get(
@@ -558,6 +562,8 @@ def main():
             "install_resolver_dependencies") or args.install_resolver_dependencies
     )
 
+    # Start installing/updating and store the results in install_results.
+    # Or do testing if the action is `test`
     install_results = None
     if args.action == "update":
         install_results = install_tool_manager.update_tools(
@@ -580,6 +586,7 @@ def main():
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
 
+    # Run tests on the install results if required.
     if install_results and args.test or args.test_existing:
         to_be_tested_tools = install_results.installed_repositories
         if args.test_existing:

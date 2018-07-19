@@ -1,6 +1,7 @@
 """This file contains the parser for shed_tools"""
 
 from argparse import ArgumentParser
+
 from .common_parser import get_common_args
 
 
@@ -33,7 +34,7 @@ def parser():
         test_existing=False,
     )
 
-    ## SUBPARSERS
+    # SUBPARSERS
     install_command_parser = subparsers.add_parser(
         "install",
         help="This installs tools in Galaxy from the Tool Shed."
@@ -52,7 +53,7 @@ def parser():
              "Use shed-tools test --help for more information",
         parents=[common_arguments])
 
-    ## SUBPARSER DEFAULTS
+    # SUBPARSER DEFAULTS
     update_command_parser.set_defaults(
         action="update"
     )
@@ -64,7 +65,7 @@ def parser():
         action="install"
     )
 
-    ## COMMON OPTIONS
+    # COMMON OPTIONS
     shed_parser.add_argument(
         "-t", "--toolsfile",
         dest="tool_list_file",
@@ -97,7 +98,7 @@ def parser():
              "This is applicable only if the tool info is "
              "provided as an option vs. in the tools file.")
 
-    ## OPTIONS COMMON FOR UPDATE AND INSTALL
+    # OPTIONS COMMON FOR UPDATE AND INSTALL
 
     for command_parser in [update_command_parser, install_command_parser]:
         command_parser.add_argument(
@@ -149,7 +150,7 @@ def parser():
                  "user will be created if needed."
         )
 
-    ## OPTIONS UNIQUE TO INSTALL
+    # OPTIONS UNIQUE TO INSTALL
 
     install_command_parser.add_argument(
         "--section",
@@ -171,7 +172,7 @@ def parser():
         dest="force_latest_revision",
         help="Will override the revisions in the tools file and always install the latest revision.")
 
-    ## OPTIONS UNIQUE TO TEST
+    # OPTIONS UNIQUE TO TEST
     # Same test_json as above but language modified for test instead of install/update.
     test_command_parser.add_argument(
         "--test_json",

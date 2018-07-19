@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Tool to extract a tool list from galaxy."""
 
-
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
 from distutils.version import StrictVersion
@@ -66,8 +65,7 @@ class GiToToolYaml:
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
-        self.flatten_revisions=flatten_revisions
-
+        self.flatten_revisions = flatten_revisions
 
     @property
     def toolbox(self):

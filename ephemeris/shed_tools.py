@@ -574,7 +574,7 @@ def main():
         install_results = install_tool_manager.install_tools(
             tools,
             log=log,
-            force_latest_revision=args.latest,
+            force_latest_revision=args.force_latest_revision,
             **kwargs)
     elif args.action == "test":
         install_tool_manager.test_tools(

@@ -54,7 +54,6 @@ class InstallToolManager(object):
         self.gi = galaxy_instance
         self.tool_shed_client = ToolShedClient(self.gi)
 
-    @property
     def installed_tools(self):
         """Get currently installed tools"""
         return GiToToolYaml(
@@ -64,22 +63,31 @@ class InstallToolManager(object):
             flatten_revisions=False  # We want all the revisions to be there
         ).tool_list.get("tools")
 
-    @property
-    def installed_repos(self):
-        return _flatten_repo_info(self.installed_tools)
-
-    def filter_installed_repos(self, repos):
+    def filter_installed_repos(self, repos, check_revision=True):
         """This filters a list of tools"""
         not_installed_repos = []
         already_installed_repos = []
+        if check_revision:
+            # If we want to check if revisions are equal, flatten the list,
+            # so each tool - revision combination has its own entry
+            installed_repos = _flatten_repo_info(self.installed_tools())
+        else:
+            # If we do not care about revision equality, do not do the flatten
+            # Action to limit the number of comparisons.
+            installed_repos = self.installed_tools()
+
         for repo in repos:
-            for installed_tool in self.installed_repos:
-                if the_same_repository(installed_tool, repo):
+            for i, installed_repo in enumerate(installed_repos):
+                if the_same_repository(installed_repo, repo, check_revision):
                     already_installed_repos.append(repo)
-                else:
-                    not_installed_repos.append(repo)
+                    # installed_repos.pop(i) # This limits the search space for the next tool. Nice isn't it?
+                    # Unless of course the repo is defined multiple times in the list. Then this breaks the algorithm
+                    # TODO: Find a speedier algorithm.
+                    break
+            else:  # This executes when the for loop completes and no match has been found.
+                not_installed_repos.append(repo)
         FilterResults = namedtuple("FilterResults", ["not_installed_repos", "already_installed_repos"])
-        return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos = not_installed_repos)
+        return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos=not_installed_repos)
 
     def install_tools(self,
                       tools,
@@ -208,12 +216,17 @@ class InstallToolManager(object):
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)
 
-    def update_tools(self, tools=None):
-        if tools is None:
-            to_be_updated_tools = self.installed_tools
+    def update_tools(self, tools=[], log=None, **kwargs):
+        if not tools:  # Tools None or empty list
+            tools = self.installed_tools
         else:
-            to_be_updated_tools = tools
-        # Insert code here to update tools
+            not_installed_tools, already_installed_tools = self.filter_installed_repos(tools, check_revision=False)
+            if not_installed_tools:
+                if log:
+                    log.warning("The following tools are not installed and will not be upgraded: {0}".format(
+                        not_installed_tools))
+            tools = already_installed_tools
+        return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
 
     def test_tools(self, tools=None):
         if tools is None:
@@ -275,7 +288,7 @@ def complete_repo_information(tool, default_toolshed_url, require_tool_panel_inf
     repo['tool_panel_section_id'] = tool.get('tool_panel_section_id')
     repo['tool_panel_section_label'] = tool.get('tool_panel_section_label')
     if require_tool_panel_info and repo['tool_panel_section_id'] is None and repo[
-            'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
+        'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
         raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
             repo.get('name')))
     repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
@@ -349,7 +362,7 @@ def log_repository_install_success(repository, start, log):
 def log_repository_install_skip(repository, counter, total_num_repositories, log):
     log.debug(
         "({0}/{1}) repository {2} already installed at revision {3}. Skipping."
-        .format(
+            .format(
             counter,
             total_num_repositories,
             repository['name'],
@@ -371,15 +384,15 @@ def log_repository_install_start(repository, counter, total_num_repositories, in
     )
 
 
-def the_same_repository(repo_1_info, repo_2_info):
+def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
     """
     Given two dicts containing info about tools, determine if they are the same
     tool.
-    Each of the dicts must have the following keys: `name`, `owner`, and
+    Each of the dicts must have the following keys: `changeset_revisions`( if check revisions is true), `name`, `owner`, and
     (either `tool_shed` or `tool_shed_url`).
     """
     # Sort from most unique to least unique for fast comparison.
-    if repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
+    if not check_revision or repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
         if repo_1_info.get('name') == repo_2_info.get('name'):
             if repo_1_info.get('owner') == repo_2_info.get('owner'):
                 t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
@@ -407,7 +420,7 @@ def _flatten_repo_info(repositories):
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
             repo_info.pop('revisions', None)  # Set default to avoid key error  when removing revisions
-            if not revisions: # Revisions are empty list or None
+            if not revisions:  # Revisions are empty list or None
                 flattened_list.append(repo_info)
             else:
                 for revision in revisions:

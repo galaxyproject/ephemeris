@@ -217,7 +217,7 @@ class InstallToolManager(object):
             log.info("All repositories have been installed.")
             log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
         InstallResults = namedtuple("InstallResults",
-                                    ["installed_repositories, errored_repositories, skipped_repositories"])
+                                    ["installed_repositories", "errored_repositories", "skipped_repositories"])
         return InstallResults(installed_repositories=installed_repositories,
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)

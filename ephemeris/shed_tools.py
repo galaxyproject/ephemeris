@@ -38,11 +38,14 @@ from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 from .shed_tools_args import parser
 from . import get_galaxy_connection
 import datetime as dt
+import json
+import re
 from bioblend.galaxy.toolshed import ToolShedClient
 from bioblend.toolshed import ToolShedInstance
 from bioblend.galaxy.client import ConnectionError
 import time
 from collections import namedtuple
+from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 
 class InstallToolManager(object):
@@ -228,10 +231,19 @@ class InstallToolManager(object):
             tools = already_installed_tools
         return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
 
-    def test_tools(self, tools=None, log= None):
+    def test_tools(self,
+                   test_json,
+                   tools=None,
+                   log= None,
+                   test_user_api_key = None,
+                   test_user = "ephemeris@galaxyproject.org"
+                   ):
         """Run tool tests for each tool in supplied tool list list or ``self.installed_tools()``.
         """
         tool_test_start = dt.datetime.now()
+        tests_passed = []
+        test_exceptions = []
+
         if not tools: # If tools is None or empty list
             # Consider a variant of this that doesn't even consume a tool list YAML? target
             # something like installed_repository_revisions(self.gi)
@@ -248,28 +260,30 @@ class InstallToolManager(object):
 
 
         for tool in installed_tools:
-            tool_test_results = self._test_tool(tool)
-            all_test_results.extend(tool_test_results)
+            results = self._test_tool(tool, test_user, test_user_api_key)
+            all_test_results.extend(results.tool_test_results)
+            tests_passed.extend(results.tests_passed)
+            test_exceptions.extend(results.test_extensions)
 
         report_obj = {
             'version': '0.1',
             'tests': all_test_results,
         }
-        with open(self.test_json or "tool_test_output.json", "w") as f:
+        with open(test_json, "w") as f:
             json.dump(report_obj, f)
         if log:
             log.info("Passed tool tests ({0}): {1}".format(
-                len(self.tests_passed),
-                [t for t in self.tests_passed])
+                len(tests_passed),
+                [t for t in tests_passed])
             )
             log.info("Failed tool tests ({0}): {1}".format(
-                len(self.test_exceptions),
-                [t[0] for t in self.test_exceptions])
+                len(test_exceptions),
+                [t[0] for t in test_exceptions])
             )
             log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
 
-    def _test_tool(self, tool):
-        test_user_api_key = self.test_user_api_key
+    def _test_tool(self, tool, test_user, test_user_api_key):
+
         if test_user_api_key is None:
             whoami = self.gi.make_get_request(self.gi.url + "/whoami").json()
             if whoami is not None:
@@ -281,13 +295,15 @@ class InstallToolManager(object):
             "keep_outputs_dir": '',
         }
         if test_user_api_key is None:
-            galaxy_interactor_kwds["test_user"] = self.test_user
+            galaxy_interactor_kwds["test_user"] = test_user
         galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
         tool_id = tool["id"]
         tool_version = tool["version"]
         tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
         test_indices = list(range(len(tool_test_dicts)))
         tool_test_results = []
+        tests_passed = []
+        test_exceptions = []
 
         for test_index in test_indices:
             test_id = tool_id + "-" + str(test_index)
@@ -304,11 +320,13 @@ class InstallToolManager(object):
                     tool_id, galaxy_interactor, test_index=test_index, tool_version=tool_version,
                     register_job_data=register, quiet=True
                 )
-                self.tests_passed.append(test_id)
+                tests_passed.append(test_id)
             except Exception as e:
-                self.test_exceptions.append((test_id, e))
-
-        return tool_test_results
+                test_exceptions.append((test_id, e))
+        Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
+        return Results(tool_test_results= tool_test_results,
+                       tests_passed = tests_passed,
+                       test_exceptions= test_exceptions)
 
     def install_repository_revision(self, repository, log=None):
         """

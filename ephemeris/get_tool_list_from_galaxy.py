@@ -106,7 +106,7 @@ class GiToToolYaml:
 
     @property
     def tool_list(self):
-        repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list())
+        repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list)
         if self.flatten_revisions:
             repo_list = merge_tool_changeset_revisions(repo_list)
         return {"tools": repo_list}

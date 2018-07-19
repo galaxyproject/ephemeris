@@ -109,10 +109,10 @@ class InstallToolManager(object):
         skipped_repositories = []
         errored_repositories = []
         counter = 0
-        total_num_repositories = len(tools)
 
         # Start by flattening the repo list per revision
         flattened_repos = _flatten_repo_info(tools)
+        total_num_repositories = len(flattened_repos)
 
         # Complete the repo information, and make sure each tool has a revision
         repository_list = []

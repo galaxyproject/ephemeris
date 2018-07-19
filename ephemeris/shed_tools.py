@@ -46,6 +46,8 @@ from bioblend.galaxy.client import ConnectionError
 import time
 from collections import namedtuple
 from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
+from . import load_yaml_file
+import yaml
 
 
 class InstallToolManager(object):
@@ -234,9 +236,9 @@ class InstallToolManager(object):
     def test_tools(self,
                    test_json,
                    tools=None,
-                   log= None,
-                   test_user_api_key = None,
-                   test_user = "ephemeris@galaxyproject.org"
+                   log=None,
+                   test_user_api_key=None,
+                   test_user="ephemeris@galaxyproject.org"
                    ):
         """Run tool tests for each tool in supplied tool list list or ``self.installed_tools()``.
         """
@@ -244,10 +246,10 @@ class InstallToolManager(object):
         tests_passed = []
         test_exceptions = []
 
-        if not tools: # If tools is None or empty list
+        if not tools:  # If tools is None or empty list
             # Consider a variant of this that doesn't even consume a tool list YAML? target
             # something like installed_repository_revisions(self.gi)
-            tools= self.installed_tools()
+            tools = self.installed_tools()
 
         target_repositories = _flatten_repo_info(tools)
 
@@ -257,7 +259,6 @@ class InstallToolManager(object):
             installed_tools.extend(repo_tools)
 
         all_test_results = []
-
 
         for tool in installed_tools:
             results = self._test_tool(tool, test_user, test_user_api_key)
@@ -324,9 +325,9 @@ class InstallToolManager(object):
             except Exception as e:
                 test_exceptions.append((test_id, e))
         Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
-        return Results(tool_test_results= tool_test_results,
-                       tests_passed = tests_passed,
-                       test_exceptions= test_exceptions)
+        return Results(tool_test_results=tool_test_results,
+                       tests_passed=tests_passed,
+                       test_exceptions=test_exceptions)
 
     def install_repository_revision(self, repository, log=None):
         """
@@ -525,20 +526,32 @@ def _flatten_repo_info(repositories):
     return flattened_list
 
 
-def get_tool_list_from_args(args):
-    """Helper method to get a tool list """
-    # PLACEHOLDER
-    tools = []
-    return tools
-
-
 def main():
     disable_external_library_logging()
     args = parser().parse_args()
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_tool_manager = InstallToolManager(gi)
-    tools = get_tool_list_from_args(args)
+
+    ### Get which tools need to be installed
+    if args.tool_list_file:
+        tool_list = load_yaml_file(args.tool_list_file)
+        tools = tool_list['tools']
+    elif args.tool_yaml:
+        tools = [yaml.safe_load(args.tool_yaml)]
+    elif args.name and args.owner:
+        tools =[{
+            "owner": args.owner,
+            "name": args.name,
+            "tool_panel_section_id": args.tool_panel_section_id,
+            "tool_panel_section_label": args.tool_panel_section_label,
+            "tool_shed_url": args.toolshed_url,
+            "revisions": args.revisions
+        }]
+    else:
+        tools = []
+
+
     if args.action == "update":
         install_tool_manager.update_tools(tools)
     elif args.action == "test":

@@ -83,7 +83,6 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tools()
 
-    @property
     def repository_list(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
@@ -104,21 +103,20 @@ class GiToToolYaml:
                     repositories.append(get_repo_from_tool(tool))
         return repositories
 
-    @property
     def tool_list(self):
-        repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list)
+        repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list())
         if self.flatten_revisions:
             repo_list = self.merge_tool_changeset_revisions(repo_list)
-        {"tools": repo_list}
+        return {"tools": repo_list}
 
-    def merge_tool_changeset_revisions(self):
+    def merge_tool_changeset_revisions(self, repository_list):
         """
         Each installed changeset revision of a tool is listed individually.
         Merge revisions of the same tool into a list.
         """
         repositories = {}
         repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
-        for tool in self.repository_list:
+        for tool in repository_list:
             repo_key = repo_key_template.format(**tool)
             if repo_key in repositories:
                 repositories[repo_key].extend(tool['revisions'])

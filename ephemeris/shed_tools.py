@@ -555,10 +555,10 @@ def main():
 
     # Get some of the other installation arguments
     kwargs = dict(
-        install_tool_dependencies=tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies,
-        install_repository_dependencies=tool_list.get(
+        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies,
+        default_install_repository_dependencies=tool_list.get(
             "install_repository_depencies") or not args.skip_tool_dependencies,
-        install_resolver_dependencies=tool_list.get(
+        default_install_resolver_dependencies=tool_list.get(
             "install_resolver_dependencies") or args.install_resolver_dependencies
     )
 

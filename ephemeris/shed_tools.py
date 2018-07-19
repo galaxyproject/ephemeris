@@ -44,6 +44,7 @@ from bioblend.galaxy.client import ConnectionError
 import time
 from collections import namedtuple
 
+
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
 
@@ -102,25 +103,26 @@ class InstallToolManager(object):
         flattened_repos = _flatten_repo_info(tools)
 
         # Complete the repo information, and make sure each tool has a revision
-        def set_defaults_in_repo_information(repository):
+        repository_list = []
+        for repository in flattened_repos:
+            start = dt.datetime.now()
             try:
                 complete_repo = complete_repo_information(repository, default_toolshed, require_tool_panel_info=True)
-            except KeyError as e:
-                log_repository_install_error(repository, start, e.message)
-                return None
-            repo_with_revision = get_changeset_revisions(complete_repo, force_latest_revision)
-            if repo_with_revision is not None:
-                return repo_with_revision
-
-        repository_list_with_none = [set_defaults_in_repo_information(repository) for repository in flattened_repos]
-        repository_list = [repo for repo in repository_list_with_none if repo is not None]
+                repo_with_revision = get_changeset_revisions(complete_repo, force_latest_revision)
+                repository_list.append(repo_with_revision)
+            except LookupError or KeyError as e:
+                if log:
+                    log_repository_install_error(repository, start, e.message, log)
+                errored_repositories.append(repository)
 
         # Filter out already installed repos
         not_installed_repos, already_installed_repos = self.filter_installed_repos(repository_list)
 
         for skipped_repo in already_installed_repos:
             counter += 1
-            skipped_repositories += log_repository_install_skip(skipped_repo, counter, total_num_repositories, log)
+            if log:
+                log_repository_install_skip(skipped_repo, counter, total_num_repositories, log)
+            skipped_repositories.append(skipped_repo)
 
         # Install repos
         default_err_msg = ('All repositories that you are attempting to install '
@@ -132,59 +134,72 @@ class InstallToolManager(object):
                                          total_num_repositories=total_num_repositories)
             try:
                 self.install_repository_revision(repository)
-                installed_repositories += log_repository_install_success(
-                    repository=repository,
-                    start=start,
-                    log=log)
+                if log:
+                    log_repository_install_success(
+                        repository=repository,
+                        start=start,
+                        log=log)
+                installed_repositories.append(repository)
             except ConnectionError as e:
                 if default_err_msg in e.body:
-                    log.debug("\tRepository %s already installed (at revision %s)" %
-                              (repository['name'], repository['changeset_revision']))
+                    # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
+                    if log:
+                        log.debug("\tRepository %s already installed (at revision %s)" %
+                                  (repository['name'], repository['changeset_revision']))
+                    skipped_repositories.append(repository)
                 elif "504" in e.message:
-                    log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
+                    if log:
+                        log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
                     success = self.wait_for_install(repository=repository, log=log, timeout=3600)
                     if success:
-                        installed_repositories += log_repository_install_success(
-                            repository=repository,
-                            start=start,
-                            log=log)
+                        if log:
+                            log_repository_install_success(
+                                repository=repository,
+                                start=start,
+                                log=log)
+                        installed_repositories.append(repository)
                     else:
-                        errored_repositories += log_repository_install_error(
+                        if log:
+                            log_repository_install_error(
+                                repository=repository,
+                                start=start, msg=e.body,
+                                log=log)
+                        errored_repositories.append(repository)
+                else:
+                    if log:
+                        log_repository_install_error(
                             repository=repository,
                             start=start, msg=e.body,
                             log=log)
-                else:
-                    errored_repositories += log_repository_install_error(
-                        repository=repository,
-                        start=start,
-                        msg=e.body,
-                        log=log)
+                    errored_repositories.append(repository)
 
         # Log results
-        log.info("Installed repositories ({0}): {1}".format(
-            len(installed_repositories),
-            [(
-                t['name'],
-                t.get('changeset_revision')
-            ) for t in installed_repositories])
-        )
-        log.info("Skipped repositories ({0}): {1}".format(
-            len(skipped_repositories),
-            [(
-                t['name'],
-                t.get('changeset_revision')
-            ) for t in skipped_repositories])
-        )
-        log.info("Errored repositories ({0}): {1}".format(
-            len(errored_repositories),
-            [(
-                t['name'],
-                t.get('changeset_revision', "")
-            ) for t in errored_repositories])
-        )
-        log.info("All repositories have been installed.")
-        log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
-        InstallResults = namedtuple("InstallResults", ["installed_repositories, errored_repositories, skipped_repositories"])
+        if log:
+            log.info("Installed repositories ({0}): {1}".format(
+                len(installed_repositories),
+                [(
+                    t['name'],
+                    t.get('changeset_revision')
+                ) for t in installed_repositories])
+            )
+            log.info("Skipped repositories ({0}): {1}".format(
+                len(skipped_repositories),
+                [(
+                    t['name'],
+                    t.get('changeset_revision')
+                ) for t in skipped_repositories])
+            )
+            log.info("Errored repositories ({0}): {1}".format(
+                len(errored_repositories),
+                [(
+                    t['name'],
+                    t.get('changeset_revision', "")
+                ) for t in errored_repositories])
+            )
+            log.info("All repositories have been installed.")
+            log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
+        InstallResults = namedtuple("InstallResults",
+                                    ["installed_repositories, errored_repositories, skipped_repositories"])
         return InstallResults(installed_repositories=installed_repositories,
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)
@@ -232,7 +247,7 @@ class InstallToolManager(object):
                 installed_repo_list = self.tool_shed_client.get_repositories()
                 for installing_repo in installed_repo_list:
                     if (repository['name'] == installing_repo['name']) and (
-                            installing_repo['owner'] == repository['owner']):
+                        installing_repo['owner'] == repository['owner']):
                         if installing_repo['status'] == 'Installed':
                             return True
                         elif installing_repo['status'] == 'Error':
@@ -254,7 +269,7 @@ def complete_repo_information(tool, default_toolshed_url, require_tool_panel_inf
     repo['tool_panel_section_id'] = tool.get('tool_panel_section_id')
     repo['tool_panel_section_label'] = tool.get('tool_panel_section_label')
     if require_tool_panel_info and repo['tool_panel_section_id'] is None and repo[
-            'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
+        'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
         raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
             repo.get('name')))
     repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
@@ -271,7 +286,7 @@ def format_tool_shed_url(tool_shed_url):
     return formatted_tool_shed_url
 
 
-def get_changeset_revisions(repository, force_latest_revision):
+def get_changeset_revisions(repository, force_latest_revision=False):
     """
     Select the correct changeset revision for a repository,
     and make sure the repository exists
@@ -284,70 +299,52 @@ def get_changeset_revisions(repository, force_latest_revision):
         # Get the set revision or set it to the latest installable revision
         installable_revisions = ts.repositories.get_ordered_installable_revisions(repository['name'],
                                                                                   repository['owner'])
-        if not installable_revisions:  # Repo does not exist in tool shed
-            return None
+        if not installable_revisions:  #
+            raise LookupError("Repo does not exist in tool shed: {0}".format(repository))
         repository['changeset_revision'] = installable_revisions[-1]
 
     return repository
 
 
-def log_repository_install_error(repository, start, msg, log=None):
+def log_repository_install_error(repository, start, msg, log):
     """
     Log failed tool installations. Return a dictionary wiyh information
     """
     end = dt.datetime.now()
-    if log:
-        log.error(
-            "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
-            str(end - start),
-            repository.get('name', ""),
-            repository.get('owner', ""),
-            repository.get('changeset_revision', ""),
-            msg)
-    return {
-        'name': repository.get('name', ""),
-        'owner': repository.get('owner', ""),
-        'revision': repository.get('changeset_revision', ""),
-        'error': msg}
+    log.error(
+        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, ""revision: %s, error: %s",
+        str(end - start),
+        repository.get('name', ""),
+        repository.get('owner', ""),
+        repository.get('changeset_revision', ""),
+        msg)
 
 
-def log_repository_install_success(repository, start, log=None):
+def log_repository_install_success(repository, start, log):
     """
     Log successful repository installation.
     Tools that finish in error still count as successful installs currently.
     """
     end = dt.datetime.now()
-
-    if log:
-        log.debug(
-            "\trepository %s installed successfully (in %s) at revision %s" % (
-                repository['name'],
-                str(end - start),
-                repository['changeset_revision']
-            )
+    log.debug(
+        "\trepository %s installed successfully (in %s) at revision %s" % (
+            repository['name'],
+            str(end - start),
+            repository['changeset_revision']
         )
-    return {
-        'name': repository['name'],
-        'owner': repository['owner'],
-        'revision': repository['changeset_revision']}
+    )
 
 
-def log_repository_install_skip(repository, counter, total_num_repositories, log=None):
-    if log:
-        log.debug(
-            "({0}/{1}) repository {2} already installed at revision {3}. Skipping."
-                .format(
-                counter,
-                total_num_repositories,
-                repository['name'],
-                repository['changeset_revision']
-            )
+def log_repository_install_skip(repository, counter, total_num_repositories, log):
+    log.debug(
+        "({0}/{1}) repository {2} already installed at revision {3}. Skipping."
+            .format(
+            counter,
+            total_num_repositories,
+            repository['name'],
+            repository['changeset_revision']
         )
-    return {
-        'name': repository['name'],
-        'owner': repository['owner'],
-        'changeset_revision': repository['changeset_revision']
-    }
+    )
 
 
 def log_repository_install_start(repository, counter, total_num_repositories, installation_start, log):

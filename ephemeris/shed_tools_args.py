@@ -66,37 +66,38 @@ def parser():
     )
 
     # COMMON OPTIONS
-    shed_parser.add_argument(
-        "-t", "--toolsfile",
-        dest="tool_list_file",
-        help="Tools file to use (see tool_list.yaml.sample)", )
-    shed_parser.add_argument(
-        "-y", "--yaml_tool",
-        dest="tool_yaml",
-        help="Install tool represented by yaml string", )
-    shed_parser.add_argument(
-        "--name",
-        help="The name of the tool to install (only applicable "
-             "if the tools file is not provided).")
-    shed_parser.add_argument(
-        "--owner",
-        help="The owner of the tool to install (only applicable "
-             "if the tools file is not provided).")
-    shed_parser.add_argument(
-        "--revisions",
-        default=None,
-        nargs='*',
-        dest="revisions",
-        help="The revisions of the tool repository that will be installed. "
-             "All revisions must be specified after this flag by a space."
-             "Example: --revisions 0a5c7992b1ac f048033da666"
-             "(Only applicable if the tools file is not provided).")
-    shed_parser.add_argument(
-        "--toolshed",
-        dest="tool_shed_url",
-        help="The Tool Shed URL where to install the tool from. "
-             "This is applicable only if the tool info is "
-             "provided as an option vs. in the tools file.")
+    for command_parser in [update_command_parser, install_command_parser, test_command_parser]:
+        command_parser.add_argument(
+            "-t", "--toolsfile",
+            dest="tool_list_file",
+            help="Tools file to use (see tool_list.yaml.sample)", )
+        command_parser.add_argument(
+            "-y", "--yaml_tool",
+            dest="tool_yaml",
+            help="Install tool represented by yaml string", )
+        command_parser.add_argument(
+            "--name",
+            help="The name of the tool to install (only applicable "
+                 "if the tools file is not provided).")
+        command_parser.add_argument(
+            "--owner",
+            help="The owner of the tool to install (only applicable "
+                 "if the tools file is not provided).")
+        command_parser.add_argument(
+            "--revisions",
+            default=None,
+            nargs='*',
+            dest="revisions",
+            help="The revisions of the tool repository that will be installed. "
+                 "All revisions must be specified after this flag by a space."
+                 "Example: --revisions 0a5c7992b1ac f048033da666"
+                 "(Only applicable if the tools file is not provided).")
+        command_parser.add_argument(
+            "--toolshed",
+            dest="tool_shed_url",
+            help="The Tool Shed URL where to install the tool from. "
+                 "This is applicable only if the tool info is "
+                 "provided as an option vs. in the tools file.")
 
     # OPTIONS COMMON FOR UPDATE AND INSTALL
 

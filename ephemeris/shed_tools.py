@@ -224,7 +224,7 @@ class InstallToolManager(object):
 
     def update_tools(self, tools=None, log=None, **kwargs):
         if not tools:  # Tools None or empty list
-            tools = self.installed_tools
+            tools = self.installed_tools()
         else:
             not_installed_tools, already_installed_tools = self.filter_installed_repos(tools, check_revision=False)
             if not_installed_tools:

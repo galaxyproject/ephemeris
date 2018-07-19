@@ -137,7 +137,6 @@ def merge_tool_changeset_revisions(repository_list):
     repositories = {}
     repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
     for tool in repository_list:
-        print(tool)
         repo_key = repo_key_template.format(**tool)
         if repo_key in repositories:
             repositories[repo_key].extend(tool['revisions'])

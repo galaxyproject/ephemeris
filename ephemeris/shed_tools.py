@@ -216,7 +216,7 @@ class InstallToolManager(object):
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)
 
-    def update_tools(self, tools=[], log=None, **kwargs):
+    def update_tools(self, tools=None, log=None, **kwargs):
         if not tools:  # Tools None or empty list
             tools = self.installed_tools
         else:
@@ -228,12 +228,87 @@ class InstallToolManager(object):
             tools = already_installed_tools
         return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
 
-    def test_tools(self, tools=None):
-        if tools is None:
-            to_be_tested_tools = self.installed_tools
-        else:
-            to_be_tested_tools = tools
-        # Insert code here to test the tools
+    def test_tools(self, tools=None, log= None):
+        """Run tool tests for each tool in supplied tool list list or ``self.installed_tools()``.
+        """
+        tool_test_start = dt.datetime.now()
+        if not tools: # If tools is None or empty list
+            # Consider a variant of this that doesn't even consume a tool list YAML? target
+            # something like installed_repository_revisions(self.gi)
+            tools= self.installed_tools()
+
+        target_repositories = _flatten_repo_info(tools)
+
+        installed_tools = []
+        for target_repository in target_repositories:
+            repo_tools = tools_for_repository(self.gi, target_repository)
+            installed_tools.extend(repo_tools)
+
+        all_test_results = []
+
+
+        for tool in installed_tools:
+            tool_test_results = self._test_tool(tool)
+            all_test_results.extend(tool_test_results)
+
+        report_obj = {
+            'version': '0.1',
+            'tests': all_test_results,
+        }
+        with open(self.test_json or "tool_test_output.json", "w") as f:
+            json.dump(report_obj, f)
+        if log:
+            log.info("Passed tool tests ({0}): {1}".format(
+                len(self.tests_passed),
+                [t for t in self.tests_passed])
+            )
+            log.info("Failed tool tests ({0}): {1}".format(
+                len(self.test_exceptions),
+                [t[0] for t in self.test_exceptions])
+            )
+            log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
+
+    def _test_tool(self, tool):
+        test_user_api_key = self.test_user_api_key
+        if test_user_api_key is None:
+            whoami = self.gi.make_get_request(self.gi.url + "/whoami").json()
+            if whoami is not None:
+                test_user_api_key = self.gi.key
+        galaxy_interactor_kwds = {
+            "galaxy_url": re.sub('/api', '', self.gi.url),
+            "master_api_key": self.gi.key,
+            "api_key": None,  # TODO
+            "keep_outputs_dir": '',
+        }
+        if test_user_api_key is None:
+            galaxy_interactor_kwds["test_user"] = self.test_user
+        galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
+        tool_id = tool["id"]
+        tool_version = tool["version"]
+        tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        test_indices = list(range(len(tool_test_dicts)))
+        tool_test_results = []
+
+        for test_index in test_indices:
+            test_id = tool_id + "-" + str(test_index)
+
+            def register(job_data):
+                tool_test_results.append({
+                    'id': test_id,
+                    'has_data': True,
+                    'data': job_data,
+                })
+
+            try:
+                verify_tool(
+                    tool_id, galaxy_interactor, test_index=test_index, tool_version=tool_version,
+                    register_job_data=register, quiet=True
+                )
+                self.tests_passed.append(test_id)
+            except Exception as e:
+                self.test_exceptions.append((test_id, e))
+
+        return tool_test_results
 
     def install_repository_revision(self, repository, log=None):
         """
@@ -256,7 +331,8 @@ class InstallToolManager(object):
         """
         If nginx times out, we look into the list of installed repositories
         and try to determine if a tool of the same namer/owner is still installing.
-        Returns True if install finished successfully, returns False when timeout is exceeded or installation has failed.
+        Returns True if install finished successfully,
+        returns False when timeout is exceeded or installation has failed.
         """
         start = dt.datetime.now()
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):

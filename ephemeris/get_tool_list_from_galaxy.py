@@ -83,6 +83,7 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tools()
 
+    @property
     def repository_list(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
@@ -103,6 +104,7 @@ class GiToToolYaml:
                     repositories.append(get_repo_from_tool(tool))
         return repositories
 
+    @property
     def tool_list(self):
         repo_list = self.filter_section_name_or_id_or_changeset(self.repository_list())
         if self.flatten_revisions:

@@ -79,7 +79,7 @@ class InstallToolManager(object):
                 else:
                     not_installed_repos.append(repo)
         FilterResults = namedtuple("FilterResults", ["not_installed_repos", "already_installed_repos"])
-        return FilterResults(not_installed_repos, already_installed_repos)
+        return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos = not_installed_repos)
 
     def install_tools(self,
                       tools,
@@ -107,9 +107,13 @@ class InstallToolManager(object):
         for repository in flattened_repos:
             start = dt.datetime.now()
             try:
-                complete_repo = complete_repo_information(repository, default_toolshed, require_tool_panel_info=True)
-                repo_with_revision = get_changeset_revisions(complete_repo, force_latest_revision)
-                repository_list.append(repo_with_revision)
+                complete_repo = complete_repo_information(
+                    repository, default_toolshed, require_tool_panel_info=True,
+                    default_install_tool_dependencies=default_install_tool_dependencies,
+                    default_install_resolver_dependencies=default_install_resolver_dependencies,
+                    default_install_repository_dependencies=default_install_repository_dependencies,
+                    force_latest_revision=force_latest_revision)
+                repository_list.append(complete_repo)
             except LookupError or KeyError as e:
                 if log:
                     log_repository_install_error(repository, start, e.message, log)
@@ -261,7 +265,9 @@ class InstallToolManager(object):
         return False
 
 
-def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info):
+def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info, default_install_tool_dependencies,
+                              default_install_repository_dependencies,
+                              default_install_resolver_dependencies, force_latest_revision):
     repo = dict()
     # We need those values. Throw a KeyError when not present
     repo['name'] = tool['name']
@@ -269,11 +275,16 @@ def complete_repo_information(tool, default_toolshed_url, require_tool_panel_inf
     repo['tool_panel_section_id'] = tool.get('tool_panel_section_id')
     repo['tool_panel_section_label'] = tool.get('tool_panel_section_label')
     if require_tool_panel_info and repo['tool_panel_section_id'] is None and repo[
-        'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
+            'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
         raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
             repo.get('name')))
     repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
-    repo['changeset_revision'] = tool.get('changeset_revision', None)
+    repo['changeset_revision'] = get_changeset_revisions(repo, force_latest_revision)
+    repo['install_repository_dependencies'] = tool.get('install_repository_dependencies',
+                                                       default_install_repository_dependencies)
+    repo['install_resolver_dependencies'] = tool.get('install_resolver_dependencies',
+                                                     default_install_resolver_dependencies)
+    repo['install_tool_dependencies'] = tool.get('install_tool_dependencies', default_install_tool_dependencies)
     return repo
 
 
@@ -338,7 +349,7 @@ def log_repository_install_success(repository, start, log):
 def log_repository_install_skip(repository, counter, total_num_repositories, log):
     log.debug(
         "({0}/{1}) repository {2} already installed at revision {3}. Skipping."
-            .format(
+        .format(
             counter,
             total_num_repositories,
             repository['name'],
@@ -395,10 +406,13 @@ def _flatten_repo_info(repositories):
     for repo_info in repositories:
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
-            repo_info.pop('revisions', None)  # Set default to avoid key error
-            for revision in revisions:
-                repo_info['changeset_revision'] = revision
+            repo_info.pop('revisions', None)  # Set default to avoid key error  when removing revisions
+            if not revisions: # Revisions are empty list or None
                 flattened_list.append(repo_info)
+            else:
+                for revision in revisions:
+                    repo_info['changeset_revision'] = revision
+                    flattened_list.append(repo_info)
         else:  # Revision was not defined at all
             flattened_list.append(repo_info)
     return flattened_list

@@ -37,9 +37,6 @@ def parser():
              "Use shed-tools install --help for more information",
         parents=[common_arguments],
     )
-    install_command_parser.set_defaults(
-        update_tools=False
-    )
     update_command_parser = subparsers.add_parser(
         "update",
         help="This updates all tools in Galaxy to the latest revision. "
@@ -180,13 +177,11 @@ def parser():
     )
 
     update_command_parser.set_defaults(
-        action="update",
-        update_tools=True
+        action="update"
     )
 
     test_command_parser.set_defaults(
-        action="test",
-        update_tools=False
+        action="test"
     )
 
     return parser

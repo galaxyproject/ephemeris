@@ -547,14 +547,16 @@ def main():
     elif args.tool_yaml:
         tools = [yaml.safe_load(args.tool_yaml)]
     elif args.name and args.owner:
-        tools = [dict(
+        tool = dict(
             owner=args.owner,
             name=args.name,
             tool_panel_section_id=args.tool_panel_section_id,
             tool_panel_section_label=args.tool_panel_section_label,
-            tool_shed_url=args.tool_shed_url,
             revisions=args.revisions
-        )]
+        )
+        if args.tool_shed_url:
+            tool["tool_shed_url"] = args.tool_shed_url
+        tools = [tool]
 
     # Get some of the other installation arguments
     kwargs = dict(

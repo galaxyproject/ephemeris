@@ -23,7 +23,7 @@ def parser():
         tool_panel_section_id=None,
         tool_panel_section_label=None,
         revisions=None,
-        tool_shed_url='https://toolshed.g2.bx.psu.edu/',
+        tool_shed_url=None,
         skip_tool_dependencies=False,
         install_resolver_dependencies=False,
         force_latest_revision=False,

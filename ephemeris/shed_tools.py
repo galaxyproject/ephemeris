@@ -70,6 +70,7 @@ class InstallToolManager(object):
         ).tool_list.get("tools")
 
     def filter_installed_repos(self, repos, check_revision=True):
+        # TODO: Find a speedier algorithm.
         """This filters a list of tools"""
         not_installed_repos = []
         already_installed_repos = []
@@ -79,16 +80,13 @@ class InstallToolManager(object):
             installed_repos = _flatten_repo_info(self.installed_tools())
         else:
             # If we do not care about revision equality, do not do the flatten
-            # Action to limit the number of comparisons.
+            # action to limit the number of comparisons.
             installed_repos = self.installed_tools()
 
         for repo in repos:
-            for i, installed_repo in enumerate(installed_repos):
+            for installed_repo in installed_repos:
                 if the_same_repository(installed_repo, repo, check_revision):
                     already_installed_repos.append(repo)
-                    # installed_repos.pop(i) # This limits the search space for the next tool. Nice isn't it?
-                    # Unless of course the repo is defined multiple times in the list. Then this breaks the algorithm
-                    # TODO: Find a speedier algorithm.
                     break
             else:  # This executes when the for loop completes and no match has been found.
                 not_installed_repos.append(repo)
@@ -130,7 +128,7 @@ class InstallToolManager(object):
                     default_install_repository_dependencies=default_install_repository_dependencies,
                     force_latest_revision=force_latest_revision)
                 repository_list.append(complete_repo)
-            except LookupError or KeyError as e:
+            except (LookupError, KeyError) as e:
                 if log:
                     log_repository_install_error(repository, start, e.message, log)
                 errored_repositories.append(repository)

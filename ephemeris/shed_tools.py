@@ -542,28 +542,55 @@ def main():
     elif args.tool_yaml:
         tools = [yaml.safe_load(args.tool_yaml)]
     elif args.name and args.owner:
-        tools =[dict(
-            owner= args.owner,
-            name= args.name,
-            tool_panel_section_id= args.tool_panel_section_id,
-            tool_panel_section_label= args.tool_panel_section_label,
-            tool_shed_url= args.toolshed_url,
-            revisions = args.revisions
+        tools = [dict(
+            owner=args.owner,
+            name=args.name,
+            tool_panel_section_id=args.tool_panel_section_id,
+            tool_panel_section_label=args.tool_panel_section_label,
+            tool_shed_url=args.toolshed_url,
+            revisions=args.revisions
         )]
+    kwargs = dict(
+        install_tool_dependencies=tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies,
+        install_repository_dependencies=tool_list.get(
+            "install_repository_depencies") or not args.skip_tool_dependencies,
+        install_resolver_dependencies=tool_list.get(
+            "install_resolver_dependencies") or args.install_resolver_dependencies
+    )
 
-    install_tool_dependencies = tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies
-    install_repository_dependencies = tool_list.get("install_repository_depencies") or not args.skip_tool_dependencies
-    install_resolver_dependencies = tool_list.get("install_resolver_dependencies") or args.install_resolver_dependencies
+    install_results = None
     if args.action == "update":
-        install_tool_manager.update_tools(
-            tools = tools,
-        log = log)
-    elif args.action == "test":
-        install_tool_manager.test_tools(tools, log=log)
+        install_results = install_tool_manager.update_tools(
+            tools=tools,
+            log=log,
+            **kwargs)
     elif args.action == "install":
-        install_tool_manager.install_tools(tools, log=log)
+        install_results = install_tool_manager.install_tools(
+            tools,
+            log=log,
+            force_latest_revision=args.latest,
+            **kwargs)
+    elif args.action == "test":
+        install_tool_manager.test_tools(
+            test_json=args.test_json,
+            tools=tools,
+            log=log,
+            test_user_api_key=args.test_user_api_key,
+            test_user=args.test_user)
     else:
-        raise Exception("This point in the code should not be reached. Please contact the developers.")
+        raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
+
+    if install_results and args.test or args.test_existing:
+        to_be_tested_tools = install_results.installed_repositories
+        if args.test_existing:
+            to_be_tested_tools.extend(install_results.skipped_repositories)
+
+        install_tool_manager.test_tools(
+            test_json=args.test_json,
+            tools=to_be_tested_tools,
+            log=log,
+            test_user_api_key=args.test_user_api_key,
+            test_user=args.test_user)
 
 
 if __name__ == "__main__":

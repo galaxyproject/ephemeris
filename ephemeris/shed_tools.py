@@ -122,7 +122,9 @@ class InstallToolManager(object):
             start = dt.datetime.now()
             try:
                 complete_repo = complete_repo_information(
-                    repository, default_toolshed, require_tool_panel_info=True,
+                    repository,
+                    default_toolshed_url=default_toolshed,
+                    require_tool_panel_info=True,
                     default_install_tool_dependencies=default_install_tool_dependencies,
                     default_install_resolver_dependencies=default_install_resolver_dependencies,
                     default_install_repository_dependencies=default_install_repository_dependencies,
@@ -550,7 +552,7 @@ def main():
             name=args.name,
             tool_panel_section_id=args.tool_panel_section_id,
             tool_panel_section_label=args.tool_panel_section_label,
-            tool_shed_url=args.toolshed_url,
+            tool_shed_url=args.tool_shed_url,
             revisions=args.revisions
         )]
 

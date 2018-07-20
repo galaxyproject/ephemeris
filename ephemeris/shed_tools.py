@@ -66,7 +66,6 @@ class InstallToolManager(object):
             gi=self.gi,
             skip_tool_panel_section_name=False,
             get_data_managers=True,
-            flatten_revisions=False  # We want all the revisions to be there
         ).tool_list.get("tools")
 
     def filter_installed_repos(self, repos, check_revision=True):

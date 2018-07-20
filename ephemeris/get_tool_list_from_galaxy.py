@@ -58,14 +58,12 @@ class GiToToolYaml:
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False,
-                 get_data_managers=False,
-                 flatten_revisions=True):
+                 get_data_managers=False):
         self.gi = gi
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
-        self.flatten_revisions = flatten_revisions
 
     @property
     def toolbox(self):
@@ -107,8 +105,7 @@ class GiToToolYaml:
     @property
     def tool_list(self):
         repo_list = self.repository_list
-        if self.flatten_revisions:
-            repo_list = merge_tool_changeset_revisions(repo_list)
+        repo_list = merge_tool_changeset_revisions(repo_list)
         repo_list = self.filter_section_name_or_id_or_changeset(repo_list)
         return {"tools": repo_list}
 
@@ -183,9 +180,6 @@ def _parser():
     parser.add_argument("--get_data_managers",
                         action="store_true",
                         help="Include the data managers in the tool list. Requires login details")
-    parser.add_argument("--get_all_revisions",
-                        action="store_true",
-                        help="Include all installed revisions in the output, not just the latest.")
     return parser
 
 
@@ -228,8 +222,7 @@ def main():
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
-        get_data_managers=options.get_data_managers,
-        flatten_revisions=(not options.get_all_revisions))
+        get_data_managers=options.get_data_managers)
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

@@ -44,7 +44,7 @@ echo "Check tool installation from tool list"
 # Establish the current tool list
 get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_pre.yaml
 shed-tools install -t "$TEST_DATA"/tool_list.yaml.sample -a admin -g http://localhost:$WEB_PORT
-get-tool-list -g http://localhost:$WEB_PORT -o result_tool_list_post.yaml
+get-tool-list -g http://localhost:$WEB_PORT -a admin --get_all_tools -o result_tool_list_post.yaml
 grep 4d82cf59895e result_tool_list_post.yaml && \
 grep 0b4e36026794 result_tool_list_post.yaml && \
 grep 051eba708f43 result_tool_list_post.yaml   # this means all revisions have been successfully installed.

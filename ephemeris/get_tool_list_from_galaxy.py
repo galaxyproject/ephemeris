@@ -106,14 +106,24 @@ class GiToToolYaml:
                     repositories.append(get_repo_from_tool(tool))
 
         if self.get_all_tools:
+            tools_with_panel = repositories[:]
             tsc = ToolShedClient(self.gi)
             repos = tsc.get_repositories()
             for repo in repos:
+                for repo_with_panel in tools_with_panel:
+                    tool_panel_section_id = None
+                    tool_panel_section_label = None
+                    if the_same_repository(repo_with_panel, repo, check_revision=False):
+                        tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
+                        tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
+                        break
                 repositories.append(
                     dict(name=repo.get('name'),
                          owner=repo.get('owner'),
                          tool_shed_url=repo.get('tool_shed'),
-                         revisions=[repo.get('changeset_revision')])
+                         revisions=[repo.get('changeset_revision')],
+                         tool_panel_section_label=tool_panel_section_label,
+                         tool_panel_section_id=tool_panel_section_id)
                 )
         return repositories
 
@@ -139,6 +149,24 @@ class GiToToolYaml:
     def write_to_yaml(self, output_file):
         with open(output_file, "w") as output:
             output.write(yaml.safe_dump(self.tool_list, default_flow_style=False))
+
+
+def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
+    """
+    Given two dicts containing info about tools, determine if they are the same
+    tool.
+    Each of the dicts must have the following keys: `changeset_revisions`( if check revisions is true), `name`, `owner`, and
+    (either `tool_shed` or `tool_shed_url`).
+    """
+    # Sort from most unique to least unique for fast comparison.
+    if not check_revision or repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
+        if repo_1_info.get('name') == repo_2_info.get('name'):
+            if repo_1_info.get('owner') == repo_2_info.get('owner'):
+                t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
+                t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
+                if t1ts in t2ts or t2ts in t1ts:
+                    return True
+    return False
 
 
 def merge_tool_changeset_revisions(repository_list):

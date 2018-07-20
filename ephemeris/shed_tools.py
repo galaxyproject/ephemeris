@@ -47,7 +47,7 @@ from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
+from .get_tool_list_from_galaxy import GiToToolYaml, the_same_repository, tools_for_repository
 from .shed_tools_args import parser
 
 
@@ -67,7 +67,6 @@ class InstallToolManager(object):
             skip_tool_panel_section_name=False,
             get_data_managers=True,
         ).tool_list.get("tools")
-
 
     def filter_installed_repos(self, repos, check_revision=True):
         # TODO: Find a speedier algorithm.
@@ -479,24 +478,6 @@ def log_repository_install_start(repository, counter, total_num_repositories, in
             dt.datetime.now() - installation_start
         )
     )
-
-
-def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
-    """
-    Given two dicts containing info about tools, determine if they are the same
-    tool.
-    Each of the dicts must have the following keys: `changeset_revisions`( if check revisions is true), `name`, `owner`, and
-    (either `tool_shed` or `tool_shed_url`).
-    """
-    # Sort from most unique to least unique for fast comparison.
-    if not check_revision or repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
-        if repo_1_info.get('name') == repo_2_info.get('name'):
-            if repo_1_info.get('owner') == repo_2_info.get('owner'):
-                t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
-                t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
-                if t1ts in t2ts or t2ts in t1ts:
-                    return True
-    return False
 
 
 def _flatten_repo_info(repositories):

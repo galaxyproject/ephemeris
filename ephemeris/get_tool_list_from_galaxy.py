@@ -58,12 +58,15 @@ class GiToToolYaml:
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False,
-                 get_data_managers=False):
+                 get_data_managers=False,
+                 get_all_tools=False):
         self.gi = gi
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
+        self.get_all_tools = get_all_tools
+
 
     @property
     def toolbox(self):
@@ -96,9 +99,10 @@ class GiToToolYaml:
 
         walk_tools(self.toolbox, record_repo)
 
-        if self.get_data_managers:
+        if self.get_data_managers or self.get_all_tools:
             for tool in self.installed_tool_list:
-                if tool.get("model_class") == 'DataManagerTool':
+                if (tool.get("model_class") == 'DataManagerTool' and self.get_data_managers)\
+                    or (tool.get("model_class" == 'Tool') and self.get_all_tools):
                     repositories.append(get_repo_from_tool(tool))
         return repositories
 
@@ -180,6 +184,9 @@ def _parser():
     parser.add_argument("--get_data_managers",
                         action="store_true",
                         help="Include the data managers in the tool list. Requires login details")
+    parser.add_argument("--get_all_tools",
+                        action="store_true",
+                        help="Get all tools and revisions, not just those which are present on the web ui")
     return parser
 
 
@@ -222,7 +229,8 @@ def main():
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
-        get_data_managers=options.get_data_managers)
+        get_data_managers=options.get_data_managers,
+        get_all_tools=options.get_all_tools)
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

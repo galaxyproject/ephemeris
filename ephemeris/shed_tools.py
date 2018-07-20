@@ -47,7 +47,7 @@ from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
+from .get_tool_list_from_galaxy import tools_for_repository
 from .shed_tools_args import parser
 
 
@@ -62,25 +62,25 @@ class InstallToolManager(object):
 
     def installed_tools(self):
         """Get currently installed tools"""
-        return GiToToolYaml(
-            gi=self.gi,
-            skip_tool_panel_section_name=False,
-            get_data_managers=True,
-        ).tool_list.get("tools")
+        repos = self.ToolShedClient.get_repositories()
+        clean_repos = []
+        for repo in repos:
+            if repo.get('status') == 'installed':
+                clean_repos.append(
+                    dict(name=repo.get('name'),
+                         tool_shed_url= repo.get('toolshed'),
+                         owner= repo.get('owner'),
+                         changeset_revision = repo.get('changeset_revision')
+                         )
+                )
+        return clean_repos
 
     def filter_installed_repos(self, repos, check_revision=True):
         # TODO: Find a speedier algorithm.
         """This filters a list of tools"""
         not_installed_repos = []
         already_installed_repos = []
-        if check_revision:
-            # If we want to check if revisions are equal, flatten the list,
-            # so each tool - revision combination has its own entry
-            installed_repos = _flatten_repo_info(self.installed_tools())
-        else:
-            # If we do not care about revision equality, do not do the flatten
-            # action to limit the number of comparisons.
-            installed_repos = self.installed_tools()
+        installed_repos = self.installed_tools()
 
         for repo in repos:
             for installed_repo in installed_repos:

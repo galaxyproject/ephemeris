@@ -183,6 +183,9 @@ def _parser():
     parser.add_argument("--get_data_managers",
                         action="store_true",
                         help="Include the data managers in the tool list. Requires login details")
+    parser.add_argument("--get_all_revisions",
+                        action="store_true",
+                        help="Include all installed revisions in the output, not just the latest.")
     return parser
 
 
@@ -225,7 +228,8 @@ def main():
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
-        get_data_managers=options.get_data_managers)
+        get_data_managers=options.get_data_managers,
+        flatten_revisions=(not options.get_all_revisions))
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

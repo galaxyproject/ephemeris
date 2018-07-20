@@ -1,5 +1,10 @@
 # This is just a sample file. For a fully documented version of this file, see
 # https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample
+
+install_resolver_dependencies: true
+install_tool_dependencies: true
+install_repository_dependencies: true
+
 tools:
 - name: data_manager_fetch_genome_dbkeys_all_fasta
   owner: devteam
@@ -7,6 +12,4 @@ tools:
   owner: devteam
 - name: data_manager_bwa_mem_index_builder
   owner: devteam
-  revisions:
-    - e519769cdb9c
 

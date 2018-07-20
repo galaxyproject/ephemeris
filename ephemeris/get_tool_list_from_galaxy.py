@@ -109,6 +109,11 @@ class GiToToolYaml:
             tools_with_panel = repositories[:]
             tsc = ToolShedClient(self.gi)
             repos = tsc.get_repositories()
+            # Hereafter follows a gruesomely ineffecient algorithm.
+            # The for loop and if statement are needed to retrieve tool_panel
+            # section labels and ids.
+            # If someone knows a more effecient way around this problem it
+            # will be greatly appreciated.
             for repo in repos:
                 for repo_with_panel in tools_with_panel:
                     tool_panel_section_id = None

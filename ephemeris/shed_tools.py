@@ -68,9 +68,9 @@ class InstallToolManager(object):
             if repo.get('status') == 'installed':
                 clean_repos.append(
                     dict(name=repo.get('name'),
-                         tool_shed_url= repo.get('toolshed'),
-                         owner= repo.get('owner'),
-                         changeset_revision = repo.get('changeset_revision')
+                         tool_shed_url=repo.get('toolshed'),
+                         owner=repo.get('owner'),
+                         changeset_revision=repo.get('changeset_revision')
                          )
                 )
         return clean_repos

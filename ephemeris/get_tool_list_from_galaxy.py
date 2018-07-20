@@ -7,6 +7,7 @@ from distutils.version import StrictVersion
 
 import yaml
 from bioblend.galaxy.tools import ToolClient
+from bioblend.galaxy.toolshed import ToolShedClient
 
 from . import get_galaxy_connection
 from .common_parser import get_common_args
@@ -61,12 +62,12 @@ class GiToToolYaml:
                  get_data_managers=False,
                  get_all_tools=False):
         self.gi = gi
+
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
         self.get_all_tools = get_all_tools
-
 
     @property
     def toolbox(self):
@@ -99,11 +100,21 @@ class GiToToolYaml:
 
         walk_tools(self.toolbox, record_repo)
 
-        if self.get_data_managers or self.get_all_tools:
+        if self.get_data_managers:
             for tool in self.installed_tool_list:
-                if (tool.get("model_class") == 'DataManagerTool' and self.get_data_managers)\
-                    or (tool.get("model_class" == 'Tool') and self.get_all_tools):
+                if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(get_repo_from_tool(tool))
+
+        if self.get_all_tools:
+            tsc = ToolShedClient(self.gi)
+            repos = tsc.get_repositories()
+            for repo in repos:
+                repositories.append(
+                    dict(name=repo.get('name'),
+                         owner=repo.get('owner'),
+                         tool_shed_url=repo.get('tool_shed'),
+                         revisions=[repo.get('changeset_revision')])
+                )
         return repositories
 
     @property
@@ -186,7 +197,8 @@ def _parser():
                         help="Include the data managers in the tool list. Requires login details")
     parser.add_argument("--get_all_tools",
                         action="store_true",
-                        help="Get all tools and revisions, not just those which are present on the web ui")
+                        help="Get all tools and revisions, not just those which are present on the web ui."
+                             "Requires login details.")
     return parser
 
 

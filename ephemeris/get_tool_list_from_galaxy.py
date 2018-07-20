@@ -241,7 +241,8 @@ def main():
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
-        get_data_managers=options.get_data_managers)
+        get_data_managers=options.get_data_managers,
+        get_all_tools=options.get_all_tools)
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

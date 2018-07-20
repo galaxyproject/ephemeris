@@ -143,53 +143,17 @@ class InstallToolManager(object):
             skipped_repositories.append(skipped_repo)
 
         # Install repos
-        default_err_msg = ('All repositories that you are attempting to install '
-                           'have been previously installed.')
         for repository in not_installed_repos:
             counter += 1
-            start = dt.datetime.now()
             log_repository_install_start(repository, counter=counter, installation_start=installation_start, log=log,
                                          total_num_repositories=total_num_repositories)
-            try:
-                self.install_repository_revision(repository)
-                if log:
-                    log_repository_install_success(
-                        repository=repository,
-                        start=start,
-                        log=log)
+            result = self.install_repository_revision(repository, log)
+            if result == "error":
+                errored_repositories.append(repository)
+            elif result == "skipped":
+                skipped_repositories.append(repository)
+            elif result == "installed":
                 installed_repositories.append(repository)
-            except ConnectionError as e:
-                if default_err_msg in e.body:
-                    # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
-                    if log:
-                        log.debug("\tRepository %s already installed (at revision %s)" %
-                                  (repository['name'], repository['changeset_revision']))
-                    skipped_repositories.append(repository)
-                elif "504" in e.message:
-                    if log:
-                        log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
-                    success = self.wait_for_install(repository=repository, log=log, timeout=3600)
-                    if success:
-                        if log:
-                            log_repository_install_success(
-                                repository=repository,
-                                start=start,
-                                log=log)
-                        installed_repositories.append(repository)
-                    else:
-                        if log:
-                            log_repository_install_error(
-                                repository=repository,
-                                start=start, msg=e.body,
-                                log=log)
-                        errored_repositories.append(repository)
-                else:
-                    if log:
-                        log_repository_install_error(
-                            repository=repository,
-                            start=start, msg=e.body,
-                            log=log)
-                    errored_repositories.append(repository)
 
         # Log results
         if log:
@@ -330,22 +294,60 @@ class InstallToolManager(object):
                        tests_passed=tests_passed,
                        test_exceptions=test_exceptions)
 
-    def install_repository_revision(self, repository, log=None):
-        """
-        Adjusts repository dictionary to bioblend signature and installs single repository
-        """
-        repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
-        response = self.tool_shed_client.install_repository_revision(**repository)
-        if isinstance(response, dict) and response.get('status', None) == 'ok':
-            # This rare case happens if a repository is already installed but
-            # was not recognised as such in the above check. In such a
-            # case the return value looks like this:
-            # {u'status': u'ok', u'message': u'No repositories were
-            #  installed, possibly because the selected repository has
-            #  already been installed.'}
+    def install_repository_revision(self, repository, log):
+        default_err_msg = ('All repositories that you are attempting to install '
+                           'have been previously installed.')
+        start = dt.datetime.now()
+        try:
+            repository['new_tool_panel_section_label'] = repository.pop('tool_panel_section_label')
+            response = self.tool_shed_client.install_repository_revision(**repository)
+            if isinstance(response, dict) and response.get('status', None) == 'ok':
+                # This rare case happens if a repository is already installed but
+                # was not recognised as such in the above check. In such a
+                # case the return value looks like this:
+                # {u'status': u'ok', u'message': u'No repositories were
+                #  installed, possibly because the selected repository has
+                #  already been installed.'}
+                if log:
+                    log.debug("\tRepository {0} is already installed.".format(repository['name']))
             if log:
-                log.debug("\tRepository {0} is already installed.".format(repository['name']))
-        return response
+                log_repository_install_success(
+                    repository=repository,
+                    start=start,
+                    log=log)
+            return "installed"
+        except ConnectionError as e:
+            if default_err_msg in e.body:
+                # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
+                if log:
+                    log.debug("\tRepository %s already installed (at revision %s)" %
+                              (repository['name'], repository['changeset_revision']))
+                return "skipped"
+            elif "504" in e.message:
+                if log:
+                    log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
+                success = self.wait_for_install(repository=repository, log=log, timeout=3600)
+                if success:
+                    if log:
+                        log_repository_install_success(
+                            repository=repository,
+                            start=start,
+                            log=log)
+                    return "installed"
+                else:
+                    if log:
+                        log_repository_install_error(
+                            repository=repository,
+                            start=start, msg=e.body,
+                            log=log)
+                    return "error"
+            else:
+                if log:
+                    log_repository_install_error(
+                        repository=repository,
+                        start=start, msg=e.body,
+                        log=log)
+                return "error"
 
     def wait_for_install(self, repository, log=None, timeout=3600):
         """

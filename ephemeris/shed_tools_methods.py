@@ -1,5 +1,6 @@
 from bioblend.toolshed import ToolShedInstance
 
+
 def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info, default_install_tool_dependencies,
                               default_install_repository_dependencies,
                               default_install_resolver_dependencies, force_latest_revision):
@@ -51,6 +52,7 @@ def get_changeset_revisions(repository, force_latest_revision=False):
         repository['changeset_revision'] = installable_revisions[-1]
 
     return repository
+
 
 def flatten_repo_info(repositories):
     """

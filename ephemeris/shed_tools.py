@@ -48,7 +48,8 @@ from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
 from .get_tool_list_from_galaxy import GiToToolYaml, the_same_repository, tools_for_repository
 from .shed_tools_args import parser
-from .shed_tools_methods import *
+from .shed_tools_methods import complete_repo_information, flatten_repo_info
+
 
 class InstallToolManager(object):
     """Manages the installation of new tools on a galaxy instance"""
@@ -427,17 +428,7 @@ def log_repository_install_start(repository, counter, total_num_repositories, in
     )
 
 
-def main():
-    disable_external_library_logging()
-    args = parser().parse_args()
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
-    gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
-    install_tool_manager = InstallToolManager(gi)
-
-    tool_list = {}
-    tools = []
-
-    # Get which tools need to be installed
+def args_to_tools(args):
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
         tools = tool_list['tools']
@@ -454,6 +445,24 @@ def main():
         if args.tool_shed_url:
             tool["tool_shed_url"] = args.tool_shed_url
         tools = [tool]
+    else:
+        tools = []
+    return tools
+
+
+def main():
+    disable_external_library_logging()
+    args = parser().parse_args()
+    log = setup_global_logger(name=__name__, log_file=args.log_file)
+    gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
+    install_tool_manager = InstallToolManager(gi)
+
+    tools = args_to_tools(args)
+
+    if args.tool_list_file:
+        tool_list = load_yaml_file(args.tool_list_file)
+    else:
+        tool_list = dict()
 
     # Get some of the other installation arguments
     kwargs = dict(

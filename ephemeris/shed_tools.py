@@ -472,7 +472,7 @@ def main():
         default_install_repository_dependencies=tool_list.get(
             "install_repository_depencies", True),
         default_install_resolver_dependencies=tool_list.get(
-            "install_resolver_dependencies") or args.install_resolver_dependencies
+            "install_resolver_dependencies", True)
     )
 
     # Start installing/updating and store the results in install_results.

@@ -521,8 +521,12 @@ def _flatten_repo_info(repositories):
                 flattened_list.append(repo_info)
             else:
                 for revision in revisions:
-                    repo_info['changeset_revision'] = revision
-                    flattened_list.append(repo_info)
+                    # A new dictionary must be created, otherwise there will
+                    # be aliasing of dictionaries. Which leads to multiple
+                    # repos with the same revision in the end result.
+                    new_repo_info = dict(**repo_info)
+                    new_repo_info['changeset_revision'] = revision
+                    flattened_list.append(new_repo_info)
         else:  # Revision was not defined at all
             flattened_list.append(repo_info)
     return flattened_list

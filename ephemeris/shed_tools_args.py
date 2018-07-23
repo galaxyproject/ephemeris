@@ -1,6 +1,6 @@
 """This file contains the parser for shed_tools"""
 
-from argparse import ArgumentParser
+import argparse
 
 from .common_parser import get_common_args
 
@@ -8,7 +8,7 @@ from .common_parser import get_common_args
 def parser():
     """construct the parser object"""
     common_arguments = get_common_args(log_file=True)
-    shed_parser = ArgumentParser()
+    shed_parser = argparse.ArgumentParser()
     subparsers = shed_parser.add_subparsers()
 
     # A list of defaults is needed. Otherwise the shed-tools install parser will not return
@@ -106,9 +106,7 @@ def parser():
             "--skip_install_tool_dependencies",
             action="store_false",
             dest="install_tool_dependencies",
-            help="DEPRECATED: THIS IS THE DEFAULT SETTING. "
-                 "Skip the installation of tool dependencies using classic toolshed packages. "
-                 "Can be overwritten on a per-tool basis in the tools file.")
+            help=argparse.SUPPRESS)  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
             "--install_tool_dependencies",
             action="store_true",
@@ -119,10 +117,7 @@ def parser():
             "--install_resolver_dependencies",
             action="store_true",
             dest="install_resolver_dependencies",
-            help="DEPRECATED: THIS IS THE DEFAULT SETTING. "
-                 "Install tool dependencies through resolver (e.g. conda). "
-                 "Will be ignored on galaxy releases older than 16.07. "
-                 "Can be overwritten on a per-tool basis in the tools file")
+            help=argparse.SUPPRESS)  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
             "--skip_install_resolver_dependencies",
             action="store_false",

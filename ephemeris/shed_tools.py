@@ -362,7 +362,7 @@ class InstallToolManager(object):
                 installed_repo_list = self.tool_shed_client.get_repositories()
                 for installing_repo in installed_repo_list:
                     if (repository['name'] == installing_repo['name']) and (
-                            installing_repo['owner'] == repository['owner']):
+                                installing_repo['owner'] == repository['owner']):
                         if installing_repo['status'] == 'Installed':
                             return True
                         elif installing_repo['status'] == 'Error':
@@ -468,11 +468,12 @@ def main():
 
     # Get some of the other installation arguments
     kwargs = dict(
-        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or not args.skip_tool_dependencies,
+        default_install_tool_dependencies=tool_list.get(
+            "install_tool_dependencies") or args.install_tool_dependencies,
         default_install_repository_dependencies=tool_list.get(
-            "install_repository_depencies", True),
+            "install_repository_dependencies") or args.install_repository_dependencies,
         default_install_resolver_dependencies=tool_list.get(
-            "install_resolver_dependencies", True)
+            "install_resolver_dependencies") or args.install_resolver_dependencies,
     )
 
     # Start installing/updating and store the results in install_results.

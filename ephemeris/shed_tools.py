@@ -6,7 +6,7 @@ Shed-tools has three commands: update, test and install.
 
 Update simply updates all the tools in a Galaxy given connection details on the command line.
 
-Test: ##PLACEHOLDER##
+Test tests the specified tools in the Galaxy Instance.
 
 Install allows installation of tools in multiple ways.
 Galaxy instance details and the installed tools can be provided in one of three

@@ -106,7 +106,7 @@ def parser():
             "--skip_install_tool_dependencies",
             action="store_false",
             dest="install_tool_dependencies",
-            default=False, # Override True default for this function
+            default=False,  # Override True default for this function
             help=argparse.SUPPRESS)  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
             "--install_tool_dependencies",

@@ -130,7 +130,7 @@ class InstallToolManager(object):
                 repository_list.append(complete_repo)
             except (LookupError, KeyError) as e:
                 if log:
-                    log_repository_install_error(repository, start, e.message, log)
+                    log_repository_install_error(repository, start, str(e), log)
                 errored_repositories.append(repository)
 
         # Filter out already installed repos
@@ -323,7 +323,7 @@ class InstallToolManager(object):
                     log.debug("\tRepository %s already installed (at revision %s)" %
                               (repository['name'], repository['changeset_revision']))
                 return "skipped"
-            elif "504" in e.message:
+            elif "504" in str(e):
                 if log:
                     log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
                 success = self.wait_for_install(repository=repository, log=log, timeout=3600)

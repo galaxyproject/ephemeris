@@ -148,6 +148,7 @@ def parser():
         command_parser.add_argument(
             "--test_json",
             dest="test_json",
+            default="tool_test_output.json",
             help="If testing tools, record tool test output to specified file. "
                  "This file can be turned into reports with ``planemo test_reports <output.json>``."
         )
@@ -194,6 +195,7 @@ def parser():
     # Same test_json as above but language modified for test instead of install/update.
     test_command_parser.add_argument(
         "--test_json",
+        default="tool_test_output.json",
         dest="test_json",
         help="Record tool test output to specified file. "
              "This file can be turned into reports with ``planemo test_reports <output.json>``."

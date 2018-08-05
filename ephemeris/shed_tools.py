@@ -501,13 +501,13 @@ def main():
         to_be_tested_tools = install_results.installed_repositories
         if args.test_existing:
             to_be_tested_tools.extend(install_results.skipped_repositories)
-
-        install_tool_manager.test_tools(
-            test_json=args.test_json,
-            tools=to_be_tested_tools,
-            log=log,
-            test_user_api_key=args.test_user_api_key,
-            test_user=args.test_user)
+        if to_be_tested_tools:
+            install_tool_manager.test_tools(
+                test_json=args.test_json,
+                tools=to_be_tested_tools,
+                log=log,
+                test_user_api_key=args.test_user_api_key,
+                test_user=args.test_user)
 
 
 if __name__ == "__main__":

@@ -228,7 +228,7 @@ def _parser():
                         )
     parser.add_argument("--get_data_managers",
                         action="store_true",
-                        help="Include the data managers in the tool list. Requires login details")
+                        help="Include the data managers in the tool list. Requires admin login details")
     parser.add_argument("--get_all_tools",
                         action="store_true",
                         help="Get all tools and revisions, not just those which are present on the web ui."

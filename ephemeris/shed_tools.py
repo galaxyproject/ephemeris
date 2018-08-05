@@ -134,16 +134,16 @@ class InstallToolManager(object):
                 errored_repositories.append(repository)
 
         # Filter out already installed repos
-        not_installed_repos, already_installed_repos = self.filter_installed_repos(repository_list)
+        filtered_repos = self.filter_installed_repos(repository_list)
 
-        for skipped_repo in already_installed_repos:
+        for skipped_repo in filtered_repos.already_installed_repos:
             counter += 1
             if log:
                 log_repository_install_skip(skipped_repo, counter, total_num_repositories, log)
             skipped_repositories.append(skipped_repo)
 
         # Install repos
-        for repository in not_installed_repos:
+        for repository in filtered_repos.not_installed_repos:
             counter += 1
             log_repository_install_start(repository, counter=counter, installation_start=installation_start, log=log,
                                          total_num_repositories=total_num_repositories)
@@ -190,12 +190,12 @@ class InstallToolManager(object):
         if not tools:  # Tools None or empty list
             tools = self.installed_tools()
         else:
-            not_installed_tools, already_installed_tools = self.filter_installed_repos(tools, check_revision=False)
-            if not_installed_tools:
+            filtered_repos = self.filter_installed_repos(tools, check_revision=False)
+            if filtered_repos.not_installed_tools:
                 if log:
                     log.warning("The following tools are not installed and will not be upgraded: {0}".format(
-                        not_installed_tools))
-            tools = already_installed_tools
+                        filtered_repos.not_installed_tools))
+            tools = filtered_repos.already_installed_tools
         return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
 
     def test_tools(self,

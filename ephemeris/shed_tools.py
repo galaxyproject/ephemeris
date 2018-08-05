@@ -229,7 +229,7 @@ class InstallToolManager(object):
             results = self._test_tool(tool, test_user, test_user_api_key)
             all_test_results.extend(results.tool_test_results)
             tests_passed.extend(results.tests_passed)
-            test_exceptions.extend(results.test_extensions)
+            test_exceptions.extend(results.test_exceptions)
 
         report_obj = {
             'version': '0.1',
@@ -468,13 +468,9 @@ def main():
 
     # Get some of the other installation arguments
     kwargs = dict(
-        default_install_tool_dependencies=tool_list.get(
-            "install_tool_dependencies") or args.install_tool_dependencies,
-        default_install_repository_dependencies=tool_list.get(
-            "install_repository_dependencies") or args.install_repository_dependencies,
-        default_install_resolver_dependencies=tool_list.get(
-            "install_resolver_dependencies") or args.install_resolver_dependencies,
-    )
+        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or getattr(args, "install_tool_dependencies", False),
+        default_install_repository_dependencies=tool_list.get("install_repository_dependencies") or getattr(args, "install_repository_dependencies", False),
+        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies") or getattr(args, "install_resolver_dependencies", False))
 
     # Start installing/updating and store the results in install_results.
     # Or do testing if the action is `test`

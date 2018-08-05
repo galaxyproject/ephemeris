@@ -378,7 +378,7 @@ class InstallToolManager(object):
 
 def log_repository_install_error(repository, start, msg, log):
     """
-    Log failed tool installations. Return a dictionary wiyh information
+    Log failed tool installations. Return a dictionary with information
     """
     end = dt.datetime.now()
     log.error(

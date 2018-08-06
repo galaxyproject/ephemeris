@@ -51,8 +51,8 @@ from .shed_tools_args import parser
 from .shed_tools_methods import complete_repo_information, flatten_repo_info
 
 
-class InstallToolManager(object):
-    """Manages the installation of new tools on a galaxy instance"""
+class InstallRepositoryManager(object):
+    """Manages the installation of new repositories on a galaxy instance"""
 
     def __init__(self,
                  galaxy_instance):
@@ -60,7 +60,7 @@ class InstallToolManager(object):
         self.gi = galaxy_instance
         self.tool_shed_client = ToolShedClient(self.gi)
 
-    def installed_tools(self):
+    def installed_repositories(self):
         """Get currently installed tools"""
         return GiToToolYaml(
             gi=self.gi,
@@ -71,17 +71,17 @@ class InstallToolManager(object):
 
     def filter_installed_repos(self, repos, check_revision=True):
         # TODO: Find a speedier algorithm.
-        """This filters a list of tools"""
+        """This filters a list of repositories"""
         not_installed_repos = []
         already_installed_repos = []
         if check_revision:
             # If we want to check if revisions are equal, flatten the list,
-            # so each tool - revision combination has its own entry
-            installed_repos = flatten_repo_info(self.installed_tools())
+            # so each repository - revision combination has its own entry
+            installed_repos = flatten_repo_info(self.installed_repositories())
         else:
             # If we do not care about revision equality, do not do the flatten
             # action to limit the number of comparisons.
-            installed_repos = self.installed_tools()
+            installed_repos = self.installed_repositories()
 
         for repo in repos:
             for installed_repo in installed_repos:
@@ -93,16 +93,16 @@ class InstallToolManager(object):
         FilterResults = namedtuple("FilterResults", ["not_installed_repos", "already_installed_repos"])
         return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos=not_installed_repos)
 
-    def install_tools(self,
-                      tools,
-                      log=None,
-                      force_latest_revision=False,
-                      default_toolshed='https://toolshed.g2.bx.psu.edu/',
-                      default_install_tool_dependencies=False,
-                      default_install_resolver_dependencies=True,
-                      default_install_repository_dependencies=True):
+    def install_repositories(self,
+                             repositories,
+                             log=None,
+                             force_latest_revision=False,
+                             default_toolshed='https://toolshed.g2.bx.psu.edu/',
+                             default_install_tool_dependencies=False,
+                             default_install_resolver_dependencies=True,
+                             default_install_repository_dependencies=True):
         """Install a list of tools on the current galaxy"""
-        if not tools:
+        if not repositories:
             raise ValueError("Empty list of tools was given")
         installation_start = dt.datetime.now()
         installed_repositories = []
@@ -111,10 +111,10 @@ class InstallToolManager(object):
         counter = 0
 
         # Start by flattening the repo list per revision
-        flattened_repos = flatten_repo_info(tools)
+        flattened_repos = flatten_repo_info(repositories)
         total_num_repositories = len(flattened_repos)
 
-        # Complete the repo information, and make sure each tool has a revision
+        # Complete the repo information, and make sure each repository has a revision
         repository_list = []
         for repository in flattened_repos:
             start = dt.datetime.now()
@@ -186,37 +186,37 @@ class InstallToolManager(object):
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)
 
-    def update_tools(self, tools=None, log=None, **kwargs):
-        if not tools:  # Tools None or empty list
-            tools = self.installed_tools()
+    def update_repositories(self, repositories=None, log=None, **kwargs):
+        if not repositories:  # Repositories None or empty list
+            repositories = self.installed_repositories()
         else:
-            filtered_repos = self.filter_installed_repos(tools, check_revision=False)
-            if filtered_repos.not_installed_tools:
+            filtered_repos = self.filter_installed_repos(repositories, check_revision=False)
+            if filtered_repos.not_installed_repos:
                 if log:
                     log.warning("The following tools are not installed and will not be upgraded: {0}".format(
-                        filtered_repos.not_installed_tools))
-            tools = filtered_repos.already_installed_tools
-        return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
+                        filtered_repos.not_installed_repos))
+            repositories = filtered_repos.already_installed_repos
+        return self.install_repositories(repositories, force_latest_revision=True, log=log, **kwargs)
 
     def test_tools(self,
                    test_json,
-                   tools=None,
+                   repositories=None,
                    log=None,
                    test_user_api_key=None,
                    test_user="ephemeris@galaxyproject.org"
                    ):
-        """Run tool tests for each tool in supplied tool list list or ``self.installed_tools()``.
+        """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
         tool_test_start = dt.datetime.now()
         tests_passed = []
         test_exceptions = []
 
-        if not tools:  # If tools is None or empty list
+        if not repositories:  # If repositories is None or empty list
             # Consider a variant of this that doesn't even consume a tool list YAML? target
             # something like installed_repository_revisions(self.gi)
-            tools = self.installed_tools()
+            repositories = self.installed_repositories()
 
-        target_repositories = flatten_repo_info(tools)
+        target_repositories = flatten_repo_info(repositories)
 
         installed_tools = []
         for target_repository in target_repositories:
@@ -352,7 +352,7 @@ class InstallToolManager(object):
     def wait_for_install(self, repository, log=None, timeout=3600):
         """
         If nginx times out, we look into the list of installed repositories
-        and try to determine if a tool of the same namer/owner is still installing.
+        and try to determine if a repository of the same namer/owner is still installing.
         Returns True if install finished successfully,
         returns False when timeout is exceeded or installation has failed.
         """
@@ -362,7 +362,7 @@ class InstallToolManager(object):
                 installed_repo_list = self.tool_shed_client.get_repositories()
                 for installing_repo in installed_repo_list:
                     if (repository['name'] == installing_repo['name']) and (
-                                installing_repo['owner'] == repository['owner']):
+                            installing_repo['owner'] == repository['owner']):
                         if installing_repo['status'] == 'Installed':
                             return True
                         elif installing_repo['status'] == 'Error':
@@ -378,7 +378,7 @@ class InstallToolManager(object):
 
 def log_repository_install_error(repository, start, msg, log):
     """
-    Log failed tool installations. Return a dictionary with information
+    Log failed repository installations. Return a dictionary with information
     """
     end = dt.datetime.now()
     log.error(
@@ -393,7 +393,7 @@ def log_repository_install_error(repository, start, msg, log):
 def log_repository_install_success(repository, start, log):
     """
     Log successful repository installation.
-    Tools that finish in error still count as successful installs currently.
+    Repositories that finish in error still count as successful installs currently.
     """
     end = dt.datetime.now()
     log.debug(
@@ -430,14 +430,14 @@ def log_repository_install_start(repository, counter, total_num_repositories, in
     )
 
 
-def args_to_tools(args):
+def args_to_repos(args):
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
-        tools = tool_list['tools']
+        repos = tool_list['tools']
     elif args.tool_yaml:
-        tools = [yaml.safe_load(args.tool_yaml)]
+        repos = [yaml.safe_load(args.tool_yaml)]
     elif args.name and args.owner:
-        tool = dict(
+        repo = dict(
             owner=args.owner,
             name=args.name,
             tool_panel_section_id=args.tool_panel_section_id,
@@ -445,11 +445,11 @@ def args_to_tools(args):
             revisions=args.revisions
         )
         if args.tool_shed_url:
-            tool["tool_shed_url"] = args.tool_shed_url
-        tools = [tool]
+            repo["tool_shed_url"] = args.tool_shed_url
+        repos = [repo]
     else:
-        tools = []
-    return tools
+        repos = []
+    return repos
 
 
 def main():
@@ -457,9 +457,9 @@ def main():
     args = parser().parse_args()
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
-    install_tool_manager = InstallToolManager(gi)
+    install_repository_manager = InstallRepositoryManager(gi)
 
-    tools = args_to_tools(args)
+    repos = args_to_repos(args)
 
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
@@ -468,28 +468,34 @@ def main():
 
     # Get some of the other installation arguments
     kwargs = dict(
-        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or getattr(args, "install_tool_dependencies", False),
-        default_install_repository_dependencies=tool_list.get("install_repository_dependencies") or getattr(args, "install_repository_dependencies", False),
-        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies") or getattr(args, "install_resolver_dependencies", False))
+        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or getattr(args,
+                                                                                                "install_tool_dependencies",
+                                                                                                False),
+        default_install_repository_dependencies=tool_list.get("install_repository_dependencies") or getattr(args,
+                                                                                                            "install_repository_dependencies",
+                                                                                                            False),
+        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies") or getattr(args,
+                                                                                                        "install_resolver_dependencies",
+                                                                                                        False))
 
     # Start installing/updating and store the results in install_results.
     # Or do testing if the action is `test`
     install_results = None
     if args.action == "update":
-        install_results = install_tool_manager.update_tools(
-            tools=tools,
+        install_results = install_repository_manager.update_repositories(
+            repositories=repos,
             log=log,
             **kwargs)
     elif args.action == "install":
-        install_results = install_tool_manager.install_tools(
-            tools,
+        install_results = install_repository_manager.install_repositories(
+            repos,
             log=log,
             force_latest_revision=args.force_latest_revision,
             **kwargs)
     elif args.action == "test":
-        install_tool_manager.test_tools(
+        install_repository_manager.test_tools(
             test_json=args.test_json,
-            tools=tools,
+            repositories=repos,
             log=log,
             test_user_api_key=args.test_user_api_key,
             test_user=args.test_user)
@@ -498,13 +504,13 @@ def main():
 
     # Run tests on the install results if required.
     if install_results and args.test or args.test_existing:
-        to_be_tested_tools = install_results.installed_repositories
+        to_be_tested_repositories = install_results.installed_repositories
         if args.test_existing:
-            to_be_tested_tools.extend(install_results.skipped_repositories)
-        if to_be_tested_tools:
-            install_tool_manager.test_tools(
+            to_be_tested_repositories.extend(install_results.skipped_repositories)
+        if to_be_tested_repositories:
+            install_repository_manager.test_tools(
                 test_json=args.test_json,
-                tools=to_be_tested_tools,
+                repositories=to_be_tested_repositories,
                 log=log,
                 test_user_api_key=args.test_user_api_key,
                 test_user=args.test_user)

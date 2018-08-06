@@ -136,7 +136,7 @@ class GiToToolYaml:
     @property
     def tool_list(self):
         repo_list = self.repository_list
-        repo_list = merge_tool_changeset_revisions(repo_list)
+        repo_list = merge_repository_changeset_revisions(repo_list)
         repo_list = self.filter_section_name_or_id_or_changeset(repo_list)
         return {"tools": repo_list}
 
@@ -159,8 +159,8 @@ class GiToToolYaml:
 
 def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
     """
-    Given two dicts containing info about tools, determine if they are the same
-    tool.
+    Given two dicts containing info about repositories, determine if they are the same
+    repository.
     Each of the dicts must have the following keys: `changeset_revisions`( if check revisions is true), `name`, `owner`, and
     (either `tool_shed` or `tool_shed_url`).
     """
@@ -175,19 +175,19 @@ def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
     return False
 
 
-def merge_tool_changeset_revisions(repository_list):
+def merge_repository_changeset_revisions(repository_list):
     """
     Each installed changeset revision of a tool is listed individually.
     Merge revisions of the same tool into a list.
     """
     repositories = {}
     repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
-    for tool in repository_list:
-        repo_key = repo_key_template.format(**tool)
+    for repo in repository_list:
+        repo_key = repo_key_template.format(**repo)
         if repo_key in repositories:
-            repositories[repo_key].extend(tool['revisions'])
+            repositories[repo_key].extend(repo['revisions'])
         else:
-            repositories[repo_key] = tool['revisions']
+            repositories[repo_key] = repo['revisions']
     new_repository_list = []
     for repo_key, changeset_revisions in repositories.items():
         changeset_revisions = list(set(changeset_revisions))

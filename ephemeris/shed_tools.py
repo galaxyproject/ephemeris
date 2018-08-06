@@ -130,20 +130,20 @@ class InstallToolManager(object):
                 repository_list.append(complete_repo)
             except (LookupError, KeyError) as e:
                 if log:
-                    log_repository_install_error(repository, start, e.message, log)
+                    log_repository_install_error(repository, start, str(e), log)
                 errored_repositories.append(repository)
 
         # Filter out already installed repos
-        not_installed_repos, already_installed_repos = self.filter_installed_repos(repository_list)
+        filtered_repos = self.filter_installed_repos(repository_list)
 
-        for skipped_repo in already_installed_repos:
+        for skipped_repo in filtered_repos.already_installed_repos:
             counter += 1
             if log:
                 log_repository_install_skip(skipped_repo, counter, total_num_repositories, log)
             skipped_repositories.append(skipped_repo)
 
         # Install repos
-        for repository in not_installed_repos:
+        for repository in filtered_repos.not_installed_repos:
             counter += 1
             log_repository_install_start(repository, counter=counter, installation_start=installation_start, log=log,
                                          total_num_repositories=total_num_repositories)
@@ -190,12 +190,12 @@ class InstallToolManager(object):
         if not tools:  # Tools None or empty list
             tools = self.installed_tools()
         else:
-            not_installed_tools, already_installed_tools = self.filter_installed_repos(tools, check_revision=False)
-            if not_installed_tools:
+            filtered_repos = self.filter_installed_repos(tools, check_revision=False)
+            if filtered_repos.not_installed_tools:
                 if log:
                     log.warning("The following tools are not installed and will not be upgraded: {0}".format(
-                        not_installed_tools))
-            tools = already_installed_tools
+                        filtered_repos.not_installed_tools))
+            tools = filtered_repos.already_installed_tools
         return self.install_tools(tools, force_latest_revision=True, log=log, **kwargs)
 
     def test_tools(self,
@@ -229,7 +229,7 @@ class InstallToolManager(object):
             results = self._test_tool(tool, test_user, test_user_api_key)
             all_test_results.extend(results.tool_test_results)
             tests_passed.extend(results.tests_passed)
-            test_exceptions.extend(results.test_extensions)
+            test_exceptions.extend(results.test_exceptions)
 
         report_obj = {
             'version': '0.1',
@@ -323,7 +323,7 @@ class InstallToolManager(object):
                     log.debug("\tRepository %s already installed (at revision %s)" %
                               (repository['name'], repository['changeset_revision']))
                 return "skipped"
-            elif "504" in e.message:
+            elif "504" in str(e):
                 if log:
                     log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
                 success = self.wait_for_install(repository=repository, log=log, timeout=3600)
@@ -378,7 +378,7 @@ class InstallToolManager(object):
 
 def log_repository_install_error(repository, start, msg, log):
     """
-    Log failed tool installations. Return a dictionary wiyh information
+    Log failed tool installations. Return a dictionary with information
     """
     end = dt.datetime.now()
     log.error(
@@ -468,13 +468,9 @@ def main():
 
     # Get some of the other installation arguments
     kwargs = dict(
-        default_install_tool_dependencies=tool_list.get(
-            "install_tool_dependencies") or args.install_tool_dependencies,
-        default_install_repository_dependencies=tool_list.get(
-            "install_repository_dependencies") or args.install_repository_dependencies,
-        default_install_resolver_dependencies=tool_list.get(
-            "install_resolver_dependencies") or args.install_resolver_dependencies,
-    )
+        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or getattr(args, "install_tool_dependencies", False),
+        default_install_repository_dependencies=tool_list.get("install_repository_dependencies") or getattr(args, "install_repository_dependencies", False),
+        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies") or getattr(args, "install_resolver_dependencies", False))
 
     # Start installing/updating and store the results in install_results.
     # Or do testing if the action is `test`
@@ -505,13 +501,13 @@ def main():
         to_be_tested_tools = install_results.installed_repositories
         if args.test_existing:
             to_be_tested_tools.extend(install_results.skipped_repositories)
-
-        install_tool_manager.test_tools(
-            test_json=args.test_json,
-            tools=to_be_tested_tools,
-            log=log,
-            test_user_api_key=args.test_user_api_key,
-            test_user=args.test_user)
+        if to_be_tested_tools:
+            install_tool_manager.test_tools(
+                test_json=args.test_json,
+                tools=to_be_tested_tools,
+                log=log,
+                test_user_api_key=args.test_user_api_key,
+                test_user=args.test_user)
 
 
 if __name__ == "__main__":

@@ -115,21 +115,22 @@ class GiToToolYaml:
             # If someone knows a more effecient way around this problem it
             # will be greatly appreciated.
             for repo in repos:
-                for repo_with_panel in tools_with_panel:
-                    tool_panel_section_id = None
-                    tool_panel_section_label = None
-                    if the_same_repository(repo_with_panel, repo, check_revision=False):
-                        tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
-                        tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
-                        break
-                repositories.append(
-                    dict(name=repo.get('name'),
-                         owner=repo.get('owner'),
-                         tool_shed_url=repo.get('tool_shed'),
-                         revisions=[repo.get('changeset_revision')],
-                         tool_panel_section_label=tool_panel_section_label,
-                         tool_panel_section_id=tool_panel_section_id)
-                )
+                if not repo['deleted']:
+                    for repo_with_panel in tools_with_panel:
+                        tool_panel_section_id = None
+                        tool_panel_section_label = None
+                        if the_same_repository(repo_with_panel, repo, check_revision=False):
+                            tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
+                            tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
+                            break
+                    repositories.append(
+                        dict(name=repo.get('name'),
+                             owner=repo.get('owner'),
+                             tool_shed_url=repo.get('tool_shed'),
+                             revisions=[repo.get('changeset_revision')],
+                             tool_panel_section_label=tool_panel_section_label,
+                             tool_panel_section_id=tool_panel_section_id)
+                    )
         return repositories
 
     @property
@@ -227,7 +228,7 @@ def _parser():
                         )
     parser.add_argument("--get_data_managers",
                         action="store_true",
-                        help="Include the data managers in the tool list. Requires login details")
+                        help="Include the data managers in the tool list. Requires admin login details")
     parser.add_argument("--get_all_tools",
                         action="store_true",
                         help="Get all tools and revisions, not just those which are present on the web ui."

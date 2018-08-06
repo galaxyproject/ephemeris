@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """Tool to extract a tool list from galaxy."""
 
-
 from argparse import ArgumentDefaultsHelpFormatter
 from argparse import ArgumentParser
 from distutils.version import StrictVersion
 
 import yaml
 from bioblend.galaxy.tools import ToolClient
+from bioblend.galaxy.toolshed import ToolShedClient
 
 from . import get_galaxy_connection
 from .common_parser import get_common_args
@@ -59,16 +59,15 @@ class GiToToolYaml:
                  include_tool_panel_section_id=False,
                  skip_tool_panel_section_name=True,
                  skip_changeset_revision=False,
-                 get_data_managers=False):
+                 get_data_managers=False,
+                 get_all_tools=False):
         self.gi = gi
+
         self.include_tool_panel_section_id = include_tool_panel_section_id
         self.skip_tool_panel_section_name = skip_tool_panel_section_name
         self.skip_changeset_revision = skip_changeset_revision
         self.get_data_managers = get_data_managers
-        self.repository_list = self.get_repositories()
-        self.repository_list = self.merge_tool_changeset_revisions()
-        self.filter_section_name_or_id_or_changeset()
-        self.tool_list = {"tools": self.repository_list}
+        self.get_all_tools = get_all_tools
 
     @property
     def toolbox(self):
@@ -86,7 +85,8 @@ class GiToToolYaml:
         tool_client = ToolClient(self.gi)
         return tool_client.get_tools()
 
-    def get_repositories(self):
+    @property
+    def repository_list(self):
         """
         Toolbox elements returned by api/tools may be of class ToolSection or Tool.
         Parse these accordingly to get a list of repositories.
@@ -104,54 +104,107 @@ class GiToToolYaml:
             for tool in self.installed_tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
                     repositories.append(get_repo_from_tool(tool))
+
+        if self.get_all_tools:
+            tools_with_panel = repositories[:]
+            tsc = ToolShedClient(self.gi)
+            repos = tsc.get_repositories()
+            # Hereafter follows a gruesomely ineffecient algorithm.
+            # The for loop and if statement are needed to retrieve tool_panel
+            # section labels and ids.
+            # If someone knows a more effecient way around this problem it
+            # will be greatly appreciated.
+            for repo in repos:
+                if not repo['deleted']:
+                    for repo_with_panel in tools_with_panel:
+                        tool_panel_section_id = None
+                        tool_panel_section_label = None
+                        if the_same_repository(repo_with_panel, repo, check_revision=False):
+                            tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
+                            tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
+                            break
+                    repositories.append(
+                        dict(name=repo.get('name'),
+                             owner=repo.get('owner'),
+                             tool_shed_url=repo.get('tool_shed'),
+                             revisions=[repo.get('changeset_revision')],
+                             tool_panel_section_label=tool_panel_section_label,
+                             tool_panel_section_id=tool_panel_section_id)
+                    )
         return repositories
 
-    def merge_tool_changeset_revisions(self):
-        """
-        Each installed changeset revision of a tool is listed individually.
-        Merge revisions of the same tool into a list.
-        """
-        repositories = {}
-        repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
-        for tool in self.repository_list:
-            repo_key = repo_key_template.format(**tool)
-            if repo_key in repositories:
-                repositories[repo_key].extend(tool['revisions'])
-            else:
-                repositories[repo_key] = tool['revisions']
-        new_repository_list = []
-        for repo_key, changeset_revisions in repositories.items():
-            changeset_revisions = list(set(changeset_revisions))
-            tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
-            new_repository_list.append(
-                {'tool_shed_url': tool_shed_url,
-                 'name': name,
-                 'owner': owner,
-                 'tool_panel_section_id': tool_panel_section_id,
-                 'tool_panel_section_label': tool_panel_section_label,
-                 'revisions': changeset_revisions}
-            )
-        return new_repository_list
+    @property
+    def tool_list(self):
+        repo_list = self.repository_list
+        repo_list = merge_repository_changeset_revisions(repo_list)
+        repo_list = self.filter_section_name_or_id_or_changeset(repo_list)
+        return {"tools": repo_list}
 
-    def filter_section_name_or_id_or_changeset(self):
-        repo_list = []
-        for repo in self.repository_list:
+    def filter_section_name_or_id_or_changeset(self, repository_list):
+        new_repo_list = []
+        for repo in repository_list:
             if self.skip_tool_panel_section_name:
                 del repo['tool_panel_section_label']
             if not self.include_tool_panel_section_id:
                 del repo['tool_panel_section_id']
             if self.skip_changeset_revision:
                 del repo['revisions']
-            repo_list.append(repo)
-        self.repository_list = repo_list
+            new_repo_list.append(repo)
+        return new_repo_list
 
     def write_to_yaml(self, output_file):
         with open(output_file, "w") as output:
             output.write(yaml.safe_dump(self.tool_list, default_flow_style=False))
 
 
+def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
+    """
+    Given two dicts containing info about repositories, determine if they are the same
+    repository.
+    Each of the dicts must have the following keys: `changeset_revisions`( if check revisions is true), `name`, `owner`, and
+    (either `tool_shed` or `tool_shed_url`).
+    """
+    # Sort from most unique to least unique for fast comparison.
+    if not check_revision or repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
+        if repo_1_info.get('name') == repo_2_info.get('name'):
+            if repo_1_info.get('owner') == repo_2_info.get('owner'):
+                t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
+                t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
+                if t1ts in t2ts or t2ts in t1ts:
+                    return True
+    return False
+
+
+def merge_repository_changeset_revisions(repository_list):
+    """
+    Each installed changeset revision of a tool is listed individually.
+    Merge revisions of the same tool into a list.
+    """
+    repositories = {}
+    repo_key_template = "{tool_shed_url}|{name}|{owner}|{tool_panel_section_id}|{tool_panel_section_label}"
+    for repo in repository_list:
+        repo_key = repo_key_template.format(**repo)
+        if repo_key in repositories:
+            repositories[repo_key].extend(repo['revisions'])
+        else:
+            repositories[repo_key] = repo['revisions']
+    new_repository_list = []
+    for repo_key, changeset_revisions in repositories.items():
+        changeset_revisions = list(set(changeset_revisions))
+        tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
+        new_repository_list.append(
+            {'tool_shed_url': tool_shed_url,
+             'name': name,
+             'owner': owner,
+             'tool_panel_section_id': tool_panel_section_id,
+             'tool_panel_section_label': tool_panel_section_label,
+             'revisions': changeset_revisions}
+        )
+    return new_repository_list
+
+
 def _parser():
-    '''Creates the parser object.'''
+    """Creates the parser object."""
     parent = get_common_args(login_required=True)
     parser = ArgumentParser(parents=[parent],
                             formatter_class=ArgumentDefaultsHelpFormatter)
@@ -175,7 +228,11 @@ def _parser():
                         )
     parser.add_argument("--get_data_managers",
                         action="store_true",
-                        help="Include the data managers in the tool list. Requires login details")
+                        help="Include the data managers in the tool list. Requires admin login details")
+    parser.add_argument("--get_all_tools",
+                        action="store_true",
+                        help="Get all tools and revisions, not just those which are present on the web ui."
+                             "Requires login details.")
     return parser
 
 
@@ -218,7 +275,8 @@ def main():
         include_tool_panel_section_id=options.include_tool_panel_id,
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
-        get_data_managers=options.get_data_managers)
+        get_data_managers=options.get_data_managers,
+        get_all_tools=options.get_all_tools)
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

@@ -28,7 +28,7 @@ def get_galaxy_connection(args, file=None, log=None, login_required=True):
     """
     Return a Galaxy connection, given a user or an API key.
     If not given gets the arguments from the file.
-    If either is missing returns None.
+    If either is missing raise ValueError.
     """
     if file:
         file_content = load_yaml_file(file)
@@ -45,7 +45,8 @@ def get_galaxy_connection(args, file=None, log=None, login_required=True):
         return galaxy.GalaxyInstance(url=galaxy_url, key=api_key)
     elif not login_required:
         return galaxy.GalaxyInstance(url=galaxy_url)
-    return None
+    else:
+        raise ValueError("Missing api key or user & password combination, in order to make a galaxy connection.")
 
 
 def load_yaml_file(filename):

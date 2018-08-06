@@ -8,5 +8,5 @@ Usage
 
 .. argparse::
    :module: ephemeris.shed_tools
-   :func: _parser
+   :func: parser
    :prog: shed-tools

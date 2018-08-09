@@ -2,6 +2,9 @@
 tox
 nose
 coverage
+pytest
+pytest-cov
+codacy-coverage
 
 #Building Docs
 sphinx_rtd_theme

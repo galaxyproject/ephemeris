@@ -4,12 +4,9 @@
 import ast
 import os
 import re
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
 
-SOURCE_DIR = "ephemeris"
+SOURCE_DIR = "src/ephemeris"
 
 _version_re = re.compile(r'__version__\s+=\s+(.*)')
 
@@ -30,9 +27,6 @@ with open('%s/__init__.py' % SOURCE_DIR, 'rb') as f:
 
 TEST_DIR = 'tests'
 PROJECT_DESCRIPTION = 'Ephemeris is an opinionated library and set of scripts for managing the bootstrapping of Galaxy project plugins - tools, index data, and workflows.'
-PACKAGES = [
-    'ephemeris',
-]
 ENTRY_POINTS = '''
         [console_scripts]
         get-tool-list=ephemeris.get_tool_list_from_galaxy:main
@@ -73,10 +67,10 @@ setup(
     author=PROJECT_AUTHOR,
     author_email=PROJECT_EMAIL,
     url=PROJECT_URL,
-    packages=PACKAGES,
+    packages=find_packages('src'),
     entry_points=ENTRY_POINTS,
     package_data=PACKAGE_DATA,
-    package_dir=PACKAGE_DIR,
+    package_dir={'': 'src'},
     include_package_data=True,
     install_requires=requirements,
     license="AFL",

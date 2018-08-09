@@ -28,10 +28,7 @@ matrix:
 
 install:
     - sudo rm /etc/boto.cfg
-    # Setup git to allow git operations.
-    - git config --global user.name "Travis Test User"
-    - git config --global user.email "galaxy_test@galaxyproject.org"
-    - pip install tox coveralls
+    - pip install tox
     - python setup.py install
 
 script:

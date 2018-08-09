@@ -1,6 +1,21 @@
 from bioblend.toolshed import ToolShedInstance
 
 
+def valid_keys():
+    """"Returns a list of keys valids for tool_shed_installation"""
+    return [
+        "name",
+        "owner",
+        "changeset_revision",
+        "tool_panel_section_id",
+        "tool_panel_section_label",
+        "tool_panel_shed_url",
+        "install_repository_dependencies",
+        "install_resolver_dependencies",
+        "install_tool_dependencies"
+    ]
+
+
 def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info, default_install_tool_dependencies,
                               default_install_repository_dependencies,
                               default_install_resolver_dependencies, force_latest_revision):
@@ -67,21 +82,25 @@ def flatten_repo_info(repositories):
              that if an input element contained `revisions` key with multiple
              values, those will be returned as separate list items.
     """
+
     flattened_list = []
     for repo_info in repositories:
+        new_repo_info = dict()
+        for key, value in repo_info.iteritems():
+            if key in valid_keys():
+                new_repo_info[key] = value
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
-            repo_info.pop('revisions', None)  # Set default to avoid key error  when removing revisions
             if not revisions:  # Revisions are empty list or None
-                flattened_list.append(repo_info)
+                flattened_list.append(new_repo_info)
             else:
                 for revision in revisions:
                     # A new dictionary must be created, otherwise there will
                     # be aliasing of dictionaries. Which leads to multiple
                     # repos with the same revision in the end result.
-                    new_repo_info = dict(**repo_info)
-                    new_repo_info['changeset_revision'] = revision
-                    flattened_list.append(new_repo_info)
+                    new_revision_dict = dict(**new_repo_info)
+                    new_revision_dict['changeset_revision'] = revision
+                    flattened_list.append(new_revision_dict)
         else:  # Revision was not defined at all
-            flattened_list.append(repo_info)
+            flattened_list.append(new_repo_info)
     return flattened_list

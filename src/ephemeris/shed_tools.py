@@ -112,7 +112,7 @@ class InstallRepositoryManager(object):
 
         # Check repos for invalid keys
         for repo in repositories:
-            for key in repo.iterkeys():
+            for key in repo.keys():
                 if key not in valid_keys().append('revisions'):
                     if log:
                         log.warning("'{0}' not a valid key. Will be skipped during parsing")

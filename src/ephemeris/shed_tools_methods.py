@@ -1,6 +1,5 @@
 from bioblend.toolshed import ToolShedInstance
 
-
 def valid_keys():
     """"Returns a list of keys valids for tool_shed_installation"""
     return [
@@ -86,7 +85,7 @@ def flatten_repo_info(repositories):
     flattened_list = []
     for repo_info in repositories:
         new_repo_info = dict()
-        for key, value in repo_info.iteritems():
+        for key, value in repo_info.items():
             if key in valid_keys():
                 new_repo_info[key] = value
         if 'revisions' in repo_info:

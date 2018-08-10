@@ -1,5 +1,6 @@
 from bioblend.toolshed import ToolShedInstance
 
+
 def valid_keys():
     """"Returns a list of keys valids for tool_shed_installation"""
     return [

@@ -113,9 +113,9 @@ class InstallRepositoryManager(object):
         # Check repos for invalid keys
         for repo in repositories:
             for key in repo.keys():
-                if key not in valid_keys().append('revisions'):
+                if key not in valid_keys() and key != 'revisions':
                     if log:
-                        log.warning("'{0}' not a valid key. Will be skipped during parsing")
+                        log.warning("'{0}' not a valid key. Will be skipped during parsing".format(key))
 
         # Start by flattening the repo list per revision
         flattened_repos = flatten_repo_info(repositories)

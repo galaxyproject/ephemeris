@@ -1,15 +1,13 @@
 #!/usr/bin/env python
-
-from ephemeris.shed_tools import InstallRepositoryManager
-from bioblend.galaxy import GalaxyInstance
 import logging
 
+from bioblend.galaxy import GalaxyInstance
 from docker_for_galaxy import start_container
 
+from ephemeris.shed_tools import InstallRepositoryManager
 
 
 def test_invalid_keys_in_repo_list(caplog):
-
     container = start_container()
     gi = GalaxyInstance(container.url, key="admin")
     irm = InstallRepositoryManager(gi)
@@ -18,6 +16,6 @@ def test_invalid_keys_in_repo_list(caplog):
         dict(name="bwa",
              owner="devteam",
              tool_panel_section_name="NGS: Alignment",
-             sesame_ouvre_toi = "Invalid key")
-    ])
+             sesame_ouvre_toi="Invalid key")
+    ], log=logging.getLogger())
     assert "'sesame_ouvre_toi' not a valid key. Will be skipped during parsing" in caplog.text

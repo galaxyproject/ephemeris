@@ -36,7 +36,7 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
-def wait(galaxy_url, timeout, verbose = False):
+def wait(galaxy_url, timeout, verbose=False):
     count = 0
     while True:
         try:
@@ -62,6 +62,7 @@ def wait(galaxy_url, timeout, verbose = False):
             sys.exit(1)
 
         time.sleep(1)
+
 
 def main():
     """

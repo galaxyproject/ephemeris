@@ -48,7 +48,7 @@ from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
 from .get_tool_list_from_galaxy import GiToToolYaml, the_same_repository, tools_for_repository
 from .shed_tools_args import parser
-from .shed_tools_methods import complete_repo_information, flatten_repo_info, valid_keys
+from .shed_tools_methods import complete_repo_information, flatten_repo_info, VALID_KEYS
 
 
 class InstallRepositoryManager(object):
@@ -112,10 +112,10 @@ class InstallRepositoryManager(object):
 
         # Check repos for invalid keys
         for repo in repositories:
-            for key in repo.iterkeys():
-                if key not in valid_keys().append('revisions'):
+            for key in repo.keys():
+                if key not in VALID_KEYS and key != 'revisions':
                     if log:
-                        log.warning("'{0}' not a valid key. Will be skipped during parsing")
+                        log.warning("'{0}' not a valid key. Will be skipped during parsing".format(key))
 
         # Start by flattening the repo list per revision
         flattened_repos = flatten_repo_info(repositories)

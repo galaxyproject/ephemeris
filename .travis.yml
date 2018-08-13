@@ -11,7 +11,7 @@ matrix:
     - python: 3.5
       env: TOX_ENV=py35-pytest
     - python: 2.7
-      env: TOX_ENV=py37-pytest
+      env: TOX_ENV=py27-pytest
     - python: 2.7
       env: TOX_ENV=py27
       services:

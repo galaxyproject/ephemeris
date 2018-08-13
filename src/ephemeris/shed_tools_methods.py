@@ -7,7 +7,7 @@ VALID_KEYS = [
         "changeset_revision",
         "tool_panel_section_id",
         "tool_panel_section_label",
-        "tool_panel_shed_url",
+        "tool_shed_url",
         "install_repository_dependencies",
         "install_resolver_dependencies",
         "install_tool_dependencies"

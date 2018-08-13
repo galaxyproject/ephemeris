@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from ephemeris.shed_tools_methods import *
+from ephemeris.shed_tools_methods import flatten_repo_info
 
 
 def test_flatten_repo_info():
@@ -28,3 +28,16 @@ def test_flatten_repo_info():
              owner="devteam",
              tool_panel_section_label="NGS: Alignment")
     ])
+
+def test_flatten_repo_info_invalid_key():
+    test_repositories = [
+        dict(name="bwa",
+             owner="devteam",
+             tool_panel_section_label="NGS: Alignment",
+             tool_shed_url = "toolshed.g2.bx.psu.edu",
+             sesame_ouvre_toi = "This is an invalid key")
+    ]
+    flattened_repos = flatten_repo_info(test_repositories)
+
+    assert "sesame_ouvre_toi" not in flattened_repos[0].keys()
+    assert "tool_shed_url" in flattened_repos[0].keys()

@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 import docker
+import pytest
 
 from ephemeris.sleep import wait
 
@@ -11,6 +12,7 @@ client = docker.from_env()
 GalaxyContainer = namedtuple('GalaxyContainer', ['url', 'container', 'attributes'])
 
 
+@pytest.fixture
 def start_container(**kwargs):
     # We start a container from the galaxy image. We detach it. Port 80 is exposed to the host at a random port.
     # The random port is because we need mac compatibility. On GNU/linux a better option would be not to expose it

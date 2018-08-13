@@ -8,34 +8,35 @@ def test_flatten_repo_info():
         dict(name="bwa",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment",
-             revisions = ["1","2"]),
+             revisions=["1", "2"]),
         dict(name="bowtie2",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment",
-             changeset_revisions= ["3", "4"])
+             changeset_revisions=["3", "4"])
     ]
     flattened_repos = flatten_repo_info(test_repositories)
-    assert(flattened_repos == [
+    assert (flattened_repos == [
         dict(name="bwa",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment",
-             changeset_revision = "1"),
+             changeset_revision="1"),
         dict(name="bwa",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment",
-             changeset_revision = "2"),
+             changeset_revision="2"),
         dict(name="bowtie2",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment")
     ])
+
 
 def test_flatten_repo_info_invalid_key():
     test_repositories = [
         dict(name="bwa",
              owner="devteam",
              tool_panel_section_label="NGS: Alignment",
-             tool_shed_url = "toolshed.g2.bx.psu.edu",
-             sesame_ouvre_toi = "This is an invalid key")
+             tool_shed_url="toolshed.g2.bx.psu.edu",
+             sesame_ouvre_toi="This is an invalid key")
     ]
     flattened_repos = flatten_repo_info(test_repositories)
 

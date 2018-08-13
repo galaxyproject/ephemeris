@@ -36,37 +36,41 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
+def wait(galaxy_url, timeout, verbose = False):
+    count = 0
+    while True:
+        try:
+            result = requests.get(galaxy_url + '/api/version')
+            try:
+                result = result.json()
+                if verbose:
+                    sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
+                break
+            except ValueError:
+                if verbose:
+                    sys.stdout.write("[%02d] No valid json returned... %s\n" % (count, result.__str__()))
+                    sys.stdout.flush()
+        except requests.exceptions.ConnectionError as e:
+            if verbose:
+                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, str(e)[0:100]))
+                sys.stdout.flush()
+        count += 1
+
+        # If we cannot talk to galaxy and are over the timeout
+        if timeout != 0 and count > timeout:
+            sys.stderr.write("Failed to contact Galaxy\n")
+            sys.exit(1)
+
+        time.sleep(1)
+
 def main():
     """
     Main function
     """
     options = _parse_cli_options()
 
-    count = 0
-    while True:
-        try:
-            result = requests.get(options.galaxy + '/api/version')
-            try:
-                result = result.json()
-                if options.verbose:
-                    sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
-                break
-            except ValueError:
-                if options.verbose:
-                    sys.stdout.write("[%02d] No valid json returned... %s\n" % (count, result.__str__()))
-                    sys.stdout.flush()
-        except requests.exceptions.ConnectionError as e:
-            if options.verbose:
-                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, str(e)[0:100]))
-                sys.stdout.flush()
-        count += 1
+    wait(options.galaxy, options.timeout, options.verbose)
 
-        # If we cannot talk to galaxy and are over the timeout
-        if options.timeout != 0 and count > options.timeout:
-            sys.stderr.write("Failed to contact Galaxy\n")
-            sys.exit(1)
-
-        time.sleep(1)
     sys.exit(0)
 
 

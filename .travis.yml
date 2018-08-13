@@ -28,6 +28,5 @@ install:
 
 script:
     - tox -e $TOX_ENV
-    #- python-codacy-coverage -r coverage.xml
 
 

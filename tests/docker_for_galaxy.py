@@ -2,18 +2,25 @@ from collections import namedtuple
 
 import docker
 import pytest
+from bioblend.galaxy import GalaxyInstance
 
 from ephemeris.sleep import galaxy_wait
 
+
+# It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
+# Preferably a branch that updates with each stable release
 GALAXY_IMAGE = "bgruening/galaxy-stable:dev"
 
 client = docker.from_env()
 
-GalaxyContainer = namedtuple('GalaxyContainer', ['url', 'container', 'attributes'])
+GalaxyContainer = namedtuple('GalaxyContainer', ['url', 'container', 'attributes', 'gi'])
 
 
-@pytest.fixture
+# Class scope is chosen here so we can group tests on the same galaxy in a class.
+@pytest.fixture(scope="class")
 def start_container(**kwargs):
+    """Starts a docker container with the galaxy image. Returns a named tuple with the url, a GalaxyInstance object,
+    the container attributes, and the container itself."""
     # We start a container from the galaxy image. We detach it. Port 80 is exposed to the host at a random port.
     # The random port is because we need mac compatibility. On GNU/linux a better option would be not to expose it
     # and use the internal ip address instead.
@@ -32,5 +39,10 @@ def start_container(**kwargs):
     exposed_port = container_attributes.get('NetworkSettings').get('Ports').get('80/tcp')[0].get('HostPort')
 
     container_url = "http://localhost:{0}".format(exposed_port)
-    galaxy_wait(container_url, timeout=60)  # We are only going to wait 60 seconds. These are tests, and we are impatient!
-    return GalaxyContainer(url=container_url, container=container, attributes=container_attributes)
+    galaxy_wait(container_url,
+                timeout=60)  # We are only going to wait 60 seconds. These are tests, and we are impatient!
+    yield GalaxyContainer(url=container_url,
+                          container=container,
+                          attributes=container_attributes,
+                          gi=GalaxyInstance(container_url, key="admin"))
+    container.remove(force=True)

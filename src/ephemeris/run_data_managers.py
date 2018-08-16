@@ -27,6 +27,7 @@ import json
 import logging
 import time
 
+from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.tool_data import ToolDataClient
 from jinja2 import Template
 
@@ -34,7 +35,6 @@ from . import get_galaxy_connection
 from . import load_yaml_file
 from .common_parser import get_common_args
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-
 
 DEFAULT_URL = "http://localhost"
 DEFAULT_SOURCE_TABLES = ["all_fasta"]
@@ -94,6 +94,7 @@ class DataManagers:
         self.gi = galaxy_instance
         self.config = configuration
         self.tool_data_client = ToolDataClient(self.gi)
+        self.tool_client = ToolClient(self.gi)
         self.possible_name_keys = ['name', 'sequence_name']  # In order of importance!
         self.possible_value_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
         self.data_managers = self.config.get('data_managers')
@@ -236,7 +237,8 @@ class DataManagers:
                     log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
-                started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"])
+                started_job = self.tool_client.run_tool(history_id=None, tool_id=job["tool_id"],
+                                                        tool_inputs=job["inputs"])
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' %
                          (started_job['outputs'][0]['hid'], job["tool_id"], job["inputs"]))
                 job_list.append(started_job)

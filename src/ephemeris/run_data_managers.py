@@ -71,10 +71,10 @@ def wait(gi, job_list, log):
                         job_hid=job_hid,
                         **job_details
                     ))
-                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout ").format(
+                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(
                     job_hid=job_hid,
                     **job_details
-                )
+                ))
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
@@ -261,7 +261,7 @@ class DataManagers:
             if failed_jobs:
                 if not ignore_errors:
                     log.error('Not all jobs successful! aborting...')
-                    raise Exception('Not all jobs successful! aborting...')
+                    raise RuntimeError('Not all jobs successful! aborting...')
                 else:
                     log.warning('Not all jobs successful! ignoring...')
             all_succesful_jobs.extend(successful_jobs)
@@ -277,7 +277,8 @@ class DataManagers:
         log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
         log.info('Failed jobs: %i ' % len(all_failed_jobs))
         InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
-        return InstallResults(successful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs, skipped_jobs=all_skipped_jobs)
+        return InstallResults(successful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs,
+                              skipped_jobs=all_skipped_jobs)
 
 
 def _parser():

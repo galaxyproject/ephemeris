@@ -225,7 +225,7 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log, ignore_errors=False, overwrite=False):
+    def run(self, log=None, ignore_errors=False, overwrite=False):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -236,6 +236,9 @@ class DataManagers:
         all_succesful_jobs = []
         all_failed_jobs = []
         all_skipped_jobs = []
+
+        if not log:
+            log = logging.getLogger()
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []
@@ -274,7 +277,7 @@ class DataManagers:
         log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
         log.info('Failed jobs: %i ' % len(all_failed_jobs))
         InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
-        return InstallResults(succesful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs, skipped_jobs=all_skipped_jobs)
+        return InstallResults(successful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs, skipped_jobs=all_skipped_jobs)
 
 
 def _parser():

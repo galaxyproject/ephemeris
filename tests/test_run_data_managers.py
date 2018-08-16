@@ -53,6 +53,6 @@ class TestRunDataManagers(object):
             configuration = yaml.load(conig_file)
         dm = DataManagers(container.gi, configuration)
         install_results = dm.run()
-        assert (len(install_results.succesfull_jobs) == 0)
+        assert (len(install_results.successful_jobs) == 0)
         assert (len(install_results.skipped_jobs) == 9)
         assert (len(install_results.failed_jobs) == 0)

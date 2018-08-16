@@ -27,8 +27,8 @@ import json
 import logging
 import time
 
-from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.tool_data import ToolDataClient
+from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
 
 from . import get_galaxy_connection
@@ -54,20 +54,30 @@ def wait(gi, job_list, log):
     while bool(job_list):
         finished_jobs = []
         for job in job_list:
-            value = job['outputs']
-            job_id = job['outputs'][0]['hid']
+            job_hid = job['outputs'][0]['hid']
             # check if the output of the running job is either in 'ok' or 'error' state
-            state = gi.datasets.show_dataset(value[0]['id'])['state']
+            state = gi.datasets.show_dataset(job['outputs'][0]['id'])['state']
             if state == 'ok':
-                log.info('Job %i finished with state %s.' % (job_id, state))
+                log.info('Job %i finished with state %s.' % (job_hid, state))
                 successful_jobs.append(job)
                 finished_jobs.append(job)
             if state == 'error':
-                log.error('Job %i finished with state %s.' % (job_id, state))
+                log.error('Job %i finished with state %s.' % (job_hid, state))
+                job_id = job['jobs'][0]['id']
+                job_details = gi.jobs.show_job(job_id, full_details=True)
+                log.error(
+                    "Job {job_hid}: Tool '{tool_id}' finished with exit code: {exit_code}. Stderr: {stderr}".format(
+                        job_hid=job_hid,
+                        **job_details
+                    ))
+                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout ").format(
+                    job_hid=job_hid,
+                    **job_details
+                )
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
-                log.debug('Job %i still running.' % job_id)
+                log.debug('Job %i still running.' % job_hid)
         # Remove finished jobs from job_list.
         for finished_job in finished_jobs:
             job_list.remove(finished_job)

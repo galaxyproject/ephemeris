@@ -26,6 +26,7 @@ import argparse
 import json
 import logging
 import time
+from collections import namedtuple
 
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
@@ -272,6 +273,8 @@ class DataManagers:
         log.info('Successful jobs: %i ' % len(all_succesful_jobs))
         log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
         log.info('Failed jobs: %i ' % len(all_failed_jobs))
+        InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
+        return InstallResults(succesful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs, skipped_jobs=all_skipped_jobs)
 
 
 def _parser():

@@ -50,7 +50,7 @@ class TestRunDataManagers(object):
     def test_run_data_managers_installation_skipped(self, start_container):
         container = start_container
         with open("tests/run_data_managers.yaml.test") as config_file:
-            configuration = yaml.load(config_file)
+            configuration = yaml.safe_load(config_file)
         dm = DataManagers(container.gi, configuration)
         install_results = dm.run()
         assert (len(install_results.successful_jobs) == 0)

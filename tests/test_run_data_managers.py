@@ -34,7 +34,7 @@ class TestRunDataManagers(object):
         ]
         irm = InstallRepositoryManager(container.gi)
         irm.install_repositories(data_managers)
-        print("Restart container")
+        # Galaxy is restarted because otherwise data tables are not watched.
         container.container.exec_run("supervisorctl restart galaxy:")
         time.sleep(10)  # give time for the services to go down
         galaxy_wait(container.url)

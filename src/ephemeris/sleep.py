@@ -36,7 +36,7 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
-def galaxy_wait(galaxy_url, timeout, verbose=False):
+def galaxy_wait(galaxy_url, timeout=600, verbose=False):
     count = 0
     while True:
         try:

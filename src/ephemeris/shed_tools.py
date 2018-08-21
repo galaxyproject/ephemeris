@@ -152,8 +152,9 @@ class InstallRepositoryManager(object):
         # Install repos
         for repository in filtered_repos.not_installed_repos:
             counter += 1
-            log_repository_install_start(repository, counter=counter, installation_start=installation_start, log=log,
-                                         total_num_repositories=total_num_repositories)
+            if log:
+                log_repository_install_start(repository, counter=counter, installation_start=installation_start, log=log,
+                                             total_num_repositories=total_num_repositories)
             result = self.install_repository_revision(repository, log)
             if result == "error":
                 errored_repositories.append(repository)

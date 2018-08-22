@@ -10,14 +10,8 @@ matrix:
       env: TOX_ENV=py27-lint-readme
     - python: 3.5
       env: TOX_ENV=py35-pytest
-      install:
-      - pip install tox
-      - pip install codacy-coverage
       services:
       - docker
-      script:
-      - tox -e $TOX_ENV
-      - python-codacy-coverage -r coverage.xml
     - python: 2.7
       env: TOX_ENV=py27-pytest
       services:
@@ -30,7 +24,6 @@ matrix:
       env: TOX_ENV=py35
       services:
         - docker
-
 
 install:
     - pip install tox

@@ -25,10 +25,8 @@ matrix:
       services:
         - docker
 
-
 install:
     - pip install tox
-    - python setup.py install
 
 script:
     - tox -e $TOX_ENV

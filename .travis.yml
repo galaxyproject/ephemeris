@@ -12,6 +12,9 @@ matrix:
       env: TOX_ENV=py35-pytest
       services:
       - docker
+      script:
+      - tox -e $TOX_ENV
+      - python-codacy-coverage -r coverage.xml
     - python: 2.7
       env: TOX_ENV=py27-pytest
       services:

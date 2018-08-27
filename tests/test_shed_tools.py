@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Stop pylint complaining from things that are necessary
 # for pytest to work.
-# pylint: disable=no-self-use
+# pylint: disable=no-self-use,unused-import
 
 import logging
 

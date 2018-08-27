@@ -5,12 +5,9 @@
 
 import logging
 
-from docker_for_galaxy import start_container
+from docker_for_galaxy import start_container  # noqa: F401 prevent unused error
 
 from ephemeris.shed_tools import InstallRepositoryManager
-
-# This line is needed because flake things the import for start_container is not used otherwise.
-start_container_is_used = start_container
 
 
 # NOTE: For each series of tests that needs the same container, use the same class.
@@ -19,7 +16,7 @@ start_container_is_used = start_container
 class TestMiscellaneous(object):
     """This class is for miscellaneous tests that can use the same galaxy container"""
 
-    def test_invalid_keys_in_repo_list(self, caplog, start_container):
+    def test_invalid_keys_in_repo_list(self, caplog, start_container):  # noqa: F811 Prevent start_container unused warning.
         container = start_container
         irm = InstallRepositoryManager(container.gi)
         caplog.set_level(logging.WARNING)

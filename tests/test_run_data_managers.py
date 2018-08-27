@@ -7,21 +7,18 @@ import time
 
 import pytest
 import yaml
-from docker_for_galaxy import start_container
+from docker_for_galaxy import start_container  # noqa: F401 prevent unused error
 
 from ephemeris import run_data_managers
 from ephemeris.run_data_managers import DataManagers
 from ephemeris.shed_tools import InstallRepositoryManager
 from ephemeris.sleep import galaxy_wait
 
-# Use import to fool flake
-yes_i_am_imported = start_container
-
 
 class TestRunDataManagers(object):
     """This class tests run-data-managers"""
 
-    def test_install_data_managers(self, start_container):
+    def test_install_data_managers(self, start_container):  # noqa: F811 Prevent start_container unused warning.
         """Install the data_managers on galaxy"""
         container = start_container
         data_managers = [
@@ -39,7 +36,7 @@ class TestRunDataManagers(object):
         time.sleep(10)  # give time for the services to go down
         galaxy_wait(container.url)
 
-    def test_run_data_managers(self, start_container):
+    def test_run_data_managers(self, start_container):  # noqa: F811 Prevent start_container unused warning.
         """Tests an installation using the command line"""
         container = start_container
         sys.argv = ["run-data-managers",
@@ -49,7 +46,7 @@ class TestRunDataManagers(object):
                     "--config", "tests/run_data_managers.yaml.test"]
         run_data_managers.main()
 
-    def test_run_data_managers_installation_skipped(self, start_container):
+    def test_run_data_managers_installation_skipped(self, start_container):  # noqa: F811 Prevent start_container unused warning.
         container = start_container
         with open("tests/run_data_managers.yaml.test") as config_file:
             configuration = yaml.safe_load(config_file)
@@ -59,7 +56,7 @@ class TestRunDataManagers(object):
         assert (len(install_results.skipped_jobs) == 9)
         assert (len(install_results.failed_jobs) == 0)
 
-    def test_run_data_managers_installation_fail(self, start_container, caplog):
+    def test_run_data_managers_installation_fail(self, start_container, caplog):  # noqa: F811 Prevent start_container unused warning.
         container = start_container
         configuration = dict(
             data_managers=[

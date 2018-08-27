@@ -9,7 +9,7 @@ from ephemeris.sleep import galaxy_wait
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "bgruening/galaxy-stable:dev"
+GALAXY_IMAGE = "bgruening/galaxy-stable:latest"
 
 client = docker.from_env()
 

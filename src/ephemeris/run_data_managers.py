@@ -26,15 +26,16 @@ import argparse
 import json
 import logging
 import time
+from collections import namedtuple
 
 from bioblend.galaxy.tool_data import ToolDataClient
+from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
 
 from . import get_galaxy_connection
 from . import load_yaml_file
 from .common_parser import get_common_args
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-
 
 DEFAULT_URL = "http://localhost"
 DEFAULT_SOURCE_TABLES = ["all_fasta"]
@@ -54,20 +55,30 @@ def wait(gi, job_list, log):
     while bool(job_list):
         finished_jobs = []
         for job in job_list:
-            value = job['outputs']
-            job_id = job['outputs'][0]['hid']
+            job_hid = job['outputs'][0]['hid']
             # check if the output of the running job is either in 'ok' or 'error' state
-            state = gi.datasets.show_dataset(value[0]['id'])['state']
+            state = gi.datasets.show_dataset(job['outputs'][0]['id'])['state']
             if state == 'ok':
-                log.info('Job %i finished with state %s.' % (job_id, state))
+                log.info('Job %i finished with state %s.' % (job_hid, state))
                 successful_jobs.append(job)
                 finished_jobs.append(job)
             if state == 'error':
-                log.error('Job %i finished with state %s.' % (job_id, state))
+                log.error('Job %i finished with state %s.' % (job_hid, state))
+                job_id = job['jobs'][0]['id']
+                job_details = gi.jobs.show_job(job_id, full_details=True)
+                log.error(
+                    "Job {job_hid}: Tool '{tool_id}' finished with exit code: {exit_code}. Stderr: {stderr}".format(
+                        job_hid=job_hid,
+                        **job_details
+                    ))
+                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(
+                    job_hid=job_hid,
+                    **job_details
+                ))
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
-                log.debug('Job %i still running.' % job_id)
+                log.debug('Job %i still running.' % job_hid)
         # Remove finished jobs from job_list.
         for finished_job in finished_jobs:
             job_list.remove(finished_job)
@@ -94,6 +105,7 @@ class DataManagers:
         self.gi = galaxy_instance
         self.config = configuration
         self.tool_data_client = ToolDataClient(self.gi)
+        self.tool_client = ToolClient(self.gi)
         self.possible_name_keys = ['name', 'sequence_name']  # In order of importance!
         self.possible_value_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
         self.data_managers = self.config.get('data_managers')
@@ -213,7 +225,7 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log, ignore_errors=False, overwrite=False):
+    def run(self, log=None, ignore_errors=False, overwrite=False):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -224,6 +236,9 @@ class DataManagers:
         all_succesful_jobs = []
         all_failed_jobs = []
         all_skipped_jobs = []
+
+        if not log:
+            log = logging.getLogger()
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []
@@ -236,7 +251,8 @@ class DataManagers:
                     log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
-                started_job = self.gi.tools.run_tool(history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"])
+                started_job = self.tool_client.run_tool(history_id=None, tool_id=job["tool_id"],
+                                                        tool_inputs=job["inputs"])
                 log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' %
                          (started_job['outputs'][0]['hid'], job["tool_id"], job["inputs"]))
                 job_list.append(started_job)
@@ -245,7 +261,7 @@ class DataManagers:
             if failed_jobs:
                 if not ignore_errors:
                     log.error('Not all jobs successful! aborting...')
-                    raise Exception('Not all jobs successful! aborting...')
+                    raise RuntimeError('Not all jobs successful! aborting...')
                 else:
                     log.warning('Not all jobs successful! ignoring...')
             all_succesful_jobs.extend(successful_jobs)
@@ -260,6 +276,9 @@ class DataManagers:
         log.info('Successful jobs: %i ' % len(all_succesful_jobs))
         log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
         log.info('Failed jobs: %i ' % len(all_failed_jobs))
+        InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
+        return InstallResults(successful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs,
+                              skipped_jobs=all_skipped_jobs)
 
 
 def _parser():

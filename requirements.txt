@@ -3,4 +3,4 @@ PyYAML
 bioblend>=0.10.0
 Jinja2
 galaxy-lib>=18.5.7
-
+futures ; python_version < '3'

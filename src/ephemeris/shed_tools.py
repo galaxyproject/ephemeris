@@ -35,9 +35,11 @@ Galaxy's configuration directory and set Galaxy configuration option
 """
 import datetime as dt
 import json
+import os
 import re
 import time
 from collections import namedtuple
+from concurrent.futures import thread, ThreadPoolExecutor
 
 import yaml
 from bioblend.galaxy.client import ConnectionError
@@ -211,7 +213,8 @@ class InstallRepositoryManager(object):
                    repositories=None,
                    log=None,
                    test_user_api_key=None,
-                   test_user="ephemeris@galaxyproject.org"
+                   test_user="ephemeris@galaxyproject.org",
+                   parallel_tests=1,
                    ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
@@ -232,34 +235,47 @@ class InstallRepositoryManager(object):
             installed_tools.extend(repo_tools)
 
         all_test_results = []
+        galaxy_interactor = self._get_interactor(test_user, test_user_api_key)
+        test_history = galaxy_interactor.new_history()
 
-        for tool in installed_tools:
-            log.info("Testing tool '%s'", tool['id'])
-            results = self._test_tool(tool, test_user, test_user_api_key)
-            all_test_results.extend(results.tool_test_results)
-            log.info("%s test passed, %d tests failed for tool '%s'" % (len(results.tests_passed), len(results.tests_exceptions), tool['id']))
-            tests_passed.extend(results.tests_passed)
-            test_exceptions.extend(results.test_exceptions)
+        with ThreadPoolExecutor(max_workers=parallel_tests) as executor:
+            try:
+                for tool in installed_tools:
+                    self._test_tool(executor=executor,
+                                    tool=tool,
+                                    galaxy_interactor=galaxy_interactor,
+                                    test_history=test_history,
+                                    log=log,
+                                    tool_test_results=all_test_results,
+                                    tests_passed=tests_passed,
+                                    test_exceptions=test_exceptions,
+                                    )
+            finally:
+                # Always write report, even if test was cancelled.
+                try:
+                    executor.shutdown(wait=True)
+                except KeyboardInterrupt:
+                    executor._threads.clear()
+                    thread._threads_queues.clear()
+                report_obj = {
+                    'version': '0.1',
+                    'tests': sorted(all_test_results, key=lambda el: el['id']),
+                }
+                with open(test_json, "w") as f:
+                    json.dump(report_obj, f)
+                log.info("Report written to '%s'", os.path.abspath(test_json))
+                if log:
+                    log.info("Passed tool tests ({0}): {1}".format(
+                        len(tests_passed),
+                        [t for t in tests_passed])
+                    )
+                    log.info("Failed tool tests ({0}): {1}".format(
+                        len(test_exceptions),
+                        [t[0] for t in test_exceptions])
+                    )
+                log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
 
-        report_obj = {
-            'version': '0.1',
-            'tests': all_test_results,
-        }
-        with open(test_json, "w") as f:
-            json.dump(report_obj, f)
-        if log:
-            log.info("Passed tool tests ({0}): {1}".format(
-                len(tests_passed),
-                [t for t in tests_passed])
-            )
-            log.info("Failed tool tests ({0}): {1}".format(
-                len(test_exceptions),
-                [t[0] for t in test_exceptions])
-            )
-            log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
-
-    def _test_tool(self, tool, test_user, test_user_api_key):
-
+    def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
             whoami = self.gi.make_get_request(self.gi.url + "/whoami").json()
             if whoami is not None:
@@ -273,36 +289,49 @@ class InstallRepositoryManager(object):
         if test_user_api_key is None:
             galaxy_interactor_kwds["test_user"] = test_user
         galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
+        return galaxy_interactor
+
+    def _test_tool(self,
+                   executor,
+                   tool,
+                   galaxy_interactor,
+                   test_history=None,
+                   log=None,
+                   tool_test_results=None,
+                   tests_passed=None,
+                   test_exceptions=None):
+        if test_history is None:
+            test_history = galaxy_interactor.new_history()
         tool_id = tool["id"]
         tool_version = tool["version"]
         tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
         test_indices = list(range(len(tool_test_dicts)))
-        tool_test_results = []
-        tests_passed = []
-        test_exceptions = []
 
         for test_index in test_indices:
             test_id = tool_id + "-" + str(test_index)
 
-            def register(job_data):
-                tool_test_results.append({
-                    'id': test_id,
-                    'has_data': True,
-                    'data': job_data,
-                })
+            def run_test(index, test_id):
 
-            try:
-                verify_tool(
-                    tool_id, galaxy_interactor, test_index=test_index, tool_version=tool_version,
-                    register_job_data=register, quiet=True
-                )
-                tests_passed.append(test_id)
-            except Exception as e:
-                test_exceptions.append((test_id, e))
-        Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
-        return Results(tool_test_results=tool_test_results,
-                       tests_passed=tests_passed,
-                       test_exceptions=test_exceptions)
+                def register(job_data):
+                    tool_test_results.append({
+                        'id': test_id,
+                        'has_data': True,
+                        'data': job_data,
+                    })
+
+                try:
+                    log.info("Executing test '%s'", test_id)
+                    verify_tool(
+                        tool_id, galaxy_interactor, test_index=index, tool_version=tool_version,
+                        register_job_data=register, quiet=True, test_history=test_history,
+                    )
+                    tests_passed.append(test_id)
+                    log.info("Test '%s' passed", test_id)
+                except Exception as e:
+                    log.warning("Test '%s' failed", test_id)
+                    test_exceptions.append((test_id, e))
+
+            executor.submit(run_test, test_index, test_id)
 
     def install_repository_revision(self, repository, log):
         default_err_msg = ('All repositories that you are attempting to install '
@@ -508,7 +537,9 @@ def main():
             repositories=repos,
             log=log,
             test_user_api_key=args.test_user_api_key,
-            test_user=args.test_user)
+            test_user=args.test_user,
+            parallel_tests=args.parallel_tests,
+        )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
 
@@ -523,7 +554,9 @@ def main():
                 repositories=to_be_tested_repositories,
                 log=log,
                 test_user_api_key=args.test_user_api_key,
-                test_user=args.test_user)
+                test_user=args.test_user,
+                parallel_tests=args.parallel_tests,
+            )
 
 
 if __name__ == "__main__":

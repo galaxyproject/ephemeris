@@ -265,7 +265,7 @@ class InstallRepositoryManager(object):
         galaxy_interactor_kwds = {
             "galaxy_url": re.sub('/api', '', self.gi.url),
             "master_api_key": self.gi.key,
-            "api_key": None,  # TODO
+            "api_key": test_user_api_key,  # TODO
             "keep_outputs_dir": '',
         }
         if test_user_api_key is None:

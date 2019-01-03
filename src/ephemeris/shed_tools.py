@@ -234,8 +234,10 @@ class InstallRepositoryManager(object):
         all_test_results = []
 
         for tool in installed_tools:
+            log.info("Testing tool '%s'", tool['id'])
             results = self._test_tool(tool, test_user, test_user_api_key)
             all_test_results.extend(results.tool_test_results)
+            log.info("%s test passed, %d tests failed for tool '%s'" % (len(results.tests_passed), len(results.tests_exceptions), tool['id']))
             tests_passed.extend(results.tests_passed)
             test_exceptions.extend(results.test_exceptions)
 

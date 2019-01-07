@@ -114,7 +114,7 @@ class GiToToolYaml:
             # section labels and ids.
             # If someone knows a more effecient way around this problem it
             # will be greatly appreciated.
-            for repo in repos:                      
+            for repo in repos:           
                 if not repo['deleted']:
                     tool_panel_section_id = None
                     tool_panel_section_label = None 

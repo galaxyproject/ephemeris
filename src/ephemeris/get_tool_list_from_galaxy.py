@@ -116,9 +116,9 @@ class GiToToolYaml:
             # will be greatly appreciated.
             for repo in repos:
                 if not repo['deleted']:
+                    tool_panel_section_id = None
+                    tool_panel_section_label = None
                     for repo_with_panel in tools_with_panel:
-                        tool_panel_section_id = None
-                        tool_panel_section_label = None
                         if the_same_repository(repo_with_panel, repo, check_revision=False):
                             tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
                             tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')

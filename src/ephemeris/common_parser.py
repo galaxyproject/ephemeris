@@ -22,7 +22,7 @@ def get_common_args(login_required=True, log_file=False):
 
     if login_required:
         con_group.add_argument("-u", "--user",
-                               help="Galaxy user name")
+                               help="Galaxy user email address")
         con_group.add_argument("-p", "--password",
                                help="Password for the Galaxy user")
         con_group.add_argument("-a", "--api_key",

@@ -243,6 +243,7 @@ def get_repo_from_tool(tool):
     Get the minimum items required for re-installing a (list of) tools
     """
     if not tool.get('tool_shed_repository', None):
+        # Tool or Data Manager not installed from a tool shed
         return {}
     tsr = tool['tool_shed_repository']
     repo = {'name': tsr['name'],

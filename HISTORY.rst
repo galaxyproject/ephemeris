@@ -6,10 +6,30 @@ History
 .. to_doc
 
 ---------------------
-0.9.1.dev0
+0.10.0.dev0
 ---------------------
 
-    
+* Refactor shed tool functionality. Removed deprecated options from 
+  shed-tools CLI. 
+  shed-tools update now also accepts tool list, so tools in galaxy can 
+  be selectively updated. Improved algorithm leads to much faster 
+  skipping of already installed tools, which makes the installation 
+  of tools much faster on an already populated galaxy.
+  (thanks to `@rhpvorderman`_).
+  `Pull Request 104`_
+* Add ``pytest``, enable coverage testing (thanks to `@rhpvorderman`_).
+  `Pull Request 105`_
+* Make ``setup_data_libraries.py`` check for existence before recreation of
+  libraries.
+  (thanks to `@Slugger70`_).
+  `Pull Request 103`_
+* Catch failures on requests to the installed repo list when doing post-
+  timeout spinning on installation in ``shed-tools`` (thanks to `@natefoo`_).
+  `Pull Request 97`_
+* Fix coverage reporting on codacy (thanks to `@rhpvorderman`_).
+  `Pull Request 106`_
+* Run-data-managers now outputs stderr of failed jobs (thanks to `@rhpvorderman`_).
+  `Pull Request 110`_
 
 ---------------------
 0.9.0 (2018-05-23)
@@ -127,6 +147,12 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 97: https://github.com/galaxyproject/ephemeris/pull/97
+.. _Pull Request 103: https://github.com/galaxyproject/ephemeris/pull/103
+.. _Pull Request 104: https://github.com/galaxyproject/ephemeris/pull/104
+.. _Pull Request 105: https://github.com/galaxyproject/ephemeris/pull/105
+.. _Pull Request 106: https://github.com/galaxyproject/ephemeris/pull/106
+.. _Pull Request 110: https://github.com/galaxyproject/ephemeris/pull/110
 .. _Pull Request 74: https://github.com/galaxyproject/ephemeris/pull/74
 .. _Issue 69: https://github.com/galaxyproject/ephemeris/issues/69
 .. _Pull Request 73: https://github.com/galaxyproject/ephemeris/pull/73
@@ -144,6 +170,8 @@ History
 .. _@rhpvorderman: https://github.com/rhpvorderman
 .. _@pcm32: https://github.com/pcm32
 .. _@jmchilton: https://github.com/jmchilton
+.. _@Slugger70: https://github.com/Slugger70
+.. _@natefoo: https://github.com/natefoo
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

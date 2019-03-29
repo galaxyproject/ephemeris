@@ -9,7 +9,12 @@ History
 0.10.0.dev0
 ---------------------
 
-* Refactor shed tool functionality to be more modular, readable, and concise
+* Refactor shed tool functionality. Removed deprecated options from 
+  shed-tools CLI. 
+  shed-tools update now also accepts tool list, so tools in galaxy can 
+  be selectively updated. Improved algorithm leads to much faster 
+  skipping of already installed tools, which makes the installation 
+  of tools much faster on an already populated galaxy.
   (thanks to `@rhpvorderman`_).
   `Pull Request 104`_
 * Add ``pytest``, enable coverage testing (thanks to `@rhpvorderman`_).

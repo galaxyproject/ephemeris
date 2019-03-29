@@ -20,7 +20,7 @@ from .common_parser import get_common_args
 def _parser():
     '''Constructs the parser object'''
     parent = get_common_args(login_required=False)
-    parser = ArgumentParser(parents=[parent], usage="usage: python %(prog)s <options>",
+    parser = ArgumentParser(parents=[parent], usage="usage: %(prog)s <options>",
                             description="Script to sleep and wait for Galaxy to be alive.")
     parser.add_argument("--timeout",
                         default=0, type=int,

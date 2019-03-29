@@ -8,11 +8,11 @@
 .. image:: https://travis-ci.org/galaxyproject/ephemeris.png?branch=master
    :target: https://travis-ci.org/galaxyproject/ephemeris
 
-.. image:: https://coveralls.io/repos/galaxyproject/ephemeris/badge.svg?branch=master
-   :target: https://coveralls.io/r/galaxyproject/ephemeris?branch=master
+.. image:: https://api.codacy.com/project/badge/Coverage/e12102174b4e452c871cd2bafedaec60
+   :target: https://www.codacy.com/app/galaxyproject/ephemeris?utm_source=github.com&utm_medium=referral&utm_content=galaxyproject/ephemeris&utm_campaign=Badge_Coverage
 
-.. image:: https://api.codacy.com/project/badge/Grade/73873ffd3ff04c46a0c5ee75b37bb5bb
-   :target: https://www.codacy.com/app/jmchilton/ephemeris?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=galaxyproject/ephemeris&amp;utm_campaign=Badge_Grade
+.. image:: https://api.codacy.com/project/badge/Grade/e12102174b4e452c871cd2bafedaec60
+   :target: https://www.codacy.com/app/galaxyproject/ephemeris?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=galaxyproject/ephemeris&amp;utm_campaign=Badge_Grade
 
 Ephemeris is a small Python library and set of scripts for managing the
 bootstrapping of Galaxy_ plugins - tools, index data, and workflows.

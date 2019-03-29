@@ -331,7 +331,7 @@ class InstallRepositoryManager(object):
                     log.debug("\tRepository %s already installed (at revision %s)" %
                               (repository['name'], repository['changeset_revision']))
                 return "skipped"
-            elif "504" in str(e):
+            elif "504" in str(e) or 'Connection aborted' in str(e):
                 if log:
                     log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
                 success = self.wait_for_install(repository=repository, log=log, timeout=3600)

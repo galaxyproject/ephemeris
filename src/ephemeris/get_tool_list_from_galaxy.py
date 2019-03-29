@@ -103,7 +103,9 @@ class GiToToolYaml:
         if self.get_data_managers:
             for tool in self.installed_tool_list:
                 if tool.get("model_class") == 'DataManagerTool':
-                    repositories.append(get_repo_from_tool(tool))
+                    repo = get_repo_from_tool(tool)
+                    if repo:
+                        repositories.append(repo)
 
         if self.get_all_tools:
             tools_with_panel = repositories[:]
@@ -116,9 +118,9 @@ class GiToToolYaml:
             # will be greatly appreciated.
             for repo in repos:
                 if not repo['deleted']:
+                    tool_panel_section_id = None
+                    tool_panel_section_label = None
                     for repo_with_panel in tools_with_panel:
-                        tool_panel_section_id = None
-                        tool_panel_section_label = None
                         if the_same_repository(repo_with_panel, repo, check_revision=False):
                             tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
                             tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
@@ -241,6 +243,7 @@ def get_repo_from_tool(tool):
     Get the minimum items required for re-installing a (list of) tools
     """
     if not tool.get('tool_shed_repository', None):
+        # Tool or Data Manager not installed from a tool shed
         return {}
     tsr = tool['tool_shed_repository']
     repo = {'name': tsr['name'],

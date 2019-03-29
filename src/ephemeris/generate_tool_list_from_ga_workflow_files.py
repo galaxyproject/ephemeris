@@ -20,7 +20,7 @@ def _parse_cli_options():
 
 def _parser():
     parser = ArgumentParser(formatter_class=RawDescriptionHelpFormatter,
-                            usage="python %(prog)s <options>",
+                            usage="%(prog)s <options>",
                             epilog="Workflow files must have been exported from Galaxy release 16.04 or newer.\n\n"
                                    "example:\n"
                                    "python %(prog)s -w workflow1 workflow2 -o mytool_list.yml -l my_panel_label\n"

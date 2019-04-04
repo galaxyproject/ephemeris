@@ -291,8 +291,8 @@ class InstallRepositoryManager(object):
         galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
         return galaxy_interactor
 
-    def _test_tool(self,
-                   executor,
+    @staticmethod
+    def _test_tool(executor,
                    tool,
                    galaxy_interactor,
                    test_history=None,

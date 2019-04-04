@@ -263,8 +263,8 @@ class InstallRepositoryManager(object):
                 }
                 with open(test_json, "w") as f:
                     json.dump(report_obj, f)
-                log.info("Report written to '%s'", os.path.abspath(test_json))
                 if log:
+                    log.info("Report written to '%s'", os.path.abspath(test_json))
                     log.info("Passed tool tests ({0}): {1}".format(
                         len(tests_passed),
                         [t for t in tests_passed])
@@ -273,7 +273,7 @@ class InstallRepositoryManager(object):
                         len(test_exceptions),
                         [t[0] for t in test_exceptions])
                     )
-                log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
+                    log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -295,11 +295,12 @@ class InstallRepositoryManager(object):
     def _test_tool(executor,
                    tool,
                    galaxy_interactor,
+                   tool_test_results,
+                   tests_passed,
+                   test_exceptions,
+                   log,
                    test_history=None,
-                   log=None,
-                   tool_test_results=None,
-                   tests_passed=None,
-                   test_exceptions=None):
+                   ):
         if test_history is None:
             test_history = galaxy_interactor.new_history()
         tool_id = tool["id"]
@@ -320,15 +321,18 @@ class InstallRepositoryManager(object):
                     })
 
                 try:
-                    log.info("Executing test '%s'", test_id)
+                    if log:
+                        log.info("Executing test '%s'", test_id)
                     verify_tool(
                         tool_id, galaxy_interactor, test_index=index, tool_version=tool_version,
                         register_job_data=register, quiet=True, test_history=test_history,
                     )
                     tests_passed.append(test_id)
-                    log.info("Test '%s' passed", test_id)
+                    if log:
+                        log.info("Test '%s' passed", test_id)
                 except Exception as e:
-                    log.warning("Test '%s' failed", test_id)
+                    if log:
+                        log.warning("Test '%s' failed", test_id)
                     test_exceptions.append((test_id, e))
 
             executor.submit(run_test, test_index, test_id)

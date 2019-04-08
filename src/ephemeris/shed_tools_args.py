@@ -32,6 +32,7 @@ def parser():
         test_user="ephemeris@galaxyproject.org",
         test_json="tool_test_output.json",
         test_existing=False,
+        max_parallel_tests=1,
     )
 
     # SUBPARSERS
@@ -168,6 +169,13 @@ def parser():
                  "--test_user_api_key isn't specified, this user email will be used. This "
                  "user will be created if needed."
         )
+        command_parser.add_argument(
+            "--parallel_tests",
+            dest="parallel_tests",
+            default=1,
+            type=int,
+            help="Specify the maximum number of tests that will be run in parallel."
+        )
 
     # OPTIONS UNIQUE TO INSTALL
 
@@ -216,6 +224,13 @@ def parser():
              "If --api_key is a master api key (i.e. not tied to a real user) and "
              "--test_user_api_key isn't specified, this user email will be used. This "
              "user will be created if needed."
+    )
+    test_command_parser.add_argument(
+        "--parallel_tests",
+        dest="parallel_tests",
+        default=1,
+        type=int,
+        help="Specify the maximum number of tests that will be run in parallel."
     )
 
     return shed_parser

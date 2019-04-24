@@ -32,7 +32,7 @@ def parser():
         test_user="ephemeris@galaxyproject.org",
         test_json="tool_test_output.json",
         test_existing=False,
-        max_parallel_tests=1,
+        parallel_tests=1,
     )
 
     # SUBPARSERS

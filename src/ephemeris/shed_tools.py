@@ -315,7 +315,16 @@ class InstallRepositoryManager(object):
             test_history = galaxy_interactor.new_history()
         tool_id = tool["id"]
         tool_version = tool["version"]
-        tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        try:
+            tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        except Exception as e:
+            if log:
+                log.warning("Fetching test definition for tool '%s' failed", tool_id, exc_info=True)
+            test_exceptions.append((tool_id, e))
+            Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
+            return Results(tool_test_results=tool_test_results,
+                           tests_passed=tests_passed,
+                           test_exceptions=test_exceptions)
         test_indices = list(range(len(tool_test_dicts)))
 
         for test_index in test_indices:

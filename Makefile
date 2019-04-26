@@ -94,7 +94,7 @@ coverage:
 	open htmlcov/index.html || xdg-open htmlcov/index.html
 
 docs:
-	$(IN_VENV) sphinx-apidoc -f -o docs/ ephemeris
+	$(IN_VENV) sphinx-apidoc -f -o docs/ src/ephemeris
 	$(IN_VENV) $(MAKE) -C docs clean
 	$(IN_VENV) $(MAKE) -C docs html
 

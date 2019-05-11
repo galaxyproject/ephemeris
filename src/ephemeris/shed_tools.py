@@ -257,8 +257,17 @@ class InstallRepositoryManager(object):
                 except KeyboardInterrupt:
                     executor._threads.clear()
                     thread._threads_queues.clear()
+                n_passed = len(tests_passed)
+                n_failed = len(test_exceptions)
                 report_obj = {
                     'version': '0.1',
+                    'suitename': 'Ephemeris tool tests targeting %s' % self.gi.base_url,
+                    'results': {
+                        'total': n_passed + n_failed,
+                        'errors': n_failed,
+                        'failures': 0,
+                        'skips': 0,
+                    },
                     'tests': sorted(all_test_results, key=lambda el: el['id']),
                 }
                 with open(test_json, "w") as f:
@@ -266,11 +275,11 @@ class InstallRepositoryManager(object):
                 if log:
                     log.info("Report written to '%s'", os.path.abspath(test_json))
                     log.info("Passed tool tests ({0}): {1}".format(
-                        len(tests_passed),
+                        n_passed,
                         [t for t in tests_passed])
                     )
                     log.info("Failed tool tests ({0}): {1}".format(
-                        len(test_exceptions),
+                        n_failed,
                         [t[0] for t in test_exceptions])
                     )
                     log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))

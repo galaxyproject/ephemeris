@@ -10,6 +10,6 @@ Commands
    commands/run-data-managers
    commands/setup-data-libraries
    commands/shed-tools
-   commands/tool-deps
+   commands/install-tool-deps
    commands/workflow-install
    commands/workflow-to-tools

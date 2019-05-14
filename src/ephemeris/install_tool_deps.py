@@ -13,8 +13,8 @@ from ephemeris.common_parser import get_common_args
 def _parser():
     parent = get_common_args()
     parser = argparse.ArgumentParser(parents=[parent])
-    parser.add_argument("-t", "--tool", help='Path to a tool file or tool_conf file')
-    parser.add_argument("-i", "--id", help='Comma seperated list of tool ids')
+    parser.add_argument("-t", "--tool", help='Path to a tool file or tool_conf file', nargs='*')
+    parser.add_argument("-i", "--id", help='Comma seperated list of tool ids', nargs='*')
 
     return parser
 
@@ -27,9 +27,9 @@ def main():
     gi = get_galaxy_connection(args)
     tool_client = ToolClient(gi)
 
-    if 'tool' in args:
+    for tool_conf_path in args.tool: # type: str
         # install all
-        root = ET.ElementTree(file=args.tool).getroot()
+        root = ET.ElementTree(file=tool_conf_path).getroot()
         if root.tag == "toolbox":
             # Install all from tool_conf
             tool_path = root.get('tool_path', '')
@@ -42,9 +42,8 @@ def main():
             # Install from single tool file
             tool_client.install_dependencies(root.get('id'))
 
-    if 'id' in args:
-        for tool_id in args.id.split(','):  # type: str
-            tool_client.install_dependencies(tool_id.strip())
+    for tool_id in args.id:  # type: str
+        tool_client.install_dependencies(tool_id.strip())
 
 
 if __name__ == '__main__':

@@ -9,4 +9,4 @@ Usage
 .. argparse::
    :module: ephemeris.tool_deps
    :func: _parser
-   :prog: tool-deps
+   :prog: install-tool-deps

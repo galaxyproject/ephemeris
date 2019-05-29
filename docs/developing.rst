@@ -30,7 +30,7 @@ are fine.
 * Review ``git status`` for missing files.
 * Verify the latest Travis CI builds pass.
 * ``make open-docs`` and review changelog.
-* Ensure the target release is set correctly in ``ephemeris/__init__.py`` (
+* Ensure the target release is set correctly in ``src/ephemeris/__init__.py`` (
   ``version`` will be a ``devN`` variant of target release).
 * ``make clean && make lint && make test``
 * ``make release``

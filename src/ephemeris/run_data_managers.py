@@ -15,12 +15,13 @@ and `here <https://github.com/galaxyproject/ephemeris/blob/master/tests/run_data
 
 By default run-data-managers skips entries in the yaml file that have already been run.
 It checks it in the following way:
-* If the data manager has input variables "name" or "sequence_name" it will check if the "name" column in the data table already has this entry.
-  "name" will take precedence over "sequence_name".
-* If the data manager has input variables "value", "sequence_id" or 'dbkey' it will check if
-  the "value" column in the data table already has this entry.
-  Value takes precedence over sequence_id which takes precedence over dbkey.
-* If none of the above input variables are specified the data manager will always run.
+
+  * If the data manager has input variables "name" or "sequence_name" it will check if the "name" column in the data table already has this entry.
+    "name" will take precedence over "sequence_name".
+  * If the data manager has input variables "value", "sequence_id" or 'dbkey' it will check if the "value"
+    column in the data table already has this entry.
+    Value takes precedence over sequence_id which takes precedence over dbkey.
+  * If none of the above input variables are specified the data manager will always run.
 """
 import argparse
 import json

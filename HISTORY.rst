@@ -6,9 +6,27 @@ History
 .. to_doc
 
 ---------------------
-0.10.0.dev0
+0.10.0 (2019-05-29)
 ---------------------
 
+* fix doc building and regenerate (thanks to `@martenson`_). `Pull Request
+  129`_
+* fix default for 'parallel_tests' typo (thanks to `@martenson`_). `Pull
+  Request 127`_
+* Include some additional stats for xunit reporting (thanks to `@mvdbeek`_).
+  `Pull Request 126`_
+* Handle timeout gracefully for UWSGI connection (thanks to `@pcm32`_). `Pull
+  Request 123`_
+* Update Docs for User Name (Should be Email) (thanks to `@rdvelazquez`_).
+  `Pull Request 122`_
+* remove the python invocation from usage examples (thanks to `@martenson`_).
+  `Pull Request 121`_
+* Fix crash when too_with_panel is empty (thanks to `@jvanbraekel`_). `Pull
+  Request 120`_
+* Test tools in parallel, with regular user permissions, without a shared
+  filesystem (thanks to `@mvdbeek`_). `Pull Request 118`_
+* use latest documentation dependencies to fix documentation build issue
+  (thanks to `@rhpvorderman`_). `Pull Request 114`_
 * Refactor shed tool functionality. Removed deprecated options from 
   shed-tools CLI. 
   shed-tools update now also accepts tool list, so tools in galaxy can 
@@ -147,6 +165,15 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 129: https://github.com/galaxyproject/ephemeris/pull/129
+.. _Pull Request 127: https://github.com/galaxyproject/ephemeris/pull/127
+.. _Pull Request 126: https://github.com/galaxyproject/ephemeris/pull/126
+.. _Pull Request 123: https://github.com/galaxyproject/ephemeris/pull/123
+.. _Pull Request 122: https://github.com/galaxyproject/ephemeris/pull/122
+.. _Pull Request 121: https://github.com/galaxyproject/ephemeris/pull/121
+.. _Pull Request 120: https://github.com/galaxyproject/ephemeris/pull/120
+.. _Pull Request 118: https://github.com/galaxyproject/ephemeris/pull/118
+.. _Pull Request 114: https://github.com/galaxyproject/ephemeris/pull/114
 .. _Pull Request 97: https://github.com/galaxyproject/ephemeris/pull/97
 .. _Pull Request 103: https://github.com/galaxyproject/ephemeris/pull/103
 .. _Pull Request 104: https://github.com/galaxyproject/ephemeris/pull/104
@@ -172,6 +199,10 @@ History
 .. _@jmchilton: https://github.com/jmchilton
 .. _@Slugger70: https://github.com/Slugger70
 .. _@natefoo: https://github.com/natefoo
+.. _@martenson: https://github.com/martenson
+.. _@mvdbeek: https://github.com/mvdbeek
+.. _@rdvelazquez: https://github.com/rdvelazquez
+.. _@jvanbraekel: https://github.com/jvanbraekel
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

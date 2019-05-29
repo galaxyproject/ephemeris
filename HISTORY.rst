@@ -6,7 +6,7 @@ History
 .. to_doc
 
 ---------------------
-0.10.0
+0.10.0 (2019-05-29)
 ---------------------
 
 * fix doc building and regenerate (thanks to `@martenson`_). `Pull Request

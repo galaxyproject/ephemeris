@@ -6,10 +6,10 @@ History
 .. to_doc
 
 ---------------------
-0.10.2.dev0
+0.10.2 (2019-06-04)
 ---------------------
 
-    
+* Fix default message check (thanks to `@mvdbeek`_). `Pull Request 135`_
 
 ---------------------
 0.10.1 (2019-06-04)
@@ -178,6 +178,7 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 135: https://github.com/galaxyproject/ephemeris/pull/135
 .. _Pull Request 134: https://github.com/galaxyproject/ephemeris/pull/134
 .. _Pull Request 129: https://github.com/galaxyproject/ephemeris/pull/129
 .. _Pull Request 127: https://github.com/galaxyproject/ephemeris/pull/127

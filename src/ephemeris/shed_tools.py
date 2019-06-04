@@ -41,6 +41,7 @@ import time
 from collections import namedtuple
 from concurrent.futures import thread, ThreadPoolExecutor
 
+import requests
 import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
@@ -368,7 +369,7 @@ class InstallRepositoryManager(object):
                     start=start,
                     log=log)
             return "installed"
-        except ConnectionError as e:
+        except (ConnectionError, requests.exceptions.ConnectionError) as e:
             if default_err_msg in e.body:
                 # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
                 if log:

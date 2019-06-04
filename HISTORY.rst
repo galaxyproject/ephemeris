@@ -6,10 +6,11 @@ History
 .. to_doc
 
 ---------------------
-0.10.1.dev0
+0.10.1 (2019-06-04)
 ---------------------
 
-    
+* Fix timeout handling when installing repositories
+  (thanks to `@mvdbeek`_). `Pull Request 134`_
 
 ---------------------
 0.10.0 (2019-05-29)
@@ -171,6 +172,7 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 134: https://github.com/galaxyproject/ephemeris/pull/134
 .. _Pull Request 129: https://github.com/galaxyproject/ephemeris/pull/129
 .. _Pull Request 127: https://github.com/galaxyproject/ephemeris/pull/127
 .. _Pull Request 126: https://github.com/galaxyproject/ephemeris/pull/126

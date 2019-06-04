@@ -370,7 +370,7 @@ class InstallRepositoryManager(object):
                     log=log)
             return "installed"
         except (ConnectionError, requests.exceptions.ConnectionError) as e:
-            if default_err_msg in e.body:
+            if default_err_msg in str(e):
                 # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
                 if log:
                     log.debug("\tRepository %s already installed (at revision %s)" %

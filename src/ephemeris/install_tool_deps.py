@@ -3,6 +3,7 @@
 import argparse
 import os
 import xml.etree.ElementTree as ET
+
 import yaml
 
 from bioblend.galaxy.tools import ToolClient
@@ -22,13 +23,13 @@ def _parser():
 
 def main():
     """
-        This script uses bioblend to trigger dependencies installations for the provided tools
+    This script uses bioblend to trigger dependencies installations for the provided tools
     """
     args = _parser().parse_args()
     gi = get_galaxy_connection(args)
     tool_client = ToolClient(gi)
 
-    for tool_conf_path in args.tool: # type: str
+    for tool_conf_path in args.tool:  # type: str
         _, ext = os.path.splitext(tool_conf_path)
         if (ext == '.xml'):
             # install all

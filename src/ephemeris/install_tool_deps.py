@@ -5,7 +5,6 @@ import os
 import xml.etree.ElementTree as ET
 
 import yaml
-
 from bioblend.galaxy.tools import ToolClient
 
 from ephemeris import get_galaxy_connection

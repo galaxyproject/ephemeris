@@ -342,7 +342,7 @@ class InstallRepositoryManager(object):
                         log.info("Test '%s' passed", test_id)
                 except Exception as e:
                     if log:
-                        log.warning("Test '%s' failed", test_id)
+                        log.warning("Test '%s' failed", test_id, exc_info=True)
                     test_exceptions.append((test_id, e))
 
             executor.submit(run_test, test_index, test_id)

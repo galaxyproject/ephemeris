@@ -90,7 +90,7 @@ def create_batch_api(gi, desc):
         'targets': [desc],
         'history_id': history["id"]
     }
-    tc._post(payload=payload, url=url)
+    yield tc._post(payload=payload, url=url)
 
 
 def setup_data_libraries(gi, data, training=False, legacy=False):
@@ -150,19 +150,22 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
     normalize_items(library_def)
 
     if library_def:
-        create_func(gi, library_def)
+        jobs = list(create_func(gi, library_def))
+        job_ids = []
+        for job in jobs:
+            if 'jobs' in job:
+                for subjob in job['jobs']:
+                    job_ids.append(subjob['id'])
 
-        no_break = True
         while True:
-            no_break = False
-            for job in jc.get_jobs():
-                if job['state'] != 'ok':
-                    no_break = True
-            if not no_break:
+            job_states = [jc.get_state(job) in ('ok', 'error') for job in job_ids]
+            log.debug('Job states: %s' % ','.join([
+                '%s=%s' % (job_id, job_state) for (job_id, job_state) in zip(job_ids, job_states)]))
+
+            if all(job_states):
                 break
             time.sleep(3)
 
-        time.sleep(20)
         log.info("Finished importing test data.")
 
 

@@ -156,7 +156,8 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
         job_ids = []
         if legacy:
             for job in jc.get_jobs():
-                if job['tool_id'] = 'upload1':
+                # Fetch all upload job IDs, ignoring complete ones.
+                if job['tool_id'] == 'upload1' and job['state'] not in ('ok', 'error'):
                     job_ids.append(job['id'])
 
             # Just have to check that all upload1 jobs are termianl.

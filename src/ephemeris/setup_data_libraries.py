@@ -76,7 +76,7 @@ def create_legacy(gi, desc):
                         folder_id=base_folder_id,
                         file_type=has_items['ext']
                     )
-                except:
+                except Exception:
                     log.error("Could not upload %s to %s/%s", has_items['url'], lib_id, base_folder_id)
         return None
 

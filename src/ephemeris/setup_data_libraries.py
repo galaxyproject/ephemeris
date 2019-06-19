@@ -68,13 +68,16 @@ def create_legacy(gi, desc):
             for item in rmt_library_files:
                 if item['type'] == 'file':
                     file_names.append(item['name'])
-            if has_items['url'] in file_names:
-                gi.libraries.upload_file_from_url(
-                    lib_id,
-                    has_items['url'],
-                    folder_id=base_folder_id,
-                    file_type=has_items['ext']
-                )
+            if has_items['url'] not in file_names:
+                try:
+                    gi.libraries.upload_file_from_url(
+                        lib_id,
+                        has_items['url'],
+                        folder_id=base_folder_id,
+                        file_type=has_items['ext']
+                    )
+                except:
+                    log.error("Could not upload %s to %s/%s", has_items['url'], lib_id, base_folder_id)
         return None
 
     populate_items(folder_id, desc)

@@ -68,7 +68,7 @@ def create_legacy(gi, desc):
             for item in rmt_library_files:
                 if item['type'] == 'file':
                     file_names.append(item['name'])
-            if has_items['url'] not in file_names:
+            if has_items['url'] in file_names:
                 gi.libraries.upload_file_from_url(
                     lib_id,
                     has_items['url'],
@@ -78,6 +78,7 @@ def create_legacy(gi, desc):
         return None
 
     populate_items(folder_id, desc)
+    return []
 
 
 def create_batch_api(gi, desc):
@@ -151,11 +152,20 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
 
     if library_def:
         jobs = list(create_func(gi, library_def))
+
         job_ids = []
-        for job in jobs:
-            if 'jobs' in job:
-                for subjob in job['jobs']:
-                    job_ids.append(subjob['id'])
+        if legacy:
+            for job in jc.get_jobs():
+                if job['tool_id'] = 'upload1':
+                    job_ids.append(job['id'])
+
+            # Just have to check that all upload1 jobs are termianl.
+        else:
+            # Otherwise get back an actual list of jobs
+            for job in jobs:
+                if 'jobs' in job:
+                    for subjob in job['jobs']:
+                        job_ids.append(subjob['id'])
 
         while True:
             job_states = [jc.get_state(job) in ('ok', 'error') for job in job_ids]

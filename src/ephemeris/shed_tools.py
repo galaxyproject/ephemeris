@@ -52,7 +52,7 @@ from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
-from .get_tool_list_from_galaxy import GiToToolYaml, the_same_repository, tools_for_repository
+from .get_tool_list_from_galaxy import GiToToolYaml, tools_for_repository
 from .shed_tools_args import parser
 from .shed_tools_methods import complete_repo_information, flatten_repo_info, VALID_KEYS
 
@@ -98,9 +98,10 @@ class InstallRepositoryManager(object):
             for repo in installed_repos:
                 toolshed_repository_client = ToolShedRepositoryClient(
                     ToolShedInstance(repo['tool_shed_url']))
-                used_revision = toolshed_repository_client.get_repository_revision_install_info(
-                    repo['name'], repo['owner'], repo['changeset_revision']
-                )[2][repo['name']][2]
+                used_revision = \
+                    toolshed_repository_client.get_repository_revision_install_info(
+                        repo['name'], repo['owner'], repo['changeset_revision']
+                    )[2][repo['name']][2]
                 if repo["changeset_revision"] != used_revision:
                     warnings.warn(
                         "WORKAROUND FOR https://github.com/galaxyproject/galaxy/issues/8243. "
@@ -115,13 +116,39 @@ class InstallRepositoryManager(object):
             # action to limit the number of comparisons.
             installed_repos = self.installed_repositories()
 
-        for repo in repos:
-            for installed_repo in installed_repos:
-                if the_same_repository(installed_repo, repo, check_revision):
+        if check_revision:
+            installed_repos_set = {
+                (rep['name'], rep['owner'],
+                 rep.get('tool_shed', rep.get('tool_shed_url', None)),
+                 rep.get("changeset_revision"))
+                for rep in installed_repos}
+            for repo in repos:
+                if (
+                    repo['name'],
+                    repo['owner'],
+                    repo.get('tool_shed', repo.get('tool_shed_url', None)),
+                    repo.get("changeset_revision")
+                ) in installed_repos_set:
                     already_installed_repos.append(repo)
-                    break
-            else:  # This executes when the for loop completes and no match has been found.
-                not_installed_repos.append(repo)
+                else:
+                    not_installed_repos.append(repo)
+
+        else:  # Do not check revision
+            installed_repos_set = {
+                (rep['name'], rep['owner'],
+                 rep.get('tool_shed', rep.get('tool_shed_url', None))
+                 )
+                for rep in installed_repos}
+            for repo in repos:
+                if (
+                    repo['name'],
+                    repo['owner'],
+                    repo.get('tool_shed', repo.get('tool_shed_url', None))
+                ) in installed_repos_set:
+                    already_installed_repos.append(repo)
+                else:
+                    not_installed_repos.append(repo)
+
         FilterResults = namedtuple("FilterResults", ["not_installed_repos", "already_installed_repos"])
         return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos=not_installed_repos)
 

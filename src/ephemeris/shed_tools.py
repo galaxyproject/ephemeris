@@ -46,8 +46,6 @@ import requests
 import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
-from bioblend.toolshed import ToolShedInstance
-from bioblend.toolshed.repositories import ToolShedRepositoryClient
 from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
 
 from . import get_galaxy_connection, load_yaml_file
@@ -84,32 +82,6 @@ class InstallRepositoryManager(object):
             # If we want to check if revisions are equal, flatten the list,
             # so each repository - revision combination has its own entry
             installed_repos = flatten_repo_info(self.installed_repositories())
-
-            # TODO: Fix https://github.com/galaxyproject/galaxy/issues/8243.
-            # This leads to annoying issues. For example if you have
-            # devteam's fastqc installed at ddf5c37952ac you cannot install
-            # e7b2202befea because this uses the same fastqc version. (Not tool wrapper version)
-            # Using a ToolShedRepositoryClient we can get the install_info for
-            # each repo. For some reason
-            # tsrc.get_repository_revision_install_info("fastqc", "devteam", "ddf5c37952ac")[2]["fastqc"][2]
-            # will return e7b2202befea. This way we can pretend that e7b2202befea
-            # is installed, even though it is not. Since we know the installation will fail, we skip it.
-            # Below workaround code alters the changeset revisions.
-            for repo in installed_repos:
-                toolshed_repository_client = ToolShedRepositoryClient(
-                    ToolShedInstance(repo['tool_shed_url']))
-                used_revision = \
-                    toolshed_repository_client.get_repository_revision_install_info(
-                        repo['name'], repo['owner'], repo['changeset_revision']
-                    )[2][repo['name']][2]
-                if repo["changeset_revision"] != used_revision:
-                    warnings.warn(
-                        "WORKAROUND FOR https://github.com/galaxyproject/galaxy/issues/8243. "
-                        "installed revision {0} for {1} pretends to be revision {2}".format(
-                            repo["changeset_revision"], repo['name'],
-                            used_revision
-                        ))
-                    repo["changeset_revision"] = used_revision
 
         else:
             # If we do not care about revision equality, do not do the flatten

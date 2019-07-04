@@ -38,7 +38,6 @@ import json
 import os
 import re
 import time
-import warnings
 from collections import namedtuple
 from concurrent.futures import thread, ThreadPoolExecutor
 

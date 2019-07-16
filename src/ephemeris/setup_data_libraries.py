@@ -172,7 +172,7 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
                         job_ids.append(subjob['id'])
 
         while True:
-            job_states = [jc.get_state(job) in ('ok', 'error') for job in job_ids]
+            job_states = [jc.get_state(job) in ('ok', 'error', 'deleted') for job in job_ids]
             log.debug('Job states: %s' % ','.join([
                 '%s=%s' % (job_id, job_state) for (job_id, job_state) in zip(job_ids, job_states)]))
 

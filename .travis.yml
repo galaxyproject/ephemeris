@@ -2,6 +2,7 @@ language: python
 env:
   global:
     - TWINE_USERNAME=mvdbeek
+    - secure: "G7SDb0xMNF8sU7zaYY31BFG5DZbvBn81VSuyt6JemPy0dhXL3vw0cJrReP6RDivenE68o2YNSSaLpdLMzgrbfiVTT3LQvR7tOWbsB4LKmrSfCbc9X6izEy3jpEb7lT/qUEIQQ4WIEWH78p/6VT06O+tnYaXpRpjdsc5q+N6P/ntd+2sdrTgfbNAeCd+rDFOt3JQUHd9DrsDN5Op60A7rlL5+a+Abs05oEa5PgQ+uyAvD4f+yvOGavYxEeNVAufbYdGKKnOV9Kyyq9TJxeND2PK8JhHOxAJwgpPJdL71PVHP+xBiSK1nTCDx3xdgwbA2pHDa3vRLHhXEgyEyuUsKumliXrauUa/xobCCH/+PYAUaoQMLQZ3hF8pENNalqwfzbIIK04VBn1M/ds6fLZwE2M7m4uPgOJ5xbt1EPBwRgckcVrdKEopye5Kfb65RD2X/+NtlG1O0cSa/BZLAA1NmLHsfL4vQ0OdP58oXunA3Izkvclg4N+oNEFPosJARIh97wyzsxbl4j7cYQcg7rKyxoA5PocRp0q5Ga+k9EpzaWoPVF8WMtIBdqx7BZhPSn7zJUbiKqgmp8ili64VYqn+e8R4yB+8zQ80QXO0seZ37SHccsBoYcGJv/dJYCx2ND2UIU0sz0GkoPoY9xcgekRTKO40fQUDeM5R//83WIFlOR508="
 matrix:
   include:
     - python: 2.7

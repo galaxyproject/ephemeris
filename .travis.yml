@@ -42,11 +42,3 @@ install:
 
 script:
   - tox -e $TOX_ENV
-  - |
-    if [[ $TRAVIS_TAG ]]; then
-      python setup.py sdist bdist_wheel
-      python -m pip install twine
-      twine check dist/*
-      twine upload --skip-existing dist/*
-    fi
-

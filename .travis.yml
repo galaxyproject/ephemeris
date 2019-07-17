@@ -36,6 +36,15 @@ matrix:
       env: TOX_ENV=py35
       services:
         - docker
+    - stage: deploy
+      python: '3.5'
+      if: tag IS present
+      install:
+        - python -m pip install twine
+      script:
+        - python setup.py sdist bdist_wheel
+        - twine check dist/*
+        - twine upload --skip-existing dist/*
 
 install:
   - pip install tox

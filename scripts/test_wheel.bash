@@ -6,11 +6,11 @@ set -e
 
 VERSION=$1
 
-# Ensure working directory is galaxy-lib project.
+# Ensure working directory is ephemeris project.
 SCRIPTS_DIRECTORY="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 PROJECT_DIRECTORY="${SCRIPTS_DIRECTORY}/.."
 DIST_DIRECTORY="${PROJECT_DIRECTORY}/dist"
-WHEEL_FILE="${DIST_DIRECTORY}/galaxy-lib-$VERSION-py2.py3-none-any.whl"
+WHEEL_FILE="${DIST_DIRECTORY}/ephemeris-$VERSION-py2.py3-none-any.whl"
 DEV_REQUIREMENTS="${PROJECT_DIRECTORY}/dev-requirements.txt"
 
 cd $PROJECT_DIRECTORY

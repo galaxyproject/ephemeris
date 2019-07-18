@@ -30,7 +30,7 @@ def main():
 
     for tool_conf_path in args.tool:  # type: str
         _, ext = os.path.splitext(tool_conf_path)
-        if (ext == '.xml'):
+        if ext == '.xml':
             # install all
             root = ET.ElementTree(file=tool_conf_path).getroot()
             if root.tag == "toolbox":

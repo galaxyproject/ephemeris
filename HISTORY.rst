@@ -15,7 +15,7 @@ History
   `Pull Request 143`_
 * Release to PyPI on tag (thanks to `@mvdbeek`_). `Pull Request 142`_
 * Make Data library creation more robust
-  ever (thanks to `@erasche`_). `Pull Request 138`_
+  (thanks to `@erasche`_). `Pull Request 138`_
 * Make tool testing more robust (thanks to
   `@mvdbeek`_). `Pull Request 137`_, `Pull Request 136`_
 

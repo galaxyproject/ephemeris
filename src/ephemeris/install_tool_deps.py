@@ -14,8 +14,8 @@ from ephemeris.common_parser import get_common_args
 def _parser():
     parent = get_common_args()
     parser = argparse.ArgumentParser(parents=[parent])
-    parser.add_argument("-t", "--tool", help='Path to a tool file, tool_conf file, or yaml file containing sequence of tool ids', nargs='*')
-    parser.add_argument("-i", "--id", help='Comma seperated list of tool ids', nargs='*')
+    parser.add_argument("-t", "--tool", help='Path to a tool file, tool_conf file, or yaml file containing a sequence of tool ids', nargs='*')
+    parser.add_argument("-i", "--id", help='Space separated list of tool ids', nargs='*')
 
     return parser
 

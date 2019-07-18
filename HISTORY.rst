@@ -6,10 +6,18 @@ History
 .. to_doc
 
 ---------------------
-0.10.3.dev0
+0.10.3 (2019-07-18)
 ---------------------
 
-    
+* Add install-tool-deps command that will install tool dependencies
+  (thanks to `@innovate-invent`_). `Pull Request 130`_
+* Require galaxy-tool-util instead of galaxy-lib (thanks to `@nsoranzo`_).
+  `Pull Request 143`_
+* Release to PyPI on tag (thanks to `@mvdbeek`_). `Pull Request 142`_
+* Make Data library creation more robust
+  (thanks to `@erasche`_). `Pull Request 138`_
+* Make tool testing more robust (thanks to
+  `@mvdbeek`_). `Pull Request 137`_, `Pull Request 136`_
 
 ---------------------
 0.10.2 (2019-06-04)
@@ -184,6 +192,12 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 130: https://github.com/galaxyproject/ephemeris/pull/130
+.. _Pull Request 143: https://github.com/galaxyproject/ephemeris/pull/143
+.. _Pull Request 142: https://github.com/galaxyproject/ephemeris/pull/142
+.. _Pull Request 138: https://github.com/galaxyproject/ephemeris/pull/138
+.. _Pull Request 137: https://github.com/galaxyproject/ephemeris/pull/137
+.. _Pull Request 136: https://github.com/galaxyproject/ephemeris/pull/136
 .. _Pull Request 135: https://github.com/galaxyproject/ephemeris/pull/135
 .. _Pull Request 134: https://github.com/galaxyproject/ephemeris/pull/134
 .. _Pull Request 129: https://github.com/galaxyproject/ephemeris/pull/129
@@ -224,6 +238,9 @@ History
 .. _@mvdbeek: https://github.com/mvdbeek
 .. _@rdvelazquez: https://github.com/rdvelazquez
 .. _@jvanbraekel: https://github.com/jvanbraekel
+.. _@innovate-invent: https://github.com/innovate-invent
+.. _@erasche: https://github.com/erasche
+.. _@nsoranzo: https://github.com/nsoranzo
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

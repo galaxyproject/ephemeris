@@ -36,6 +36,14 @@ ephemeris.get\_tool\_list\_from\_galaxy module
     :undoc-members:
     :show-inheritance:
 
+ephemeris.install\_tool\_deps module
+------------------------------------
+
+.. automodule:: ephemeris.install_tool_deps
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 ephemeris.run\_data\_managers module
 ------------------------------------
 

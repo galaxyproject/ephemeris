@@ -36,7 +36,7 @@ def main():
             if root.tag == "toolbox":
                 # Install all from tool_conf
                 tool_path = root.get('tool_path', '')
-                tool_path.replace('${tool_conf_dir}', os.path.abspath(args.tool))
+                tool_path.replace('${tool_conf_dir}', os.path.abspath(tool_conf_path))
                 for tool in root.findall("tool[@file]"):
                     tool_id = ET.ElementTree(file=tool.get('file')).getroot().get('id')
                     if tool_id:

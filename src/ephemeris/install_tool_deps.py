@@ -24,7 +24,7 @@ def _parser():
     return parser
 
 
-def _install(tool_id):
+def _install(tool_client, tool_id):
     try:
         tool_client.install_dependencies(tool_id)
     except ConnErr as e:
@@ -67,22 +67,22 @@ def main():
                         tool_id = ET.ElementTree(file=os.path.join(tool_path, tool.get('file'))).getroot().get('id')
                         if tool_id:
                             log.info("Installing tool dependencies for " + tool_id + " from: " + tool.get('file'))
-                            _install(tool_id)
+                            _install(tool_client, tool_id)
                 elif root.tag == "tool" and root.get('id'):
                     # Install from single tool file
                     log.info("Tool xml found. Installing " + root.get('id') + " dependencies..")
-                    _install(root.get('id'))
+                    _install(tool_client, root.get('id'))
             else:
                 log.info("YAML tool list found, parsing..")
                 for tool_id in yaml.safe_load(tool_conf_path):
                     # Install from yaml file
                     log.info("Installing " + tool_id + " dependencies..")
-                    _install(tool_id)
+                    _install(tool_client, tool_id)
 
     if args.id:
         for tool_id in args.id:  # type: str
             log.info("Installing " + tool_id + " dependencies..")
-            _install(tool_id.strip())
+            _install(tool_client, tool_id.strip())
 
 
 if __name__ == '__main__':

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 '''Tool to install tool dependencies on a Galaxy instance.'''
 import argparse
-import os
 import logging as log
+import os
 import xml.etree.ElementTree as ET
 
 import yaml
-from bioblend.galaxy.tools import ToolClient
 from bioblend import ConnectionError as ConnErr
+from bioblend.galaxy.tools import ToolClient
 
 from ephemeris import get_galaxy_connection
 from ephemeris.common_parser import get_common_args

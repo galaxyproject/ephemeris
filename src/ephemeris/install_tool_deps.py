@@ -38,7 +38,7 @@ def main():
     if args.tool:
         for tool_conf_path in args.tool:  # type: str
             _, ext = os.path.splitext(tool_conf_path)
-            if (ext == '.xml'):
+            if ext == '.xml':
                 log.info("tool_conf xml found, parsing..")
                 # install all
                 root = ET.ElementTree(file=tool_conf_path).getroot()

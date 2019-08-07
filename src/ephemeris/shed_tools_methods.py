@@ -2,21 +2,25 @@ from bioblend.toolshed import ToolShedInstance
 
 
 VALID_KEYS = [
-        "name",
-        "owner",
-        "changeset_revision",
-        "tool_panel_section_id",
-        "tool_panel_section_label",
-        "tool_shed_url",
-        "install_repository_dependencies",
-        "install_resolver_dependencies",
-        "install_tool_dependencies"
-    ]
+    "name",
+    "owner",
+    "changeset_revision",
+    "tool_panel_section_id",
+    "tool_panel_section_label",
+    "tool_shed_url",
+    "install_repository_dependencies",
+    "install_resolver_dependencies",
+    "install_tool_dependencies"
+]
 
 
-def complete_repo_information(tool, default_toolshed_url, require_tool_panel_info, default_install_tool_dependencies,
+def complete_repo_information(tool,
+                              default_toolshed_url,
+                              require_tool_panel_info,
+                              default_install_tool_dependencies,
                               default_install_repository_dependencies,
-                              default_install_resolver_dependencies, force_latest_revision):
+                              default_install_resolver_dependencies,
+                              force_latest_revision):
     repo = dict()
     # We need those values. Throw a KeyError when not present
     repo['name'] = tool['name']
@@ -73,6 +77,7 @@ def flatten_repo_info(repositories):
     The tool definition YAML file allows multiple revisions to be listed for
     the same tool. To enable simple, iterative processing of the info in this
     script, flatten the `tools_info` list to include one entry per tool revision.
+
     :type repositories: list of dicts
     :param repositories: Each dict in this list should contain info about a tool.
     :rtype: list of dicts

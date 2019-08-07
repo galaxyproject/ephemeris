@@ -69,15 +69,19 @@ def create_legacy(gi, desc):
                 if item['type'] == 'file':
                     file_names.append(item['name'])
             if has_items['url'] not in file_names:
-                gi.libraries.upload_file_from_url(
-                    lib_id,
-                    has_items['url'],
-                    folder_id=base_folder_id,
-                    file_type=has_items['ext']
-                )
+                try:
+                    gi.libraries.upload_file_from_url(
+                        lib_id,
+                        has_items['url'],
+                        folder_id=base_folder_id,
+                        file_type=has_items['ext']
+                    )
+                except Exception:
+                    log.exception("Could not upload %s to %s/%s", has_items['url'], lib_id, base_folder_id)
         return None
 
     populate_items(folder_id, desc)
+    return []
 
 
 def create_batch_api(gi, desc):
@@ -90,7 +94,7 @@ def create_batch_api(gi, desc):
         'targets': [desc],
         'history_id': history["id"]
     }
-    tc._post(payload=payload, url=url)
+    yield tc._post(payload=payload, url=url)
 
 
 def setup_data_libraries(gi, data, training=False, legacy=False):
@@ -150,19 +154,32 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
     normalize_items(library_def)
 
     if library_def:
-        create_func(gi, library_def)
+        jobs = list(create_func(gi, library_def))
 
-        no_break = True
-        while True:
-            no_break = False
+        job_ids = []
+        if legacy:
             for job in jc.get_jobs():
-                if job['state'] != 'ok':
-                    no_break = True
-            if not no_break:
+                # Fetch all upload job IDs, ignoring complete ones.
+                if job['tool_id'] == 'upload1' and job['state'] not in ('ok', 'error'):
+                    job_ids.append(job['id'])
+
+            # Just have to check that all upload1 jobs are termianl.
+        else:
+            # Otherwise get back an actual list of jobs
+            for job in jobs:
+                if 'jobs' in job:
+                    for subjob in job['jobs']:
+                        job_ids.append(subjob['id'])
+
+        while True:
+            job_states = [jc.get_state(job) in ('ok', 'error', 'deleted') for job in job_ids]
+            log.debug('Job states: %s' % ','.join([
+                '%s=%s' % (job_id, job_state) for (job_id, job_state) in zip(job_ids, job_states)]))
+
+            if all(job_states):
                 break
             time.sleep(3)
 
-        time.sleep(20)
         log.info("Finished importing test data.")
 
 

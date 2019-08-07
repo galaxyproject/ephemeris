@@ -41,10 +41,14 @@ import time
 from collections import namedtuple
 from concurrent.futures import thread, ThreadPoolExecutor
 
+import requests
 import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
-from galaxy.tools.verify.interactor import GalaxyInteractorApi, verify_tool
+from galaxy.tool_util.verify.interactor import (
+    GalaxyInteractorApi,
+    verify_tool,
+)
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
@@ -257,8 +261,17 @@ class InstallRepositoryManager(object):
                 except KeyboardInterrupt:
                     executor._threads.clear()
                     thread._threads_queues.clear()
+                n_passed = len(tests_passed)
+                n_failed = len(test_exceptions)
                 report_obj = {
                     'version': '0.1',
+                    'suitename': 'Ephemeris tool tests targeting %s' % self.gi.base_url,
+                    'results': {
+                        'total': n_passed + n_failed,
+                        'errors': n_failed,
+                        'failures': 0,
+                        'skips': 0,
+                    },
                     'tests': sorted(all_test_results, key=lambda el: el['id']),
                 }
                 with open(test_json, "w") as f:
@@ -266,11 +279,11 @@ class InstallRepositoryManager(object):
                 if log:
                     log.info("Report written to '%s'", os.path.abspath(test_json))
                     log.info("Passed tool tests ({0}): {1}".format(
-                        len(tests_passed),
+                        n_passed,
                         [t for t in tests_passed])
                     )
                     log.info("Failed tool tests ({0}): {1}".format(
-                        len(test_exceptions),
+                        n_failed,
                         [t[0] for t in test_exceptions])
                     )
                     log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
@@ -305,7 +318,16 @@ class InstallRepositoryManager(object):
             test_history = galaxy_interactor.new_history()
         tool_id = tool["id"]
         tool_version = tool["version"]
-        tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        try:
+            tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
+        except Exception as e:
+            if log:
+                log.warning("Fetching test definition for tool '%s' failed", tool_id, exc_info=True)
+            test_exceptions.append((tool_id, e))
+            Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
+            return Results(tool_test_results=tool_test_results,
+                           tests_passed=tests_passed,
+                           test_exceptions=test_exceptions)
         test_indices = list(range(len(tool_test_dicts)))
 
         for test_index in test_indices:
@@ -332,7 +354,7 @@ class InstallRepositoryManager(object):
                         log.info("Test '%s' passed", test_id)
                 except Exception as e:
                     if log:
-                        log.warning("Test '%s' failed", test_id)
+                        log.warning("Test '%s' failed", test_id, exc_info=True)
                     test_exceptions.append((test_id, e))
 
             executor.submit(run_test, test_index, test_id)
@@ -359,8 +381,8 @@ class InstallRepositoryManager(object):
                     start=start,
                     log=log)
             return "installed"
-        except ConnectionError as e:
-            if default_err_msg in e.body:
+        except (ConnectionError, requests.exceptions.ConnectionError) as e:
+            if default_err_msg in str(e):
                 # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
                 if log:
                     log.debug("\tRepository %s already installed (at revision %s)" %

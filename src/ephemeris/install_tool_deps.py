@@ -78,7 +78,7 @@ def main():
                     # Install from yaml file
                     log.info("Installing " + tool_id + " dependencies..")
                     _install(tool_id)
-                    
+
     if args.id:
         for tool_id in args.id:  # type: str
             log.info("Installing " + tool_id + " dependencies..")

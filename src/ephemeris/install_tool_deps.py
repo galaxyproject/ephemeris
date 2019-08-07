@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 
 import yaml
 from bioblend.galaxy.tools import ToolClient
-from bioblend import ConnectionError
+from bioblend import ConnectionError as ConnErr
 
 from ephemeris import get_galaxy_connection
 from ephemeris.common_parser import get_common_args
@@ -59,7 +59,7 @@ def main():
                             log.info("Installing tool dependencies for " + tool_id + " from: " + tool.get('file'))
                             try:
                                 tool_client.install_dependencies(tool_id)
-                            except ConnectionError as e:
+                            except ConnErr as e:
                                 if e.status_code in timeout_codes:
                                     log.warning(e.body)
                                 else:
@@ -69,7 +69,7 @@ def main():
                     log.info("Tool xml found. Installing " + root.get('id') + " dependencies..")
                     try:
                         tool_client.install_dependencies(root.get('id'))
-                    except ConnectionError as e:
+                    except ConnErr as e:
                             if e.status_code in timeout_codes:
                                 log.warning(e.body)
                             else:
@@ -81,7 +81,7 @@ def main():
                     log.info("Installing " + tool_id + " dependencies..")
                     try:
                         tool_client.install_dependencies(tool_id)
-                    except ConnectionError as e:
+                    except ConnErr as e:
                         if e.status_code in timeout_codes:
                             log.warning(e.body)
                         else:
@@ -92,7 +92,7 @@ def main():
             log.info("Installing " + tool_id + " dependencies..")
             try:
                 tool_client.install_dependencies(tool_id.strip())
-            except ConnectionError as e:
+            except ConnErr as e:
                 if e.status_code in timeout_codes:
                     log.warning(e.body)
                 else:

@@ -2,6 +2,7 @@
 '''Tool to install tool dependencies on a Galaxy instance.'''
 import argparse
 import os
+import logging as log
 import xml.etree.ElementTree as ET
 
 import yaml
@@ -28,30 +29,46 @@ def main():
     gi = get_galaxy_connection(args)
     tool_client = ToolClient(gi)
 
+    if args.verbose:
+        log.basicConfig(level=log.DEBUG)
+
     if args.tool:
         for tool_conf_path in args.tool:  # type: str
             _, ext = os.path.splitext(tool_conf_path)
             if (ext == '.xml'):
+                log.info("tool_conf xml found, parsing..")
                 # install all
                 root = ET.ElementTree(file=tool_conf_path).getroot()
                 if root.tag == "toolbox":
                     # Install all from tool_conf
                     tool_path = root.get('tool_path', '')
-                    tool_path.replace('${tool_conf_dir}', os.path.abspath(tool_conf_path))
-                    for tool in root.findall("tool[@file]"):
-                        tool_id = ET.ElementTree(file=tool.get('file')).getroot().get('id')
+                    tool_path = tool_path.replace('${tool_conf_dir}', os.path.abspath(os.path.dirname(tool_conf_path)))
+                    if tool_path:
+                        log.info("Searching for tools relative to " + tool_path)
+                    tools = root.findall(".//tool[@file]")
+                    if len(tools) == 0:
+                        log.warning("No tools found in tool_conf")
+                        continue
+
+                    for tool in tools:
+                        tool_id = ET.ElementTree(file=os.path.join(tool_path, tool.get('file'))).getroot().get('id')
                         if tool_id:
+                            log.info("Installing tool dependencies for " + tool_id + " from: " + tool.get('file'))
                             tool_client.install_dependencies(tool_id)
                 elif root.tag == "tool" and root.get('id'):
                     # Install from single tool file
+                    log.info("Tool xml found. Installing " + root.get('id') + " dependencies..")
                     tool_client.install_dependencies(root.get('id'))
             else:
+                log.info("YAML tool list found, parsing..")
                 for tool_id in yaml.safe_load(tool_conf_path):
                     # Install from yaml file
+                    log.info("Installing " + tool_id + " dependencies..")
                     tool_client.install_dependencies(tool_id)
 
     if args.id:
         for tool_id in args.id:  # type: str
+            log.info("Installing " + tool_id + " dependencies..")
             tool_client.install_dependencies(tool_id.strip())
 
 

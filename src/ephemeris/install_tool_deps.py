@@ -7,9 +7,12 @@ import xml.etree.ElementTree as ET
 
 import yaml
 from bioblend.galaxy.tools import ToolClient
+from bioblend import ConnectionError
 
 from ephemeris import get_galaxy_connection
 from ephemeris.common_parser import get_common_args
+
+timeout_codes = (408, 502, 504)
 
 
 def _parser():
@@ -54,22 +57,46 @@ def main():
                         tool_id = ET.ElementTree(file=os.path.join(tool_path, tool.get('file'))).getroot().get('id')
                         if tool_id:
                             log.info("Installing tool dependencies for " + tool_id + " from: " + tool.get('file'))
-                            tool_client.install_dependencies(tool_id)
+                            try:
+                                tool_client.install_dependencies(tool_id)
+                            except ConnectionError as e:
+                                if e.status_code in timeout_codes:
+                                    log.warning(e.body)
+                                else:
+                                    raise
                 elif root.tag == "tool" and root.get('id'):
                     # Install from single tool file
                     log.info("Tool xml found. Installing " + root.get('id') + " dependencies..")
-                    tool_client.install_dependencies(root.get('id'))
+                    try:
+                        tool_client.install_dependencies(root.get('id'))
+                    except ConnectionError as e:
+                            if e.status_code in timeout_codes:
+                                log.warning(e.body)
+                            else:
+                                raise
             else:
                 log.info("YAML tool list found, parsing..")
                 for tool_id in yaml.safe_load(tool_conf_path):
                     # Install from yaml file
                     log.info("Installing " + tool_id + " dependencies..")
-                    tool_client.install_dependencies(tool_id)
+                    try:
+                        tool_client.install_dependencies(tool_id)
+                    except ConnectionError as e:
+                        if e.status_code in timeout_codes:
+                            log.warning(e.body)
+                        else:
+                            raise
 
     if args.id:
         for tool_id in args.id:  # type: str
             log.info("Installing " + tool_id + " dependencies..")
-            tool_client.install_dependencies(tool_id.strip())
+            try:
+                tool_client.install_dependencies(tool_id.strip())
+            except ConnectionError as e:
+                if e.status_code in timeout_codes:
+                    log.warning(e.body)
+                else:
+                    raise
 
 
 if __name__ == '__main__':

@@ -426,8 +426,9 @@ class InstallRepositoryManager(object):
             try:
                 installed_repo_list = self.tool_shed_client.get_repositories()
                 for installing_repo in installed_repo_list:
-                    if (repository['name'] == installing_repo['name']) and (
-                            installing_repo['owner'] == repository['owner']):
+                    if (installing_repo['name'] == repository['name']) and (
+                            installing_repo['owner'] == repository['owner']) and (
+                            installing_repo['changeset_revision'] == repository['changeset_revision']):
                         if installing_repo['status'] == 'Installed':
                             return True
                         elif installing_repo['status'] == 'Error':

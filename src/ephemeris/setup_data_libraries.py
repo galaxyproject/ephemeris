@@ -43,6 +43,7 @@ def create_legacy(gi, desc):
     def populate_items(base_folder_id, has_items):
         if "items" in has_items:
             name = has_items.get("name")
+            description = has_items.get("description")
             folder_id = base_folder_id
             if name:
                 # Check to see if the folder already exists, if it doesn't create it.
@@ -55,7 +56,7 @@ def create_legacy(gi, desc):
                 if rmt_folder_list:
                     folder_id = rmt_folder_list[0]['id']
                 else:
-                    folder = gi.libraries.create_folder(lib_id, name, base_folder_id=base_folder_id)
+                    folder = gi.libraries.create_folder(lib_id, name, description, base_folder_id=base_folder_id)
                     folder_id = folder[0]["id"]
             for item in has_items["items"]:
                 populate_items(folder_id, item)

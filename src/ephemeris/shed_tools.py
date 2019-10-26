@@ -49,6 +49,7 @@ from galaxy.tool_util.verify.interactor import (
     GalaxyInteractorApi,
     verify_tool,
 )
+from galaxy.util import unicodify
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
@@ -141,9 +142,10 @@ class InstallRepositoryManager(object):
                     default_install_repository_dependencies=default_install_repository_dependencies,
                     force_latest_revision=force_latest_revision)
                 repository_list.append(complete_repo)
-            except (LookupError, KeyError) as e:
+            except Exception as e:
+                # We'll run through the loop come whatever may, we log the errored repositories at the end anyway.
                 if log:
-                    log_repository_install_error(repository, start, str(e), log)
+                    log_repository_install_error(repository, start, unicodify(e), log)
                 errored_repositories.append(repository)
 
         # Filter out already installed repos
@@ -382,13 +384,13 @@ class InstallRepositoryManager(object):
                     log=log)
             return "installed"
         except (ConnectionError, requests.exceptions.ConnectionError) as e:
-            if default_err_msg in str(e):
+            if default_err_msg in unicodify(e):
                 # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
                 if log:
                     log.debug("\tRepository %s already installed (at revision %s)" %
                               (repository['name'], repository['changeset_revision']))
                 return "skipped"
-            elif "504" in str(e) or 'Connection aborted' in str(e):
+            elif "504" in unicodify(e) or 'Connection aborted' in unicodify(e):
                 if log:
                     log.debug("Timeout during install of %s, extending wait to 1h", repository['name'])
                 success = self.wait_for_install(repository=repository, log=log, timeout=3600)
@@ -437,7 +439,7 @@ class InstallRepositoryManager(object):
                             time.sleep(10)
             except ConnectionError as e:
                 if log:
-                    log.warning('Failed to get repositories list: %s', str(e))
+                    log.warning('Failed to get repositories list: %s', unicodify(e))
                 time.sleep(10)
         return False
 

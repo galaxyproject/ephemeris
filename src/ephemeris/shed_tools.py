@@ -142,7 +142,8 @@ class InstallRepositoryManager(object):
                     default_install_repository_dependencies=default_install_repository_dependencies,
                     force_latest_revision=force_latest_revision)
                 repository_list.append(complete_repo)
-            except (LookupError, KeyError) as e:
+            except Exception as e:
+                # We'll run through the loop come whatever may, we log the errored repositories at the end anyway.
                 if log:
                     log_repository_install_error(repository, start, unicodify(e), log)
                 errored_repositories.append(repository)

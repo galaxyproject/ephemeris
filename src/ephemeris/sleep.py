@@ -13,6 +13,7 @@ import time
 from argparse import ArgumentParser
 
 import requests
+from galaxy.util import unicodify
 
 from .common_parser import get_common_args
 
@@ -52,7 +53,7 @@ def galaxy_wait(galaxy_url, timeout=600, verbose=False):
                     sys.stdout.flush()
         except requests.exceptions.ConnectionError as e:
             if verbose:
-                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, str(e)[0:100]))
+                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, unicodify(e)[0:100]))
                 sys.stdout.flush()
         count += 1
 

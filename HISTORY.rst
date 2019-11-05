@@ -6,6 +6,15 @@ History
 .. to_doc
 
 ---------------------
+0.10.4 (2019-10-05)
+---------------------
+
+* When polling for repo install status, ensure the correct revision is being
+  checked (thanks to `@natefoo`_). `Pull Request 146`_
+* Add install_tool_deps command (thanks to `@innovate-invent`_). `Pull Request
+  145`_
+
+---------------------
 0.10.3 (2019-07-18)
 ---------------------
 
@@ -192,6 +201,8 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 146: https://github.com/galaxyproject/ephemeris/pull/146
+.. _Pull Request 145: https://github.com/galaxyproject/ephemeris/pull/145
 .. _Pull Request 130: https://github.com/galaxyproject/ephemeris/pull/130
 .. _Pull Request 143: https://github.com/galaxyproject/ephemeris/pull/143
 .. _Pull Request 142: https://github.com/galaxyproject/ephemeris/pull/142

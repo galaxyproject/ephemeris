@@ -41,6 +41,7 @@ def create_legacy(gi, desc):
         folder_id = lib['root_folder_id']
 
     def populate_items(base_folder_id, has_items):
+        job_ids = []
         if "items" in has_items:
             name = has_items.get("name")
             description = has_items.get("description")
@@ -59,7 +60,8 @@ def create_legacy(gi, desc):
                     folder = gi.libraries.create_folder(lib_id, name, description, base_folder_id=base_folder_id)
                     folder_id = folder[0]["id"]
             for item in has_items["items"]:
-                populate_items(folder_id, item)
+                new_job_ids = populate_items(folder_id, item)
+                job_ids += new_job_ids
         else:
             src = has_items["src"]
             if src != "url":
@@ -71,18 +73,21 @@ def create_legacy(gi, desc):
                     file_names.append(item['name'])
             if has_items['url'] not in file_names:
                 try:
-                    gi.libraries.upload_file_from_url(
+                    upped_dataset = gi.libraries.upload_file_from_url(
                         lib_id,
                         has_items['url'],
                         folder_id=base_folder_id,
                         file_type=has_items['ext']
                     )
+                    if 'id' in upped_dataset[0]:
+                        upped_dataset = gi.datasets.show_dataset(upped_dataset[0]['id'])
+                        if 'creating_job' in upped_dataset:
+                            job_ids.append(upped_dataset['creating_job'])
                 except Exception:
                     log.exception("Could not upload %s to %s/%s", has_items['url'], lib_id, base_folder_id)
-        return None
+        return job_ids
 
-    populate_items(folder_id, desc)
-    return []
+    return populate_items(folder_id, desc)
 
 
 def create_batch_api(gi, desc):
@@ -159,12 +164,7 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
 
         job_ids = []
         if legacy:
-            for job in jc.get_jobs():
-                # Fetch all upload job IDs, ignoring complete ones.
-                if job['tool_id'] == 'upload1' and job['state'] not in ('ok', 'error'):
-                    job_ids.append(job['id'])
-
-            # Just have to check that all upload1 jobs are termianl.
+            job_ids = jobs
         else:
             # Otherwise get back an actual list of jobs
             for job in jobs:

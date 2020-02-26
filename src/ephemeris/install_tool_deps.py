@@ -74,7 +74,9 @@ def main():
                     _install(tool_client, root.get('id'))
             else:
                 log.info("YAML tool list found, parsing..")
-                for tool_id in yaml.safe_load(tool_conf_path):
+                with open(tool_conf_path) as fh:
+                    tool_ids = yaml.safe_load(fh)
+                for tool_id in tool_ids:
                     # Install from yaml file
                     log.info("Installing " + tool_id + " dependencies..")
                     _install(tool_client, tool_id)

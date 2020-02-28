@@ -11,6 +11,7 @@ from bioblend.galaxy.toolshed import ToolShedClient
 
 from . import get_galaxy_connection
 from .common_parser import get_common_args
+from .shed_tools_methods import format_tool_shed_url
 
 
 def get_tool_panel(gi):
@@ -33,7 +34,7 @@ def tools_for_repository(gi, repository):
         if tsr['name'] != name or tsr['owner'] != owner:
             return
 
-        if tool_shed_url and tsr['tool_shed'] != tool_shed_url:
+        if tool_shed_url and format_tool_shed_url(tsr['tool_shed']) != format_tool_shed_url(tool_shed_url):
             return
 
         if changeset_revision and changeset_revision != tsr["changeset_revision"]:

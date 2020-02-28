@@ -5,6 +5,8 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 import yaml
 
+from .shed_tools_methods import format_tool_shed_url
+
 INSTALL_TOOL_DEPENDENCIES = 'install_tool_dependencies: True'
 INSTALL_REPOSITORY_DEPENDENCIES = 'install_repository_dependencies: True'
 INSTALL_RESOLVER_DEPENDENCIES = 'install_resolver_dependencies: True'
@@ -57,8 +59,12 @@ def translate_workflow_dictionary_to_tool_list(tool_dictionary, panel_label):
             starting_tool_list.append(tsr)
     tool_list = []
     for tool in starting_tool_list:
-        sub_dic = {'name': tool['name'], 'owner': tool['owner'], 'revisions': [tool['changeset_revision']],
-                   'tool_panel_section_label': panel_label, 'tool_shed_url': 'https://' + tool['tool_shed']}
+        sub_dic = {
+            'name': tool['name'],
+            'owner': tool['owner'],
+            'revisions': [tool['changeset_revision']],
+            'tool_panel_section_label': panel_label,
+            'tool_shed_url': format_tool_shed_url(tool['tool_shed'])}
         tool_list.append(sub_dic)
     return tool_list
 

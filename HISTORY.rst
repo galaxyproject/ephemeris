@@ -6,6 +6,19 @@ History
 .. to_doc
 
 ---------------------
+0.10.5 (2020-02-29)
+---------------------
+
+* Fix `shed-tools test -t workflow_tools.yml` (thanks to `@nsoranzo`_). `Pull
+  Request 155`_
+* Fix installing tool dependencies from yaml list (thanks to `@mvdbeek`_).
+  `Pull Request 154`_
+* Cast exceptions to string using unicodify (thanks to `@mvdbeek`_). `Pull
+  Request 150`_
+* Add description when creating folders with setup_data_libraries (thanks to
+  `@abretaud`_). `Pull Request 149`_
+
+---------------------
 0.10.4 (2019-10-05)
 ---------------------
 
@@ -201,6 +214,10 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 155: https://github.com/galaxyproject/ephemeris/pull/155
+.. _Pull Request 154: https://github.com/galaxyproject/ephemeris/pull/154
+.. _Pull Request 150: https://github.com/galaxyproject/ephemeris/pull/150
+.. _Pull Request 149: https://github.com/galaxyproject/ephemeris/pull/149
 .. _Pull Request 146: https://github.com/galaxyproject/ephemeris/pull/146
 .. _Pull Request 145: https://github.com/galaxyproject/ephemeris/pull/145
 .. _Pull Request 130: https://github.com/galaxyproject/ephemeris/pull/130
@@ -238,6 +255,7 @@ History
 .. _Pull Request 90: https://github.com/galaxyproject/ephemeris/pull/90
 .. _Pull Request 89: https://github.com/galaxyproject/ephemeris/pull/89
 .. _Pull Request 88: https://github.com/galaxyproject/ephemeris/pull/88
+.. _@abretaud: https://github.com/abretaud
 .. _@bgruening: https://github.com/bgruening
 .. _@blankenberg: https://github.com/blankenberg
 .. _@rhpvorderman: https://github.com/rhpvorderman

@@ -57,6 +57,15 @@ from .get_tool_list_from_galaxy import GiToToolYaml, the_same_repository, tools_
 from .shed_tools_args import parser
 from .shed_tools_methods import complete_repo_information, flatten_repo_info, VALID_KEYS
 
+NON_TERMINAL_REPOSITORY_STATES = {
+    'New',
+    'Cloning',
+    'Setting tool versions',
+    'Installing repository dependencies',
+    'Installing tool dependencies',
+    'Loading proprietary datatypes'
+}
+
 
 class InstallRepositoryManager(object):
     """Manages the installation of new repositories on a galaxy instance"""
@@ -423,20 +432,41 @@ class InstallRepositoryManager(object):
         Returns True if install finished successfully,
         returns False when timeout is exceeded or installation has failed.
         """
+        # We request a repository revision, but Galaxy may decide to install the next downloable revision.
+        # This ensures we have a revision to track, and if not, finds the revision that is actually being installed
+        name = repository['name']
+        owner = repository['owner']
+        changeset_revision = repository['changeset_revision']
+        installed_repo_list = self.tool_shed_client.get_repositories()
+        correct_owner_and_name_status = [r for r in installed_repo_list if r['name'] == name and r['owner'] == owner and r[status] in NON_TERMINAL_REPOSITORY_STATES]
+        assert len(correct_owner_and_name_status) > 0, "Repository '%s' from owner '%s' not found in Galaxy's list of currently installling Repositories" % (name, owner)
+        installing_repo_id = None
+        if len(correct_owner_and_name_status) == 1:
+            # Unambiguous, we wait for this repo
+            installing_repo_id = correct_owner_and_name_status[0]['id']
+        if len(correct_owner_and_name_status) > 1:
+            # More than one repo with the requested name and owner in installing status.
+            # If any repo is of the requested changeset revision we wait for this repo.
+            for installing_repo in correct_owner_and_name_status:
+                if installing_repo['changeset_revision'] == repository['changeset_revision']:
+                    installing_repo_id = installing_repo['id']
+                    break
+        if not installing_repo_id:
+            # We may have a repo that is permanently in a non-terminal state (e.g because of restart during installation).
+            # Raise an exception and continue with the remaining repos.
+            raise AssertionError("Multiple repositories for name '%s', owner '%s' found in non-terminal states. Please uninstall all non-terminal repositories." % (name, owner))
         start = dt.datetime.now()
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):
             try:
-                installed_repo_list = self.tool_shed_client.get_repositories()
-                for installing_repo in installed_repo_list:
-                    if (installing_repo['name'] == repository['name']) and (
-                            installing_repo['owner'] == repository['owner']) and (
-                            installing_repo['changeset_revision'] == repository['changeset_revision']):
-                        if installing_repo['status'] == 'Installed':
-                            return True
-                        elif installing_repo['status'] == 'Error':
-                            return False
-                        else:
-                            time.sleep(10)
+                installed_repo = self.tool_shed_client.show_repository(installing_repo_id)
+                status = installing_repo['status']
+                if  status == 'Installed':
+                    return True
+                elif status == 'Error':
+                    return False
+                else:
+                    assert status in NON_TERMINAL_REPOSITORY_STATES, "Repository name '%s', owner '%s' in unknown status '%s'" % (name, owner, status)
+                    time.sleep(10)
             except ConnectionError as e:
                 if log:
                     log.warning('Failed to get repositories list: %s', unicodify(e))

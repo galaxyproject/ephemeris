@@ -464,9 +464,10 @@ class InstallRepositoryManager(object):
                     return True
                 elif status == 'Error':
                     return False
-                else:
-                    assert status in NON_TERMINAL_REPOSITORY_STATES, "Repository name '%s', owner '%s' in unknown status '%s'" % (name, owner, status)
+                elif status in NON_TERMINAL_REPOSITORY_STATES:
                     time.sleep(10)
+                else:
+                    raise AssertionError("Repository name '%s', owner '%s' in unknown status '%s'" % (name, owner, status))
             except ConnectionError as e:
                 if log:
                     log.warning('Failed to get repositories list: %s', unicodify(e))

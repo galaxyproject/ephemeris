@@ -437,30 +437,31 @@ class InstallRepositoryManager(object):
         name = repository['name']
         owner = repository['owner']
         changeset_revision = repository['changeset_revision']
-        installed_repo_list = self.tool_shed_client.get_repositories()
-        correct_owner_and_name_status = [r for r in installed_repo_list if r['name'] == name and r['owner'] == owner and r['status'] in NON_TERMINAL_REPOSITORY_STATES]
-        assert len(correct_owner_and_name_status) > 0, "Repository '%s' from owner '%s' not found in Galaxy's list of currently installling Repositories" % (name, owner)
+        installed_repos = self.tool_shed_client.get_repositories()
+        non_terminal = [r for r in installed_repos if r['name'] == name and r['owner'] == owner and r['status'] in NON_TERMINAL_REPOSITORY_STATES]
+        assert len(non_terminal) > 0, "Repository '%s' from owner '%s' not in currently installling Repositories" % (name, owner)
         installing_repo_id = None
-        if len(correct_owner_and_name_status) == 1:
+        if len(non_terminal) == 1:
             # Unambiguous, we wait for this repo
-            installing_repo_id = correct_owner_and_name_status[0]['id']
-        if len(correct_owner_and_name_status) > 1:
+            installing_repo_id = non_terminal[0]['id']
+        if len(non_terminal) > 1:
             # More than one repo with the requested name and owner in installing status.
             # If any repo is of the requested changeset revision we wait for this repo.
-            for installing_repo in correct_owner_and_name_status:
+            for installing_repo in non_terminal:
                 if installing_repo['changeset_revision'] == changeset_revision:
                     installing_repo_id = installing_repo['id']
                     break
         if not installing_repo_id:
             # We may have a repo that is permanently in a non-terminal state (e.g because of restart during installation).
             # Raise an exception and continue with the remaining repos.
-            raise AssertionError("Multiple repositories for name '%s', owner '%s' found in non-terminal states. Please uninstall all non-terminal repositories." % (name, owner))
+            msg = "Multiple repositories for name '%s', owner '%s' found in non-terminal states. Please uninstall all non-terminal repositories."
+            raise AssertionError(msg % (name, owner))
         start = dt.datetime.now()
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):
             try:
                 installed_repo = self.tool_shed_client.show_repository(installing_repo_id)
                 status = installed_repo['status']
-                if  status == 'Installed':
+                if status == 'Installed':
                     return True
                 elif status == 'Error':
                     return False

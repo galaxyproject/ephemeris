@@ -438,7 +438,7 @@ class InstallRepositoryManager(object):
         owner = repository['owner']
         changeset_revision = repository['changeset_revision']
         installed_repo_list = self.tool_shed_client.get_repositories()
-        correct_owner_and_name_status = [r for r in installed_repo_list if r['name'] == name and r['owner'] == owner and r[status] in NON_TERMINAL_REPOSITORY_STATES]
+        correct_owner_and_name_status = [r for r in installed_repo_list if r['name'] == name and r['owner'] == owner and r['status'] in NON_TERMINAL_REPOSITORY_STATES]
         assert len(correct_owner_and_name_status) > 0, "Repository '%s' from owner '%s' not found in Galaxy's list of currently installling Repositories" % (name, owner)
         installing_repo_id = None
         if len(correct_owner_and_name_status) == 1:

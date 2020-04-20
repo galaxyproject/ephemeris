@@ -459,7 +459,7 @@ class InstallRepositoryManager(object):
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):
             try:
                 installed_repo = self.tool_shed_client.show_repository(installing_repo_id)
-                status = installing_repo['status']
+                status = installed_repo['status']
                 if  status == 'Installed':
                     return True
                 elif status == 'Error':

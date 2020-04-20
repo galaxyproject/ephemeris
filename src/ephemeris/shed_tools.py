@@ -448,7 +448,7 @@ class InstallRepositoryManager(object):
             # More than one repo with the requested name and owner in installing status.
             # If any repo is of the requested changeset revision we wait for this repo.
             for installing_repo in correct_owner_and_name_status:
-                if installing_repo['changeset_revision'] == repository['changeset_revision']:
+                if installing_repo['changeset_revision'] == changeset_revision:
                     installing_repo_id = installing_repo['id']
                     break
         if not installing_repo_id:

@@ -19,7 +19,12 @@ def get_tool_panel(gi):
     return tool_client.get_tool_panel()
 
 
-def tools_for_repository(gi, repository):
+def get_tools(gi):
+    tool_client = ToolClient(gi)
+    return tool_client.get_tools()
+
+
+def tools_for_repository(gi, repository, all_tools=False):
     tool_shed_url = repository.get('tool_shed_url')
     name = repository['name']
     owner = repository['owner']
@@ -42,7 +47,8 @@ def tools_for_repository(gi, repository):
 
         tools.append(tool_elem)
 
-    walk_tools(get_tool_panel(gi), handle_tool)
+    elems = get_tools(gi) if changeset_revision and all_tools else get_tool_panel(gi)
+    walk_tools(elems, handle_tool)
 
     return tools
 

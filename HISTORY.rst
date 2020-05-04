@@ -6,6 +6,14 @@ History
 .. to_doc
 
 ---------------------
+0.10.6 (2020-05-04)
+---------------------
+
+* Wait for the correct repository (thanks to `@mvdbeek`_). `Pull
+  Request 158`_
+* Update dependencies
+
+---------------------
 0.10.5 (2020-02-29)
 ---------------------
 
@@ -214,6 +222,7 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 158: https://github.com/galaxyproject/ephemeris/pull/158
 .. _Pull Request 155: https://github.com/galaxyproject/ephemeris/pull/155
 .. _Pull Request 154: https://github.com/galaxyproject/ephemeris/pull/154
 .. _Pull Request 150: https://github.com/galaxyproject/ephemeris/pull/150

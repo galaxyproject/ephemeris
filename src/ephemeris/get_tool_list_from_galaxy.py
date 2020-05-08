@@ -47,7 +47,7 @@ def tools_for_repository(gi, repository, all_tools=False):
 
         tools.append(tool_elem)
 
-    elems = get_tools(gi) if changeset_revision and all_tools else get_tool_panel(gi)
+    elems = get_tools(gi) if changeset_revision or all_tools else get_tool_panel(gi)
     walk_tools(elems, handle_tool)
 
     return tools

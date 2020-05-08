@@ -230,6 +230,7 @@ class InstallRepositoryManager(object):
                    test_user_api_key=None,
                    test_user="ephemeris@galaxyproject.org",
                    parallel_tests=1,
+                   test_all_versions=False,
                    ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
@@ -246,7 +247,7 @@ class InstallRepositoryManager(object):
 
         installed_tools = []
         for target_repository in target_repositories:
-            repo_tools = tools_for_repository(self.gi, target_repository)
+            repo_tools = tools_for_repository(self.gi, target_repository, all_tools=test_all_versions)
             installed_tools.extend(repo_tools)
 
         all_test_results = []
@@ -600,6 +601,7 @@ def main():
             test_user_api_key=args.test_user_api_key,
             test_user=args.test_user,
             parallel_tests=args.parallel_tests,
+            test_all_versions=args.test_all_versions,
         )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")

@@ -438,8 +438,9 @@ class InstallRepositoryManager(object):
         owner = repository['owner']
         changeset_revision = repository['changeset_revision']
         installed_repos = self.tool_shed_client.get_repositories()
-        non_terminal = [r for r in installed_repos if r['name'] == name and r['owner'] == owner and r['status'] in NON_TERMINAL_REPOSITORY_STATES]
-        assert len(non_terminal) > 0, "Repository '%s' from owner '%s' not in currently installling Repositories" % (name, owner)
+        filtered_repos = [r for r in installed_repos if r['name'] == name and r['owner'] == owner]
+        non_terminal = [r for r in filtered_repos if r['status'] in NON_TERMINAL_REPOSITORY_STATES]
+        assert len(non_terminal) > 0, "Repository '%s' from owner '%s' not in list of non-terminal Repositories. Other relevant repositories are %s" % (name, owner, filtered_repos)
         installing_repo_id = None
         if len(non_terminal) == 1:
             # Unambiguous, we wait for this repo

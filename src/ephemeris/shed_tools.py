@@ -439,24 +439,27 @@ class InstallRepositoryManager(object):
         changeset_revision = repository['changeset_revision']
         installed_repos = self.tool_shed_client.get_repositories()
         filtered_repos = [r for r in installed_repos if r['name'] == name and r['owner'] == owner]
-        non_terminal = [r for r in filtered_repos if r['status'] in NON_TERMINAL_REPOSITORY_STATES]
-        assert len(non_terminal) > 0, "Repository '%s' from owner '%s' not in list of non-terminal Repositories. Other relevant repositories are %s" % (name, owner, filtered_repos)
+        assert filtered_repos, "Repository '%s' from owner '%s' not in list of repositories." % (name, owner)
+        # Check if exact repository revision in filtered_repos
         installing_repo_id = None
-        if len(non_terminal) == 1:
-            # Unambiguous, we wait for this repo
-            installing_repo_id = non_terminal[0]['id']
-        if len(non_terminal) > 1:
-            # More than one repo with the requested name and owner in installing status.
-            # If any repo is of the requested changeset revision we wait for this repo.
-            for installing_repo in non_terminal:
-                if installing_repo['changeset_revision'] == changeset_revision:
-                    installing_repo_id = installing_repo['id']
-                    break
-        if not installing_repo_id:
-            # We may have a repo that is permanently in a non-terminal state (e.g because of restart during installation).
-            # Raise an exception and continue with the remaining repos.
-            msg = "Multiple repositories for name '%s', owner '%s' found in non-terminal states. Please uninstall all non-terminal repositories."
-            raise AssertionError(msg % (name, owner))
+        for repo in filtered_repos:
+            if repo['changeset_revision'] == changeset_revision:
+                installing_repo_id = repo['id']
+                break
+        else:
+            # Galaxy may have decided to install a newer repository revision. We now try to guess which repository that is.
+            non_terminal = [r for r in filtered_repos if r['status'] in NON_TERMINAL_REPOSITORY_STATES]
+            if len(non_terminal) == 1:
+                # Unambiguous, we wait for this repo
+                installing_repo_id = non_terminal[0]['id']
+            elif len(filtered_repos) == 1:
+                installing_repo_id = filtered_repos[0]['id']
+            else:
+                # We may have a repo that is permanently in a non-terminal state (e.g because of restart during installation).
+                # Raise an exception and continue with the remaining repos.
+                msg = "Could not track repository for name '%s', owner '%s', revision '%s'. "
+                msg += "Please uninstall all non-terminal repositories and ensure revision '%s' is installable."
+                raise AssertionError(msg % (name, owner, changeset_revision, changeset_revision))
         start = dt.datetime.now()
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):
             try:

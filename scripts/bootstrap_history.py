@@ -27,7 +27,8 @@ AUTHORS_SKIP_CREDIT = []
 
 def main(argv):
     history_path = os.path.join(PROJECT_DIRECTORY, "HISTORY.rst")
-    history = open(history_path, "r").read()
+    with open(history_path, "r") as f:
+        history = f.read()
 
     def extend(from_str, line):
         from_str += "\n"
@@ -82,7 +83,8 @@ def main(argv):
 
     to_doc = wrap(to_doc)
     history = extend(".. to_doc", to_doc)
-    open(history_path, "w").write(history)
+    with open(history_path, "w") as f:
+        f.write(history)
 
 
 def get_first_sentence(message):

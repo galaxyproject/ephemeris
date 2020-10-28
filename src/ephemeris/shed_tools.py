@@ -46,6 +46,7 @@ import yaml
 from bioblend.galaxy.client import ConnectionError
 from bioblend.galaxy.toolshed import ToolShedClient
 from galaxy.tool_util.verify.interactor import (
+    DictClientTestConfig,
     GalaxyInteractorApi,
     verify_tool,
 )
@@ -231,6 +232,7 @@ class InstallRepositoryManager(object):
                    test_user="ephemeris@galaxyproject.org",
                    parallel_tests=1,
                    test_all_versions=False,
+                   client_test_config_path=None,
                    ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
@@ -252,6 +254,13 @@ class InstallRepositoryManager(object):
 
         all_test_results = []
         galaxy_interactor = self._get_interactor(test_user, test_user_api_key)
+        if client_test_config_path is not None:
+            with open(client_test_config_path, "r") as f:
+                client_test_config_dict = yaml.full_load(f)
+            client_test_config = DictClientTestConfig(client_test_config_dict.get("tools"))
+        else:
+            client_test_config = None
+
         test_history = galaxy_interactor.new_history()
 
         with ThreadPoolExecutor(max_workers=parallel_tests) as executor:
@@ -265,6 +274,7 @@ class InstallRepositoryManager(object):
                                     tool_test_results=all_test_results,
                                     tests_passed=tests_passed,
                                     test_exceptions=test_exceptions,
+                                    client_test_config=client_test_config,
                                     )
             finally:
                 # Always write report, even if test was cancelled.
@@ -325,17 +335,26 @@ class InstallRepositoryManager(object):
                    test_exceptions,
                    log,
                    test_history=None,
+                   client_test_config=None,
                    ):
         if test_history is None:
             test_history = galaxy_interactor.new_history()
         tool_id = tool["id"]
         tool_version = tool["version"]
+        # If given a tool_id with a version suffix, strip it off so we can treat tool_version
+        # correctly at least in client_test_config.
+        if tool_version and tool_id.endswith("/" + tool_version):
+            tool_id = tool_id[:-len("/" + tool_version)]
+
+        label_base = tool_id
+        if tool_version:
+            label_base += "/" + str(tool_version)
         try:
             tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
         except Exception as e:
             if log:
-                log.warning("Fetching test definition for tool '%s' failed", tool_id, exc_info=True)
-            test_exceptions.append((tool_id, e))
+                log.warning("Fetching test definition for tool '%s' failed", label_base, exc_info=True)
+            test_exceptions.append((label_base, e))
             Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
             return Results(tool_test_results=tool_test_results,
                            tests_passed=tests_passed,
@@ -343,7 +362,7 @@ class InstallRepositoryManager(object):
         test_indices = list(range(len(tool_test_dicts)))
 
         for test_index in test_indices:
-            test_id = tool_id + "-" + str(test_index)
+            test_id = label_base + "-" + str(test_index)
 
             def run_test(index, test_id):
 
@@ -360,6 +379,7 @@ class InstallRepositoryManager(object):
                     verify_tool(
                         tool_id, galaxy_interactor, test_index=index, tool_version=tool_version,
                         register_job_data=register, quiet=True, test_history=test_history,
+                        client_test_config=client_test_config,
                     )
                     tests_passed.append(test_id)
                     if log:
@@ -602,6 +622,7 @@ def main():
             test_user=args.test_user,
             parallel_tests=args.parallel_tests,
             test_all_versions=args.test_all_versions,
+            client_test_config_path=args.client_test_config,
         )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
@@ -619,6 +640,7 @@ def main():
                 test_user_api_key=args.test_user_api_key,
                 test_user=args.test_user,
                 parallel_tests=args.parallel_tests,
+                client_test_config_path=args.client_test_config
             )
 
 

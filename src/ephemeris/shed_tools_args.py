@@ -33,6 +33,7 @@ def parser():
         test_json="tool_test_output.json",
         test_existing=False,
         parallel_tests=1,
+        client_test_config=None,
     )
 
     # SUBPARSERS
@@ -239,6 +240,12 @@ def parser():
         help="Run tests on all installed versions of tools.  This will only "
              "apply for tools where revisions have not been provided through "
              "the --revisions arg, --tool_file or --tool_yaml."
+    )
+    test_command_parser.add_argument(
+        "--client_test_config",
+        dest="client_test_config",
+        help="Annotate expectations about tools in client testing YAML "
+             "configuration file."
     )
 
     return shed_parser

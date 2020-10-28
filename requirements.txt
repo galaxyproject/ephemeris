@@ -2,6 +2,6 @@ six>=1.9.0
 PyYAML
 bioblend>=0.10.0
 Jinja2
-galaxy-tool-util>=20.5.0.dev1
-galaxy-util>=20.1.0.dev0  # temporarily needed because this is a pre-release and https://github.com/pypa/pip/issues/988
+galaxy-tool-util>=20.9.1
+galaxy-util>=20.9.0
 futures ; python_version < '3'

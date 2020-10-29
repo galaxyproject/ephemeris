@@ -111,6 +111,7 @@ open-project:
 
 dist: clean
 	$(IN_VENV) python setup.py sdist bdist_egg bdist_wheel
+	$(IN_VENV) twine check dist/*
 	ls -l dist
 
 release-test-artifacts: dist

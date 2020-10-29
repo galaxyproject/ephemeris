@@ -1,4 +1,5 @@
 from collections import namedtuple
+from time import sleep
 
 import docker
 import pytest
@@ -9,7 +10,10 @@ from ephemeris.sleep import galaxy_wait
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "bgruening/galaxy-stable:latest"
+GALAXY_IMAGE = "bgruening/galaxy-stable:20.05"
+GALAXY_ADMIN_KEY = "fakekey"
+GALAXY_ADMIN_PASSWORD = "password"
+GALAXY_ADMIN_USER = "admin@galaxy.org"
 
 client = docker.from_env()
 
@@ -41,8 +45,11 @@ def start_container(**kwargs):
     container_url = "http://localhost:{0}".format(exposed_port)
     galaxy_wait(container_url,
                 timeout=60)  # We are only going to wait 60 seconds. These are tests, and we are impatient!
+    print("FOO!!!!!!!!!!\n\n\n\n\n\n\n\n\n\n")
+    print(container.logs())
+    sleep(300)
     yield GalaxyContainer(url=container_url,
                           container=container,
                           attributes=container_attributes,
-                          gi=GalaxyInstance(container_url, key="admin"))
+                          gi=GalaxyInstance(container_url, key=GALAXY_ADMIN_KEY))
     container.remove(force=True)

@@ -11,8 +11,6 @@ sphinx-argparse
 sphinx
 CommonMark
 
-# Used to check readme.
-readme
 # Used for code checking.
 pyflakes
 flake8

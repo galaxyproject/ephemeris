@@ -7,12 +7,14 @@ import time
 
 import pytest
 import yaml
-from docker_for_galaxy import start_container  # noqa: F401 prevent unused error
+from docker_for_galaxy import GALAXY_ADMIN_KEY, GALAXY_ADMIN_PASSWORD, GALAXY_ADMIN_USER, start_container  # noqa: F401 prevent unused error
 
 from ephemeris import run_data_managers
 from ephemeris.run_data_managers import DataManagers
 from ephemeris.shed_tools import InstallRepositoryManager
 from ephemeris.sleep import galaxy_wait
+
+AUTH_BY = "key"
 
 
 class TestRunDataManagers(object):
@@ -39,11 +41,19 @@ class TestRunDataManagers(object):
     def test_run_data_managers(self, start_container):  # noqa: F811 Prevent start_container unused warning.
         """Tests an installation using the command line"""
         container = start_container
-        sys.argv = ["run-data-managers",
-                    "--user", "admin@galaxy.org",
-                    "-p", "admin",
-                    "-g", container.url,
-                    "--config", "tests/run_data_managers.yaml.test"]
+        argv = ["run-data-managers"]
+        if AUTH_BY == "user":
+            argv.extend([
+                "--user", GALAXY_ADMIN_USER,
+                "-p", GALAXY_ADMIN_PASSWORD,
+            ])
+        else:
+            argv.extend(["-a", GALAXY_ADMIN_KEY])
+        argv.extend([
+            "-g", container.url,
+            "--config", "tests/run_data_managers.yaml.test"
+        ])
+        sys.argv = argv
         run_data_managers.main()
 
     def test_run_data_managers_installation_skipped(self, start_container):  # noqa: F811 Prevent start_container unused warning.

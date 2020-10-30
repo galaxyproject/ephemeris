@@ -13,7 +13,7 @@ function start_container {
     # We start the image with the -P flag that published all exposed container ports
     # to random free ports on the host, since on OS X the container can't be reached
     # through the internal network (https://docs.docker.com/docker-for-mac/networking/#i-cannot-ping-my-containers)
-    CID=$(docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable)
+    CID=$(docker run -d -e GALAXY_CONFIG_WATCH_TOOL_DATA_DIR=True -P bgruening/galaxy-stable:19.09)
     # We get the webport (https://docs.docker.com/engine/reference/commandline/inspect/#list-all-port-bindings)
     WEB_PORT=$(docker inspect --format="{{(index (index .NetworkSettings.Ports \"$INTERNAL_EXPOSED_WEB_PORT/tcp\") 0).HostPort}}" $CID)
     echo "Wait for galaxy to start"

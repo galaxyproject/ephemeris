@@ -19,9 +19,10 @@ function start_container {
     GALAXY_ADMIN_KEY="fakekey"
     GALAXY_ADMIN_PASSWORD="password"
     GALAXY_ADMIN_USER="admin@galaxy.org"
+    GALAXY_URL="http://localhost:$WEB_PORT"
     echo "Wait for galaxy to start"
-    galaxy-wait -g http://localhost:$WEB_PORT -v --timeout 120
-    sleep 120
+    galaxy-wait -g "${GALAXY_URL}" -a "${GALAXY_ADMIN_KEY}" --ensure_admin -v --timeout 180
+    echo "Return from galaxy-wait $?"
 }
 
 function start_new_container {

@@ -3,7 +3,6 @@
 This is useful in docker images, in RUN steps, where one needs to wait
 for a currently starting Galaxy to be alive, before API requests can be
 made successfully.
-
 The script functions by making repeated requests to
 ``http(s)://fqdn/api/version``, an API which requires no authentication
 to access.'''
@@ -16,6 +15,8 @@ import requests
 from galaxy.util import unicodify
 
 from .common_parser import get_common_args
+
+DEFAULT_SLEEP_WAIT = 1
 
 
 def _parser():
@@ -37,15 +38,28 @@ def _parse_cli_options():
     return parser.parse_args()
 
 
-def galaxy_wait(galaxy_url, timeout=600, verbose=False):
+class SleepCondition(object):
+
+    def __init__(self):
+        self.sleep = True
+
+    def cancel(self):
+        self.sleep = False
+
+
+def sleep(galaxy_url, verbose=False, timeout=0, sleep_condition=None):
+    if sleep_condition is None:
+        sleep_condition = SleepCondition()
+
     count = 0
-    while True:
+    while sleep_condition.sleep:
         try:
             result = requests.get(galaxy_url + '/api/version')
             try:
                 result = result.json()
                 if verbose:
                     sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
+                    sys.stdout.flush()
                 break
             except ValueError:
                 if verbose:
@@ -53,16 +67,18 @@ def galaxy_wait(galaxy_url, timeout=600, verbose=False):
                     sys.stdout.flush()
         except requests.exceptions.ConnectionError as e:
             if verbose:
-                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, unicodify(e)[0:100]))
+                sys.stdout.write("[%02d] Galaxy not up yet... %s\n" % (count, unicodify(e)[:100]))
                 sys.stdout.flush()
         count += 1
 
         # If we cannot talk to galaxy and are over the timeout
         if timeout != 0 and count > timeout:
             sys.stderr.write("Failed to contact Galaxy\n")
-            sys.exit(1)
+            return False
 
-        time.sleep(1)
+        time.sleep(DEFAULT_SLEEP_WAIT)
+
+    return True
 
 
 def main():
@@ -71,9 +87,9 @@ def main():
     """
     options = _parse_cli_options()
 
-    galaxy_wait(options.galaxy, options.timeout, options.verbose)
-
-    sys.exit(0)
+    galaxy_alive = sleep(galaxy_url=options.galaxy, verbose=options.verbose, timeout=options.timeout)
+    exit_code = 0 if galaxy_alive else 1
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

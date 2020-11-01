@@ -48,7 +48,7 @@ def start_container(**kwargs):
     ready = galaxy_wait(container_url,
                         timeout=180,
                         api_key=key,
-                        ensure_admin=ensure_admin)  # We are only going to wait 60 seconds. These are tests, and we are impatient!
+                        ensure_admin=ensure_admin)
     if not ready:
         raise Exception("Failed to wait on Galaxy to start.")
     gi = GalaxyInstance(container_url, key=key)

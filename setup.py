@@ -87,8 +87,10 @@ setup(
         'Topic :: Software Development :: Code Generators',
         'Topic :: Software Development :: Testing',
         'Natural Language :: English',
-        "Programming Language :: Python :: 2",
-        'Programming Language :: Python :: 2.7',
+        "Programming Language :: Python :: 3",
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
     test_suite=TEST_DIR,
     tests_require=test_requirements

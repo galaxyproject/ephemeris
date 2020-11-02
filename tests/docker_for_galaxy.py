@@ -9,7 +9,10 @@ from ephemeris.sleep import galaxy_wait
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "bgruening/galaxy-stable:latest"
+GALAXY_IMAGE = "bgruening/galaxy-stable:20.05"
+GALAXY_ADMIN_KEY = "fakekey"
+GALAXY_ADMIN_PASSWORD = "password"
+GALAXY_ADMIN_USER = "admin@galaxy.org"
 
 client = docker.from_env()
 
@@ -25,6 +28,8 @@ def start_container(**kwargs):
     # The random port is because we need mac compatibility. On GNU/linux a better option would be not to expose it
     # and use the internal ip address instead.
     # But alas, the trappings of a proprietary BSD kernel compel us to do ugly workarounds.
+    key = kwargs.get("api_key", GALAXY_ADMIN_KEY)
+    ensure_admin = kwargs.get("ensure_admin", True)
 
     container = client.containers.run(GALAXY_IMAGE, detach=True, ports={'80/tcp': None}, **kwargs)
     container_id = container.attrs.get('Id')
@@ -39,10 +44,16 @@ def start_container(**kwargs):
     exposed_port = container_attributes.get('NetworkSettings').get('Ports').get('80/tcp')[0].get('HostPort')
 
     container_url = "http://localhost:{0}".format(exposed_port)
-    galaxy_wait(container_url,
-                timeout=60)  # We are only going to wait 60 seconds. These are tests, and we are impatient!
+    assert key
+    ready = galaxy_wait(container_url,
+                        timeout=180,
+                        api_key=key,
+                        ensure_admin=ensure_admin)
+    if not ready:
+        raise Exception("Failed to wait on Galaxy to start.")
+    gi = GalaxyInstance(container_url, key=key)
     yield GalaxyContainer(url=container_url,
                           container=container,
                           attributes=container_attributes,
-                          gi=GalaxyInstance(container_url, key="admin"))
+                          gi=gi)
     container.remove(force=True)

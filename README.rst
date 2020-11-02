@@ -14,7 +14,7 @@
 .. image:: https://api.codacy.com/project/badge/Grade/e12102174b4e452c871cd2bafedaec60
    :target: https://www.codacy.com/app/galaxyproject/ephemeris?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=galaxyproject/ephemeris&amp;utm_campaign=Badge_Grade
 
-Ephemeris is a small Python library and set of scripts for managing the
+Ephemeris is a small Python 3 library and set of scripts for managing the
 bootstrapping of Galaxy_ plugins - tools, index data, and workflows.
 
 * Free software: Academic Free License version 3.0

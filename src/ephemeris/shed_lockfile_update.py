@@ -3,12 +3,16 @@
 import argparse
 import logging
 import os
-import yaml
 from collections import defaultdict
 
+import yaml
 from bioblend import toolshed
 
 DEFAULT_TOOL_SHED_URL = 'https://toolshed.g2.bx.psu.edu'
+FOUND_NEWER_MESSAGE = "Found newer revision of {owner}/{name} ({rev})"
+FETCHING_UPDATE_MESSAGE = "Fetching updates for {owner}/{name}"
+INIT_LOCKFILE_MESSAGE = "Lockfile doesn't exist yet, starting with source as base."
+NON_DEFAULT_TS_MESSAGE = 'Non-default Tool Shed URL for %s/%s: %s'
 
 
 class ToolSheds(defaultdict):
@@ -25,7 +29,7 @@ tool_sheds = ToolSheds()
 def update_file(fn, owner=None, name=None, without=False):
     locked_in_path = fn + ".lock"
     if not os.path.exists(locked_in_path):
-        logging.info("Lockfile doesn't exist yet, starting with source as base.")
+        logging.info(INIT_LOCKFILE_MESSAGE)
         locked_in_path = fn
 
     with open(locked_in_path, 'r') as handle:
@@ -48,10 +52,10 @@ def update_file(fn, owner=None, name=None, without=False):
 
         ts_url = tool.get('tool_shed_url', DEFAULT_TOOL_SHED_URL)
         if ts_url != DEFAULT_TOOL_SHED_URL:
-            logging.warning('Non-default Tool Shed URL for %s/%s: %s', tool['owner'], tool['name'], ts_url)
+            logging.warning(NON_DEFAULT_TS_MESSAGE, tool['owner'], tool['name'], ts_url)
         ts = tool_sheds[ts_url]
 
-        logging.info("Fetching updates for {owner}/{name}".format(**tool))
+        logging.info(FETCHING_UPDATE_MESSAGE.format(**tool))
 
         try:
             revs = ts.repositories.get_ordered_installable_revisions(tool['name'], tool['owner'])
@@ -65,7 +69,7 @@ def update_file(fn, owner=None, name=None, without=False):
             # The rev is already known, don't add again.
             continue
 
-        logging.info("Found newer revision of {owner}/{name} ({rev})".format(rev=latest_rev, **tool))
+        logging.info(FOUND_NEWER_MESSAGE.format(rev=latest_rev, **tool))
 
         # Get latest rev, if not already added, add it.
         if 'revisions' not in tool:
@@ -81,11 +85,28 @@ def update_file(fn, owner=None, name=None, without=False):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('fn', type=argparse.FileType('r'), help="Tool.yaml file")
-    parser.add_argument('--owner', action='append', help="Repository owner to filter on, anything matching this will be updated. Can be specified multiple times")
-    parser.add_argument('--name', help="Repository name to filter on, anything matching this will be updated")
-    parser.add_argument('--without', action='store_true', help="If supplied will ignore any owner/name and just automatically add the latest hash for anything lacking one.")
-    parser.add_argument('--log', choices=('critical', 'error', 'warning', 'info', 'debug'), default='info')
+    parser.add_argument(
+        'fn', type=argparse.FileType('r'), help="Tool.yaml file"
+    )
+    parser.add_argument(
+        '--owner',
+        action='append',
+        help="Repository owner to filter on, anything matching this will be updated. Can be specified multiple times"
+    )
+    parser.add_argument(
+        '--name',
+        help="Repository name to filter on, anything matching this will be updated"
+    )
+    parser.add_argument(
+        '--without',
+        action='store_true',
+        help="If supplied will ignore any owner/name and just automatically add the latest hash for anything lacking one."
+    )
+    parser.add_argument(
+        '--log',
+        choices=('critical', 'error', 'warning', 'info', 'debug'),
+        default='info'
+    )
     args = parser.parse_args()
     logging.basicConfig(level=getattr(logging, args.log.upper()))
     update_file(args.fn.name, owner=args.owner, name=args.name, without=args.without)

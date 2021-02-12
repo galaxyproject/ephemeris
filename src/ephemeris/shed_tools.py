@@ -233,6 +233,7 @@ class InstallRepositoryManager(object):
                    parallel_tests=1,
                    test_all_versions=False,
                    client_test_config_path=None,
+                   cleanup_histories=None,
                    ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
@@ -309,6 +310,10 @@ class InstallRepositoryManager(object):
                         [t[0] for t in test_exceptions])
                     )
                     log.info("Total tool test time: {0}".format(dt.datetime.now() - tool_test_start))
+                if n_failed == 0 and cleanup_histories:
+                    galaxy_interactor.delete_history(test_history)
+                    if log:
+                        log.info("Cleaned up testing history")
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -627,6 +632,7 @@ def main():
             parallel_tests=args.parallel_tests,
             test_all_versions=args.test_all_versions,
             client_test_config_path=args.client_test_config,
+            cleanup_histories=args.cleanup,
         )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")

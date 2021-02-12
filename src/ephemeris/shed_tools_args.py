@@ -247,5 +247,10 @@ def parser():
         help="Annotate expectations about tools in client testing YAML "
              "configuration file."
     )
+    test_command_parser.add_argument(
+        "--cleanup",
+        action="store_true",
+        help="Cleanup histories after test has finished successfully"
+    )
 
     return shed_parser

@@ -100,6 +100,13 @@ def parser():
             help="The Tool Shed URL where to install the tool from. "
                  "This is applicable only if the tool info is "
                  "provided as an option vs. in the tools file.")
+        command_parser.add_argument(
+            "--fail_on_error",
+            dest="fail_on_error",
+            default=False,
+            action="store_true",
+            help="Fail the execution when an errored repository has been found"
+        )
 
     # OPTIONS COMMON FOR UPDATE AND INSTALL
 
@@ -251,7 +258,8 @@ def parser():
         "--cleanup",
         action="store_true",
         dest="cleanup_histories",
-        help="Cleanup histories after test has finished successfully"
+        help="Cleanup histories after test has finished successfully",
+        default=False
     )
 
     return shed_parser

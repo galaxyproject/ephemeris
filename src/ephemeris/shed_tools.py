@@ -37,6 +37,7 @@ import datetime as dt
 import json
 import os
 import re
+import sys
 import time
 from collections import namedtuple
 from concurrent.futures import thread, ThreadPoolExecutor
@@ -233,7 +234,8 @@ class InstallRepositoryManager(object):
                    parallel_tests=1,
                    test_all_versions=False,
                    client_test_config_path=None,
-                   cleanup_histories=None,
+                   cleanup_histories=False,
+                   fail_on_error=False,
                    ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``.
         """
@@ -314,6 +316,9 @@ class InstallRepositoryManager(object):
                     galaxy_interactor.delete_history(test_history)
                     if log:
                         log.info("Cleaned up testing history")
+                if fail_on_error and n_failed > 0:
+                    log.info("Found errors, exiting with failure")
+                    sys.exit(1)
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -633,10 +638,15 @@ def main():
             test_all_versions=args.test_all_versions,
             client_test_config_path=args.client_test_config,
             cleanup_histories=args.cleanup_histories,
+            fail_on_error=args.fail_on_error,
         )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
 
+    # Validate if all tools installed correctly
+    if args.fail_on_error and install_results and install_results.errored_repositories > 0:
+        log.info("The %s of a tool has failed. Exiting." % args.action)
+        sys.exit(1)
     # Run tests on the install results if required.
     if install_results and args.test or args.test_existing:
         to_be_tested_repositories = install_results.installed_repositories

@@ -632,7 +632,7 @@ def main():
             parallel_tests=args.parallel_tests,
             test_all_versions=args.test_all_versions,
             client_test_config_path=args.client_test_config,
-            cleanup_histories=args.cleanup,
+            cleanup_histories=args.cleanup_histories,
         )
     else:
         raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")

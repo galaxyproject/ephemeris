@@ -250,6 +250,7 @@ def parser():
     test_command_parser.add_argument(
         "--cleanup",
         action="store_true",
+        dest="cleanup_histories",
         help="Cleanup histories after test has finished successfully"
     )
 

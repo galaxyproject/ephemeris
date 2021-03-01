@@ -24,7 +24,5 @@ jobs:
           python -m pip install --upgrade pip
           pip install tox coveralls
       - name: Test with tox
-        run: |
-          TOXENV=$(echo $TOXENV | sed 's/\.//') tox
         env:
-          TOXENV: py${{ matrix.python-version }}-${{ matrix.tox-action }}
+          TOXENV: ${{ matrix.tox-action }}

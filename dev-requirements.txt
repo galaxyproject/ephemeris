@@ -4,6 +4,7 @@ coverage
 pytest
 pytest-cov
 docker
+jinja2
 
 #Building Docs
 sphinx_rtd_theme

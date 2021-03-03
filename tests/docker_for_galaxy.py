@@ -84,6 +84,7 @@ class GalaxyService:
             environment=dict(
                 GALAXY_CONFIG_DATABASE_CONNECTION=f"postgresql://{self.postgres_name}/galaxydb?client_encoding=utf8",
                 GALAXY_CONFIG_ADMIN_USERS=GALAXY_ADMIN_USER,
+                GALAXY_CONFIG_JOB_CONFIG_FILE="job_conf.xml.sample_basic",  # Use basic job conf xml not kubernetes one.
                 PGUSER="dbuser",
                 PGPASSWORD="secret"
             ))
@@ -128,7 +129,7 @@ class GalaxyService:
     def __del__(self):
         try:
             self.remove(force=True)
-        except docker.errors.NotFound:
+        except:
             pass
 
 

@@ -54,12 +54,19 @@ class GalaxyService:
     def __init__(self,
                  api_key: Optional[str] = None):
         self.client = docker.from_env()
+
+        # Setup unique IDS for this network.
         self.id = hex(random.randint(0, 2**32-1)).lstrip("0x")
         self.network_name = f"galaxy_{self.id}"
         self.postgres_name = f"ephemeris_db_{self.id}"
         self.galaxy_web_name = f"galaxy_web_{self.id}"
-        self.nginx_config = template_to_temp(NGINX_TEMPLATE,
-                                             galaxy_web=self.galaxy_web_name)
+
+        # Create a fitting nginx config
+        self.nginx_config = template_to_temp(
+            NGINX_TEMPLATE, galaxy_web=self.galaxy_web_name)
+
+        # Setup containers. This is similar to using docker-compose, but
+        # docker-compose does NOT have a good python API.
         self.network = self.client.networks.create(self.network_name)
         self.postgres_container: Container = self.client.containers.run(
             POSTGRES_IMAGE, detach=True, network=self.network_name,
@@ -76,9 +83,16 @@ class GalaxyService:
             volumes=[f"{str(CREATE_GALAXY_USER_PY)}:/usr/local/bin/create_galaxy_user.py"],
             environment=dict(
                 GALAXY_CONFIG_DATABASE_CONNECTION=f"postgresql://{self.postgres_name}/galaxydb?client_encoding=utf8",
+                GALAXY_CONFIG_ADMIN_USERS=GALAXY_ADMIN_USER,
                 PGUSER="dbuser",
                 PGPASSWORD="secret"
             ))
+        self.nginx_container: Container = self.client.containers.run(
+            NGINX_IMAGE, detach=True, network=self.network_name,
+            ports={'80/tcp': None},
+            volumes=[f"{str(self.nginx_config)}:/etc/nginx/conf.d/default.conf"])
+
+        # Create admin api_key user in galaxy.
         time.sleep(2)  # We wait for the database to be created
         self.api_key = api_key or GALAXY_ADMIN_KEY
         result = self.galaxy_container.exec_run([
@@ -92,11 +106,10 @@ class GalaxyService:
         ], workdir="/galaxy/server")
         if result.exit_code != 0:
             raise RuntimeError(f"Error when creating API Key: {result.output}")
-        self.nginx_container: Container = self.client.containers.run(
-            NGINX_IMAGE, detach=True, network=self.network_name,
-            ports={'80/tcp': None},
-            volumes=[f"{str(self.nginx_config)}:/etc/nginx/conf.d/default.conf"])
+
+        # Create api endpoint.
         self.url = get_container_url(self.nginx_container, '80/tcp')
+        self.api = GalaxyInstance(self.url, self.api_key)
 
     def stop(self, **kwargs):
         self.galaxy_container.stop(**kwargs)
@@ -106,8 +119,8 @@ class GalaxyService:
     def remove(self, **kwargs):
         self.galaxy_container.remove(**kwargs)
         self.postgres_container.remove(**kwargs)
-        os.remove(self.nginx_config)
         self.nginx_container.remove(**kwargs)
+        os.remove(self.nginx_config)
 
     def restart_galaxy(self):
         self.galaxy_container.restart()
@@ -128,7 +141,7 @@ def start_container(**kwargs):
     key = kwargs.get("api_key", GALAXY_ADMIN_KEY)
     ensure_admin = kwargs.get("ensure_admin", True)
 
-    container = client.containers.run(GALAXY_IMAGE, detach=True,
+    container = client.containers.run("bgruening/galaxy-stable:20.05", detach=True,
                                       ports={'80/tcp': None}, **kwargs)
     container_id = container.attrs.get('Id')
     print(container_id)

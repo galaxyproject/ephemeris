@@ -3,17 +3,16 @@ import random
 import tempfile
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Any, Union
-
-from bioblend.galaxy import GalaxyInstance
+from typing import Optional, Union
 
 import docker
+import jinja2
+import pytest
+from bioblend.galaxy import GalaxyInstance
+from docker.models.containers import Container
 
 from ephemeris.sleep import galaxy_wait
 
-import jinja2
-
-import pytest
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
@@ -53,35 +52,51 @@ class GalaxyService:
 
     def __init__(self,
                  api_key: Optional[str] = None):
+        self.client = docker.from_env()
         self.id = hex(random.randint(0, 2**32-1)).lstrip("0x")
         self.network_name = f"galaxy_{self.id}"
         self.postgres_name = f"ephemeris_db_{self.id}"
         self.galaxy_web_name = f"galaxy_web_{self.id}"
-        self.nginx_template = template_to_temp(NGINX_TEMPLATE,
-                                               galaxy_web=self.galaxy_web_name)
-        self.network = client.networks.create(self.network_name)
-        self.postgres_container = client.containers.run(
+        self.nginx_config = template_to_temp(NGINX_TEMPLATE,
+                                             galaxy_web=self.galaxy_web_name)
+        self.network = self.client.networks.create(self.network_name)
+        self.postgres_container: Container = self.client.containers.run(
             POSTGRES_IMAGE, detach=True, network=self.network_name,
-            name="ephemeris_db",
+            name=self.postgres_name,
             environment=dict(
                 POSTGRES_USER="dbuser",
                 POSTGRES_ROOT_PASSWORD="secret",
                 POSTGRES_PASSWORD="secret",
                 POSTGRES_DB="galaxydb"
             ))
-        self.galaxy_container = client.containers.run(
+        self.galaxy_container: Container = self.client.containers.run(
             GALAXY_IMAGE, detach=True, network=self.network_name,
-            name="ephemeris_galaxy",
+            name=self.galaxy_web_name,
             volumes=[f"{str(CREATE_GALAXY_USER_PY)}:/usr/local/bin/create_galaxy_user.py"],
             environment=dict(
-                GALAXY_CONFIG_DATABASE_CONNECTION="postgresql://ephemeris_db/galaxydb?client_encoding=utf8",
+                GALAXY_CONFIG_DATABASE_CONNECTION=f"postgresql://{self.postgres_name}/galaxydb?client_encoding=utf8",
                 PGUSER="dbuser",
                 PGPASSWORD="secret"
             ))
-        self.nginx_container = client.containers.run(
+        self.nginx_container: Container = self.client.containers.run(
             NGINX_IMAGE, detach=True, network=self.network_name,
-            ports={'80/tcp': None})
+            ports={'80/tcp': None},
+            volumes=[f"{str(self.nginx_config)}:/etc/nginx/conf.d/default.conf"])
         self.url = get_container_url(self.nginx_container, '80/tcp')
+
+    def stop(self, **kwargs):
+        self.galaxy_container.stop(**kwargs)
+        self.nginx_container.stop(**kwargs)
+        self.postgres_container.stop(**kwargs)
+
+    def remove(self, **kwargs):
+        self.galaxy_container.remove(**kwargs)
+        self.nginx_container.remove(**kwargs)
+        self.postgres_container.remove(**kwargs)
+        os.remove(self.nginx_config)
+
+    def restart_galaxy(self):
+        self.galaxy_container.restart()
 
 
 # Class scope is chosen here so we can group tests on the same galaxy in a class.
@@ -107,9 +122,7 @@ def start_container(**kwargs):
     container_attributes = client.containers.get(container_id).attrs
 
     # Venturing into deep nested dictionaries.
-    exposed_port = \
-    container_attributes.get('NetworkSettings').get('Ports').get('80/tcp')[
-        0].get('HostPort')
+    exposed_port = container_attributes.get('NetworkSettings').get('Ports').get('80/tcp')[0].get('HostPort')
 
     container_url = "http://localhost:{0}".format(exposed_port)
     assert key

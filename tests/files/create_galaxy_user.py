@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
+import argparse
 import sys
-sys.path.insert(1, '/galaxy/server')
-sys.path.insert(1,'/galaxy/server/lib')
 
-from galaxy.model import User, APIKeys
+from galaxy.model import APIKeys, User
 from galaxy.model.mapping import init
 from galaxy.model.orm.scripts import get_config
-import argparse
 
-def add_user(sa_session, security_agent, email, password, key=None, username="admin"):
+sys.path.insert(1, '/galaxy/server')
+sys.path.insert(1, '/galaxy/server/lib')
+
+
+def add_user(sa_session, security_agent, email, password, key=None,
+             username="admin"):
     """
         Add Galaxy User.
         From John https://gist.github.com/jmchilton/4475646
     """
-    query = sa_session.query( User ).filter_by( email=email )
+    query = sa_session.query(User).filter_by(email=email)
     if query.count() > 0:
         return query.first()
     else:
@@ -24,9 +27,10 @@ def add_user(sa_session, security_agent, email, password, key=None, username="ad
         sa_session.add(user)
         sa_session.flush()
 
-        security_agent.create_private_user_role( user )
+        security_agent.create_private_user_role(user)
         if not user.default_permissions:
-            security_agent.user_set_default_permissions( user, history=True, dataset=True )
+            security_agent.user_set_default_permissions(user, history=True,
+                                                        dataset=True)
 
         if key is not None:
             api_key = APIKeys()
@@ -43,12 +47,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Create Galaxy Admin User.')
 
     parser.add_argument("--user", required=True,
-                    help="Username, it should be an email address.")
+                        help="Username, it should be an email address.")
     parser.add_argument("--password", required=True,
-                    help="Password.")
+                        help="Password.")
     parser.add_argument("--key", help="API-Key.")
     parser.add_argument("--username", default="admin",
-                    help="The public username. Public names must be at least three characters in length and contain only lower-case letters, numbers, and the '-' character.")
+                        help="The public username. Public names must be at "
+                             "least three characters in length and contain "
+                             "only lower-case letters, numbers, and the '-' "
+                             "character.")
     parser.add_argument('args', nargs=argparse.REMAINDER)
 
     options = parser.parse_args()
@@ -57,4 +64,5 @@ if __name__ == "__main__":
     sa_session = mapping.context
     security_agent = mapping.security_agent
 
-    add_user(sa_session, security_agent, options.user, options.password, key=options.key, username=options.username)
+    add_user(sa_session, security_agent, options.user, options.password,
+             key=options.key, username=options.username)

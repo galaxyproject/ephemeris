@@ -7,7 +7,7 @@ import time
 
 import pytest
 import yaml
-from docker_for_galaxy import GALAXY_ADMIN_KEY, GALAXY_ADMIN_PASSWORD, GALAXY_ADMIN_USER, start_container  # noqa: F401 prevent unused error
+from docker_for_galaxy import GALAXY_ADMIN_KEY, GALAXY_ADMIN_PASSWORD, GALAXY_ADMIN_USER, galaxy_service  # noqa: F401 prevent unused error
 
 from ephemeris import run_data_managers
 from ephemeris.run_data_managers import DataManagers
@@ -20,9 +20,8 @@ AUTH_BY = "key"
 class TestRunDataManagers(object):
     """This class tests run-data-managers"""
 
-    def test_install_data_managers(self, start_container):  # noqa: F811 Prevent start_container unused warning.
+    def test_install_data_managers(self, galaxy_service):
         """Install the data_managers on galaxy"""
-        container = start_container
         data_managers = [
             dict(name="data_manager_fetch_genome_dbkeys_all_fasta",
                  owner="devteam"),
@@ -31,16 +30,15 @@ class TestRunDataManagers(object):
             dict(name="data_manager_bwa_mem_index_builder",
                  owner="devteam")
         ]
-        irm = InstallRepositoryManager(container.gi)
+        irm = InstallRepositoryManager(galaxy_service.api)
         irm.install_repositories(data_managers)
         # Galaxy is restarted because otherwise data tables are not watched.
-        container.container.exec_run("supervisorctl restart galaxy:")
+        galaxy_service.restart_galaxy()
         time.sleep(10)  # give time for the services to go down
-        galaxy_wait(container.url)
+        galaxy_wait(galaxy_service.url)
 
-    def test_run_data_managers(self, start_container):  # noqa: F811 Prevent start_container unused warning.
+    def test_run_data_managers(self, galaxy_service):  # noqa: F811 Prevent start_container unused warning.
         """Tests an installation using the command line"""
-        container = start_container
         argv = ["run-data-managers"]
         if AUTH_BY == "user":
             argv.extend([
@@ -50,24 +48,22 @@ class TestRunDataManagers(object):
         else:
             argv.extend(["-a", GALAXY_ADMIN_KEY])
         argv.extend([
-            "-g", container.url,
+            "-g", galaxy_service.url,
             "--config", "tests/run_data_managers.yaml.test"
         ])
         sys.argv = argv
         run_data_managers.main()
 
-    def test_run_data_managers_installation_skipped(self, start_container):  # noqa: F811 Prevent start_container unused warning.
-        container = start_container
+    def test_run_data_managers_installation_skipped(self, galaxy_service):
         with open("tests/run_data_managers.yaml.test") as config_file:
             configuration = yaml.safe_load(config_file)
-        dm = DataManagers(container.gi, configuration)
+        dm = DataManagers(galaxy_service.api, configuration)
         install_results = dm.run()
         assert (len(install_results.successful_jobs) == 0)
         assert (len(install_results.skipped_jobs) == 9)
         assert (len(install_results.failed_jobs) == 0)
 
-    def test_run_data_managers_installation_fail(self, start_container, caplog):  # noqa: F811 Prevent start_container unused warning.
-        container = start_container
+    def test_run_data_managers_installation_fail(self, galaxy_service, caplog):
         configuration = dict(
             data_managers=[
                 dict(
@@ -89,7 +85,7 @@ class TestRunDataManagers(object):
                 )
             ]
         )
-        dm = DataManagers(container.gi, configuration)
+        dm = DataManagers(galaxy_service.api, configuration)
         with pytest.raises(RuntimeError):
             dm.run()
         assert ("HTTP Error 404" in caplog.text)

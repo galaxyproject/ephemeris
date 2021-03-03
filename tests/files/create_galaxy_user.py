@@ -2,12 +2,12 @@
 import argparse
 import sys
 
-from galaxy.model import APIKeys, User
-from galaxy.model.mapping import init
-from galaxy.model.orm.scripts import get_config
-
 sys.path.insert(1, '/galaxy/server')
 sys.path.insert(1, '/galaxy/server/lib')
+
+from galaxy.model import APIKeys, User  # noqa: E402, import must be after sys.path.insert
+from galaxy.model.mapping import init  # noqa: E402
+from galaxy.model.orm.scripts import get_config  # noqa: E402
 
 
 def add_user(sa_session, security_agent, email, password, key=None,

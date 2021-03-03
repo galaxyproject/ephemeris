@@ -1,6 +1,7 @@
 import os
 import random
 import tempfile
+import time
 from collections import namedtuple
 from pathlib import Path
 from typing import Optional, Union
@@ -78,6 +79,19 @@ class GalaxyService:
                 PGUSER="dbuser",
                 PGPASSWORD="secret"
             ))
+        time.sleep(2)  # We wait for the database to be created
+        self.api_key = api_key or GALAXY_ADMIN_KEY
+        result = self.galaxy_container.exec_run([
+            "/galaxy/server/.venv/bin/python",
+            "/usr/local/bin/create_galaxy_user.py",
+            "--user", GALAXY_ADMIN_USER,
+            "--username", "admin",
+            "--key", self.api_key,
+            "--password", GALAXY_ADMIN_PASSWORD,
+            "-c", "/galaxy/server/config/galaxy.yml"
+        ], workdir="/galaxy/server")
+        if result.exit_code != 0:
+            raise RuntimeError(f"Error when creating API Key: {result.output}")
         self.nginx_container: Container = self.client.containers.run(
             NGINX_IMAGE, detach=True, network=self.network_name,
             ports={'80/tcp': None},
@@ -91,12 +105,15 @@ class GalaxyService:
 
     def remove(self, **kwargs):
         self.galaxy_container.remove(**kwargs)
-        self.nginx_container.remove(**kwargs)
         self.postgres_container.remove(**kwargs)
         os.remove(self.nginx_config)
+        self.nginx_container.remove(**kwargs)
 
     def restart_galaxy(self):
         self.galaxy_container.restart()
+
+    def __del__(self):
+        self.remove(force=True)
 
 
 # Class scope is chosen here so we can group tests on the same galaxy in a class.

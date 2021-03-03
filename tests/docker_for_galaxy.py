@@ -126,12 +126,6 @@ class GalaxyService:
     def restart_galaxy(self):
         self.galaxy_container.restart()
 
-    def __del__(self):
-        try:
-            self.remove(force=True)
-        except:
-            pass
-
 
 # Class scope is chosen here so we can group tests on the same galaxy in a class.
 @pytest.fixture(scope="class")

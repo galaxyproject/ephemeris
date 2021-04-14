@@ -12,10 +12,15 @@ server {
     gzip_types text/plain text/css application/json application/x-javascript text/xml application/xml application/xml+rss text/javascript;
     gzip_buffers 16 8k;
 
-  location / {
-    proxy_pass http://{{galaxy_web}}:8080;
-    proxy_set_header X-Forwarded-Port $server_port;
-    proxy_set_header X-Forwarded-Host $host;
-    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    location / {
+        include uwsgi_params;
+        # allow up to 3 minutes for Galaxy to respond to slow requests before timing out
+        uwsgi_read_timeout 180;
+        # maximum file upload size
+        uwsgi_pass uwsgi://{{galaxy_web}}:3031;
+        uwsgi_param Host $host;
+        uwsgi_param X-Real-IP $remote_addr;
+        uwsgi_param X-Forwarded-For $proxy_add_x_forwarded_for;
+        uwsgi_param X-Forwarded-Proto $http_x_forwarded_proto;
     }
 }

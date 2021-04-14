@@ -3,7 +3,7 @@ import random
 import tempfile
 from collections import namedtuple
 from pathlib import Path
-from typing import Optional, Union, Generator
+from typing import Generator, Optional, Union
 
 import docker
 import jinja2

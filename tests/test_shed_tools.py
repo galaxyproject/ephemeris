@@ -9,7 +9,7 @@ import os
 import tempfile
 
 import pytest
-from docker_for_galaxy import galaxy_service
+from docker_for_galaxy import galaxy_service  # noqa: F401
 
 from ephemeris.shed_tools import InstallRepositoryManager
 
@@ -20,7 +20,7 @@ from ephemeris.shed_tools import InstallRepositoryManager
 class TestMiscellaneous(object):
     """This class is for miscellaneous tests that can use the same galaxy container"""
 
-    def test_invalid_keys_in_repo_list(self, caplog, galaxy_service):
+    def test_invalid_keys_in_repo_list(self, caplog, galaxy_service):  # noqa: F811
         irm = InstallRepositoryManager(galaxy_service.api)
         caplog.set_level(logging.WARNING)
         irm.install_repositories([
@@ -32,7 +32,7 @@ class TestMiscellaneous(object):
         assert "'sesame_ouvre_toi' not a valid key. Will be skipped during parsing" in caplog.text
 
     @pytest.mark.parametrize("parallel_tests", [1, 2])
-    def test_tool_tests(self, caplog, galaxy_service, parallel_tests):
+    def test_tool_tests(self, caplog, galaxy_service, parallel_tests):  # noqa: F811
         irm = InstallRepositoryManager(galaxy_service.api)
         caplog.set_level(logging.WARNING)
         repos = [{'name': 'collection_element_identifiers', 'owner': 'iuc', 'tool_panel_section_label': "NGS: Alignment"}]

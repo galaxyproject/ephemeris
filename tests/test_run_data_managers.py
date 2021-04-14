@@ -20,7 +20,7 @@ AUTH_BY = "key"
 class TestRunDataManagers(object):
     """This class tests run-data-managers"""
 
-    def test_install_data_managers(self, galaxy_service):
+    def test_install_data_managers(self, galaxy_service):  # noqa: F811
         """Install the data_managers on galaxy"""
         data_managers = [
             dict(name="data_manager_fetch_genome_dbkeys_all_fasta",
@@ -54,7 +54,7 @@ class TestRunDataManagers(object):
         sys.argv = argv
         run_data_managers.main()
 
-    def test_run_data_managers_installation_skipped(self, galaxy_service):
+    def test_run_data_managers_installation_skipped(self, galaxy_service):  # noqa: F811
         with open("tests/run_data_managers.yaml.test") as config_file:
             configuration = yaml.safe_load(config_file)
         dm = DataManagers(galaxy_service.api, configuration)
@@ -63,7 +63,7 @@ class TestRunDataManagers(object):
         assert (len(install_results.skipped_jobs) == 9)
         assert (len(install_results.failed_jobs) == 0)
 
-    def test_run_data_managers_installation_fail(self, galaxy_service, caplog):
+    def test_run_data_managers_installation_fail(self, galaxy_service, caplog):  # noqa: F811
         configuration = dict(
             data_managers=[
                 dict(

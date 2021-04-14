@@ -17,7 +17,7 @@ from ephemeris.sleep import galaxy_wait
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "galaxy/galaxy-k8s:21.01"
+GALAXY_IMAGE = "lumc/galaxy-compose:21.01"
 GALAXY_ADMIN_KEY = "fakekey"
 GALAXY_ADMIN_PASSWORD = "password"
 GALAXY_ADMIN_USER = "admin@galaxy.org"
@@ -97,13 +97,13 @@ class GalaxyService:
         time.sleep(2)  # We wait for the database to be created
         self.api_key = api_key or GALAXY_ADMIN_KEY
         result = self.galaxy_container.exec_run([
-            "/galaxy/server/.venv/bin/python",
+            "/galaxy/venv/bin/python",
             "/usr/local/bin/create_galaxy_user.py",
             "--user", GALAXY_ADMIN_USER,
             "--username", "admin",
             "--key", self.api_key,
             "--password", GALAXY_ADMIN_PASSWORD,
-            "-c", "/galaxy/server/config/galaxy.yml"
+            "-c", "/galaxy/config/galaxy.yml"
         ], workdir="/galaxy/server")
         if result.exit_code != 0:
             raise RuntimeError(f"Error when creating API Key: {result.output}")

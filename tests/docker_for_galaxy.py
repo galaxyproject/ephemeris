@@ -15,15 +15,14 @@ from docker.models.containers import Container
 from ephemeris.sleep import galaxy_wait
 
 
-# It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
-# Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "lumc/galaxy-compose:21.01"
+# Latest will be the latest stable version
+GALAXY_IMAGE = "lumc/galaxy-compose:latest"
 GALAXY_ADMIN_KEY = "fakekey"
 GALAXY_ADMIN_PASSWORD = "password"
 GALAXY_ADMIN_USER = "admin@galaxy.org"
 
-POSTGRES_IMAGE = "postgres:13"
-NGINX_IMAGE = "nginx:1.18"
+POSTGRES_IMAGE = "postgres:latest"  # Use the latest stable version
+NGINX_IMAGE = "nginx:stable"  # Use the latest stable version
 NGINX_TEMPLATE = Path(__file__).parent / "files" / "galaxy.nginx.j2"
 CREATE_GALAXY_USER_PY = Path(__file__).parent / "files" / "create_galaxy_user.py"
 

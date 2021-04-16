@@ -1,7 +1,6 @@
 import os
 import random
 import tempfile
-import time
 from collections import namedtuple
 from pathlib import Path
 from typing import Generator, Optional, Union
@@ -12,8 +11,6 @@ import pytest
 import requests
 from bioblend.galaxy import GalaxyInstance
 from docker.models.containers import Container
-
-
 
 # Latest will be the latest stable version
 GALAXY_IMAGE = "lumc/galaxy-compose:latest"

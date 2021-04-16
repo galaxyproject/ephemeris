@@ -9,10 +9,10 @@ from typing import Generator, Optional, Union
 import docker
 import jinja2
 import pytest
+import requests
 from bioblend.galaxy import GalaxyInstance
 from docker.models.containers import Container
 
-from ephemeris.sleep import galaxy_wait
 
 
 # Latest will be the latest stable version
@@ -86,14 +86,16 @@ class GalaxyService:
                 GALAXY_CONFIG_JOB_CONFIG_FILE="job_conf.xml.sample_basic",  # Use basic job conf xml not kubernetes one.
                 PGUSER="dbuser",
                 PGPASSWORD="secret"
-            ))
+            ),
+            ports={'8080/tcp': None}
+        )
         self.nginx_container: Container = self.client.containers.run(
             NGINX_IMAGE, detach=True, network=self.network_name,
             ports={'80/tcp': None},
             volumes=[f"{str(self.nginx_config)}:/etc/nginx/conf.d/default.conf"])
 
         # Create admin api_key user in galaxy.
-        time.sleep(2)
+        requests.get(get_container_url(self.galaxy_container, "8080/tcp"), timeout=5000)
         self.api_key = api_key or GALAXY_ADMIN_KEY
         result = self.galaxy_container.exec_run([
             "/galaxy/venv/bin/python",

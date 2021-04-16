@@ -1,6 +1,7 @@
 import os
 import random
 import tempfile
+import time
 from collections import namedtuple
 from pathlib import Path
 from typing import Generator, Optional, Union
@@ -92,7 +93,7 @@ class GalaxyService:
             volumes=[f"{str(self.nginx_config)}:/etc/nginx/conf.d/default.conf"])
 
         # Create admin api_key user in galaxy.
-        galaxy_wait(get_container_url(self.nginx_container, "80/tcp"))
+        time.sleep(2)
         self.api_key = api_key or GALAXY_ADMIN_KEY
         result = self.galaxy_container.exec_run([
             "/galaxy/venv/bin/python",

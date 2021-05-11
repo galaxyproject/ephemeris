@@ -230,7 +230,7 @@ class InstallRepositoryManager(object):
                    log=None,
                    test_user_api_key=None,
                    test_user="ephemeris@galaxyproject.org",
-                   test_history=None,
+                   test_history_name=None,
                    parallel_tests=1,
                    test_all_versions=False,
                    client_test_config_path=None,
@@ -240,8 +240,6 @@ class InstallRepositoryManager(object):
         tool_test_start = dt.datetime.now()
         tests_passed = []
         test_exceptions = []
-        test_history_name = test_history
-        test_history = None
 
         if not repositories:  # If repositories is None or empty list
             # Consider a variant of this that doesn't even consume a tool list YAML? target
@@ -636,7 +634,7 @@ def main():
             log=log,
             test_user_api_key=args.test_user_api_key,
             test_user=args.test_user,
-            test_history=args.test_history,
+            test_history_name=args.test_history_name,
             parallel_tests=args.parallel_tests,
             test_all_versions=args.test_all_versions,
             client_test_config_path=args.client_test_config,

@@ -6,9 +6,9 @@ env:
 matrix:
   include:
     - python: 3.6
-      env: TOX_ENV=py36-lint
+      env: TOX_ENV=lint
     - python: 3.6
-      env: TOX_ENV=py36-pytest
+      env: TOX_ENV=pytest
       install:
       - pip install tox
       - pip install codacy-coverage

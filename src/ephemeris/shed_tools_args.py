@@ -227,6 +227,15 @@ def parser():
              "user will be created if needed."
     )
     test_command_parser.add_argument(
+        "--test_history_name",
+        dest="test_history_name",
+        default=None,
+        help="Use existing history or create history with provided name if none exists. "
+             "If --test_history_name is not set, a new history with a default name will always "
+             "be created. If multiple histories match the provided name, the first (newest) "
+             "one returned by the Galaxy API will be selected."
+    )
+    test_command_parser.add_argument(
         "--parallel_tests",
         dest="parallel_tests",
         default=1,

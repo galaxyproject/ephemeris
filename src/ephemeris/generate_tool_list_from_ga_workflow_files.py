@@ -85,7 +85,7 @@ def print_yaml_tool_list(tool_dictionary, output_file):
 
     with open(output_file, 'w') as F:
         F.write("\n".join([INSTALL_TOOL_DEPENDENCIES, INSTALL_REPOSITORY_DEPENDENCIES, INSTALL_RESOLVER_DEPENDENCIES, "", ""]))
-        F.write(yaml.safe_dump(tool_dictionary, Dumper=Indenter, default_flow_style=False))
+        F.write(yaml.dump(tool_dictionary, Dumper=Indenter, default_flow_style=False))
     return
 
 

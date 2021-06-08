@@ -6,6 +6,23 @@ History
 .. to_doc
 
 ---------------------
+0.10.7 (2021-06-08)
+---------------------
+
+* Add option to `shed-tools test` for specifying a history name (thanks to
+  `@natefoo`_). `Pull Request 173`_
+* workflow-to-tools: get tools from subworkflows (thanks to `@cat-bro`_).
+  `Pull Request 170`_
+* Add pysam and continue if test fetching errors (thanks to `@mvdbeek`_).
+  `Pull Request 128`_
+* Various updates to testing and CI infrastructure (thanks to `@jmchilton`_).
+  `Pull Request 165`_
+* Handle terminal states in wait for install (thanks to `@mvdbeek`_).
+  `Pull Request 161`_
+* Get all tools when searching for tool ids for testing
+  (thanks to `@cat-bro`_). `Pull Request 159`_
+
+---------------------
 0.10.6 (2020-05-04)
 ---------------------
 
@@ -222,6 +239,12 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 173: https://github.com/galaxyproject/ephemeris/pull/173
+.. _Pull Request 170: https://github.com/galaxyproject/ephemeris/pull/170
+.. _Pull Request 128: https://github.com/galaxyproject/ephemeris/pull/128
+.. _Pull Request 165: https://github.com/galaxyproject/ephemeris/pull/165
+.. _Pull Request 161: https://github.com/galaxyproject/ephemeris/pull/161
+.. _Pull Request 159: https://github.com/galaxyproject/ephemeris/pull/159
 .. _Pull Request 158: https://github.com/galaxyproject/ephemeris/pull/158
 .. _Pull Request 155: https://github.com/galaxyproject/ephemeris/pull/155
 .. _Pull Request 154: https://github.com/galaxyproject/ephemeris/pull/154
@@ -267,6 +290,7 @@ History
 .. _@abretaud: https://github.com/abretaud
 .. _@bgruening: https://github.com/bgruening
 .. _@blankenberg: https://github.com/blankenberg
+.. _@cat-bro: https://github.com/cat-bro
 .. _@rhpvorderman: https://github.com/rhpvorderman
 .. _@pcm32: https://github.com/pcm32
 .. _@jmchilton: https://github.com/jmchilton

@@ -100,7 +100,6 @@ ephemeris.workflow\_install module
    :undoc-members:
    :show-inheritance:
 
-
 Module contents
 ---------------
 

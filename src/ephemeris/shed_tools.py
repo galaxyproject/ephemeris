@@ -602,16 +602,19 @@ def main():
         tool_list = dict()
 
     # Get some of the other installation arguments
-    kwargs = dict(
-        default_install_tool_dependencies=tool_list.get("install_tool_dependencies") or getattr(args,
-                                                                                                "install_tool_dependencies",
-                                                                                                False),
-        default_install_repository_dependencies=tool_list.get("install_repository_dependencies") or getattr(args,
-                                                                                                            "install_repository_dependencies",
-                                                                                                            False),
-        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies") or getattr(args,
-                                                                                                        "install_resolver_dependencies",
-                                                                                                        False))
+    # Command line arguments should take precedence over arguments in the tool list,
+    # but only if the command line argument has actually been used.
+    kwargs = {}
+    for arg in ['install_tool_dependencies', 'install_repository_dependencies', 'install_resolver_dependencies']:
+        if not getattr(args, f"{arg}_set", False):
+            # commandline argument not set, use tool_list argument
+            arg_val = tool_list.get(arg)
+            if arg_val is None:
+                # Not specified in yaml file, use command line default, even if not set
+                arg_val = getattr(args, arg, False)
+        else:
+            arg_val = getattr(args, arg)
+        kwargs[f"default_{arg}"] = arg_val
 
     # Start installing/updating and store the results in install_results.
     # Or do testing if the action is `test`

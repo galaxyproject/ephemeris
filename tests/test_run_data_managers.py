@@ -25,11 +25,14 @@ class TestRunDataManagers(object):
         container = start_container
         data_managers = [
             dict(name="data_manager_fetch_genome_dbkeys_all_fasta",
-                 owner="devteam"),
+                 owner="devteam",
+                 install_resolver_dependencies=True),
             dict(name="data_manager_sam_fasta_index_builder",
-                 owner="devteam"),
+                 owner="devteam",
+                 install_resolver_dependencies=True),
             dict(name="data_manager_bwa_mem_index_builder",
-                 owner="devteam")
+                 owner="devteam",
+                 install_resolver_dependencies=True)
         ]
         irm = InstallRepositoryManager(container.gi)
         irm.install_repositories(data_managers)

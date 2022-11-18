@@ -42,8 +42,7 @@ def get_datasets(gi, library_id) -> [str]:
 
 def set_permissions(gi, library_id, role_ids):
     log.info("Your library_id is " + library_id + "\n")
-    role_msg = "Your roles are: " + " ".join(role_ids)
-    log.info(role_msg)
+    log.info("Your roles are: %s", " ".join(role_ids))
     datasets = get_datasets(gi, library_id)
     total = len(datasets)
     est = total*3/60

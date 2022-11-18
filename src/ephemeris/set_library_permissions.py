@@ -5,29 +5,10 @@ import argparse
 import logging as log
 from bioblend import galaxy
 import sys, time, os
-
+from rich.progress import Progress
 from .common_parser import get_common_args
 # Print iterations progress
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    """
-    Call in a loop to create terminal progress bar
-    @params:
-        iteration   - Required  : current iteration (Int)
-        total       - Required  : total iterations (Int)
-        prefix      - Optional  : prefix string (Str)
-        suffix      - Optional  : suffix string (Str)
-        decimals    - Optional  : positive number of decimals in percent complete (Int)
-        length      - Optional  : character length of bar (Int)
-        fill        - Optional  : bar fill character (Str)
-        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
-    """
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
-    # Print New Line on Complete
-    if iteration == total: 
-        print()
+
 
 def get_datasets(gi, library_id) -> [str]:
     objects = gi.libraries.show_dataset(library_id=library_id, dataset_id='')
@@ -49,17 +30,20 @@ def set_permissions(gi, library_id, role_ids):
     # Give User time to abort
     log.info('\nSuccess! %d datasets found. Processing can take up to %f min', total, est)
     t = 5
-    while t:
-        log.info('Starting in %d s ... Press Crtl+C to abort.', t)
-        time.sleep(1)
-        t -= 1
+    with Progress() as progress:
+        task_countdown = progress.add_task("[red]Starting in 5 seconds...", total=total)
+        t = 5
+        while t:
+            time.sleep(1)
+            t -= 1
+            progress.update(task_countdown, advance=1)
     # Process datasets
-    for item in datasets:
-        current = datasets.index(item) + 1
-        log.debug('Processing dataset %d of %d, ID=%s', current, total, item)
-        rows, columns = os.popen('stty size', 'r').read().split()
-        printProgressBar(iteration=current, total=total, length=(int(columns) - 3))
-        gi.libraries.set_dataset_permissions(dataset_id=item, access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
+        task = progress.add_task("[green]Processing datasets...", total=total)
+        for current in range(total):
+            log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
+            rows, columns = os.popen('stty size', 'r').read().split()
+            gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
+            progress.update(task, advance=1)
 
 def _parser():
     '''Constructs the parser object'''

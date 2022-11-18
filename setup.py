@@ -37,6 +37,7 @@ ENTRY_POINTS = '''
         setup-data-libraries=ephemeris.setup_data_libraries:main
         galaxy-wait=ephemeris.sleep:main
         install_tool_deps=ephemeris.install_tool_deps:main
+        set_library_permissions=ephemeris.set_library_permissions:main
 '''
 PACKAGE_DATA = {
     # Be sure to update MANIFEST.in for source dist.

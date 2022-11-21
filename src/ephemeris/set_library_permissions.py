@@ -28,19 +28,21 @@ def set_permissions(gi, library_id, role_ids):
     total = len(datasets)
     est = total*3/60
     # Give User time to abort
-    log.info('\nSuccess! %d datasets found. Processing can take up to %f min', total, est)
-    if input("Do you want to continue? (y/n) ") == "y":
-        with Progress() as progress:
-            task = progress.add_task("[green]Processing datasets...", total=total)
+    log.info('\nSuccess! %d datasets found. Processing can take up to %0.02f min\n', total, est)
+    if auto:
             for current in range(total):
                 log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
-                rows, columns = os.popen('stty size', 'r').read().split()
-                gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)
-                progress.update(task, advance=1)
+                gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
     else:
-        print()
-        log.info("Operation cancelled by user. No changes were applied.\n")
-
+        if input("Do you want to continue? (y/n) ") == "y":
+            with Progress() as progress:
+                task = progress.add_task("[green]Processing datasets...", total=total)
+                for current in range(total):
+                    log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
+                    gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
+                    progress.update(task, advance=1)
+        else:
+            log.info("Operation cancelled by user. No changes were applied.\n")
 def _parser():
     '''Constructs the parser object'''
     parent = get_common_args()
@@ -50,11 +52,12 @@ def _parser():
     )
     parser.add_argument('--library', help="Specify the data library ID")
     parser.add_argument('--roles', help="Specify a list of comma separated role IDs")
+    parser.add_argument('-y', '--yes', default=False, action="store_true",
+        help="Set the -y flag for auto-accept and skip manual approvement")
+    parser.add_argument('-s', '--silent', default=False, action="store_true", help="sets loglevel to ERROR")
     return parser
 
 def main():
-    print("\nThis command script uses bioblend galaxyAPI to set ALL permissions of ALL datasets")
-    print("in given library to given roles. Be careful and cancel with Crtl+C if unsure.\n")
     args = _parser().parse_args()
     if args.user and args.password:
         gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
@@ -65,6 +68,8 @@ def main():
 
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
+    elif args.silent:
+        log.basicConfig(level=log.ERROR)
     else:
         log.basicConfig(level=log.INFO)
     
@@ -72,8 +77,9 @@ def main():
         args.roles = [r.strip() for r in args.roles.split(",")]
     else:
         sys.exit("Specify library ID (--library myLibraryID) and (list of) role(s) (--roles roleId1,roleId2)")
-    set_permissions(gi, library_id=args.library, role_ids=args.roles)
-
+    set_permissions(gi, library_id=args.library, role_ids=args.roles, auto=args.yes)
+    log.info("\nThis command script uses bioblend galaxyAPI to set ALL permissions of ALL datasets")
+    log.info("in given library to given roles. Be careful and cancel with Crtl+C if unsure.\n")
 
 if __name__ == '__main__':
     main()

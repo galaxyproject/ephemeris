@@ -21,7 +21,7 @@ def get_datasets(gi, library_id) -> [str]:
     else:
         return datasets
 
-def set_permissions(gi, library_id, role_ids):
+def set_permissions(gi, library_id, role_ids, auto):
     log.info("Your library_id is " + library_id + "\n")
     log.info("Your roles are: %s", " ".join(role_ids))
     datasets = get_datasets(gi, library_id)
@@ -30,9 +30,9 @@ def set_permissions(gi, library_id, role_ids):
     # Give User time to abort
     log.info('\nSuccess! %d datasets found. Processing can take up to %0.02f min\n', total, est)
     if auto:
-            for current in range(total):
-                log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
-                gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
+        for current in range(total):
+            log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
+            gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
     else:
         if input("Do you want to continue? (y/n) ") == "y":
             with Progress() as progress:

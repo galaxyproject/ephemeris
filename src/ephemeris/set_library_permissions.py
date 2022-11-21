@@ -29,21 +29,17 @@ def set_permissions(gi, library_id, role_ids):
     est = total*3/60
     # Give User time to abort
     log.info('\nSuccess! %d datasets found. Processing can take up to %f min', total, est)
-    t = 5
-    with Progress() as progress:
-        task_countdown = progress.add_task("[red]Starting in 5 seconds...", total=total)
-        t = 5
-        while t:
-            time.sleep(1)
-            t -= 1
-            progress.update(task_countdown, advance=1)
-    # Process datasets
-        task = progress.add_task("[green]Processing datasets...", total=total)
-        for current in range(total):
-            log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
-            rows, columns = os.popen('stty size', 'r').read().split()
-            gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)  
-            progress.update(task, advance=1)
+    if input("Do you want to continue? (y/n) ") == "y":
+        with Progress() as progress:
+            task = progress.add_task("[green]Processing datasets...", total=total)
+            for current in range(total):
+                log.debug('Processing dataset %d of %d, ID=%s', current, total, datasets[current])
+                rows, columns = os.popen('stty size', 'r').read().split()
+                gi.libraries.set_dataset_permissions(dataset_id=datasets[current], access_in=role_ids, modify_in=role_ids, manage_in=role_ids)
+                progress.update(task, advance=1)
+    else:
+        print()
+        log.info("Operation cancelled by user. No changes were applied.\n")
 
 def _parser():
     '''Constructs the parser object'''

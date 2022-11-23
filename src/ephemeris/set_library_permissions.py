@@ -121,10 +121,8 @@ def main():
         )
     set_permissions(gi, library_id=args.library, role_ids=args.roles, auto=args.yes)
     log.info(
-        "\nThis command script uses bioblend galaxyAPI to set ALL permissions of ALL datasets"
-    )
-    log.info(
-        "in given library to given roles. Be careful and cancel with Crtl+C if unsure.\n"
+        "\nThis script uses bioblend to update ALL permissions of ALL datasets in a"
+        "specified library to the given roles. Be careful and cancel if unsure\n"
     )
 
 

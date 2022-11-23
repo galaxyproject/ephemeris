@@ -74,7 +74,7 @@ def _parser():
     parser = argparse.ArgumentParser(
         parents=[parent], description="Populate the Galaxy data library with data."
     )
-    parser.add_argument("--library", help="Specify the data library ID")
+    parser.add_argument("library", help="Specify the data library ID")
     parser.add_argument("--roles", nargs="+", help="Specify a list of comma separated role IDs")
     parser.add_argument(
         "-y",

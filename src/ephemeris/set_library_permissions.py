@@ -24,7 +24,7 @@ def get_datasets(gi, library_id) -> [str]:
 
 
 def set_permissions(gi, library_id, role_ids, auto):
-    log.info("Your library_id is " + library_id + "\n")
+    log.info("Your library_id is %s", library_id)
     log.info("Your roles are: %s", " ".join(role_ids))
     datasets = get_datasets(gi, library_id)
     total = len(datasets)

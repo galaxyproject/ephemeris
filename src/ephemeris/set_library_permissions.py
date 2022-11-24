@@ -1,11 +1,13 @@
 #!/usr/bin/env python
 """Tool to set permissions for all datasets of a given Galaxy Data Library"""
 
+import sys
 import argparse
 import logging as log
+
 from bioblend import galaxy
-import sys
 from rich.progress import Progress
+
 from .common_parser import get_common_args
 
 # Print iterations progress

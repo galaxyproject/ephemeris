@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tool to set permissions for all datasets of a given Galaxy Data Library"""
 
-import sys
 import argparse
+import sys
 import logging as log
 
 from bioblend import galaxy

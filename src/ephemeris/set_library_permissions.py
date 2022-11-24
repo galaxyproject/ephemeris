@@ -2,8 +2,8 @@
 """Tool to set permissions for all datasets of a given Galaxy Data Library"""
 
 import argparse
-import sys
 import logging as log
+import sys
 
 from bioblend import galaxy
 from rich.progress import Progress

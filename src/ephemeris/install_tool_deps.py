@@ -10,14 +10,17 @@ from bioblend import ConnectionError as ConnErr
 from bioblend.galaxy.tools import ToolClient
 
 from ephemeris import get_galaxy_connection
-from ephemeris.common_parser import get_common_args
+from ephemeris.common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 timeout_codes = (408, 502, 504)
 
 
 def _parser():
     parent = get_common_args()
-    parser = argparse.ArgumentParser(parents=[parent])
+    parser = argparse.ArgumentParser(parents=[parent], formatter_class=HideUnderscoresHelpFormatter)
     parser.add_argument(
         "-t",
         "--tool",

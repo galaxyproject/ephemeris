@@ -5,7 +5,10 @@ import json
 import os
 
 from . import get_galaxy_connection
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 
 def import_workflow(gi, path, publish_wf=False):
@@ -24,14 +27,16 @@ def import_workflow(gi, path, publish_wf=False):
 
 def _parser():
     parent = get_common_args()
-    parser = argparse.ArgumentParser(parents=[parent])
+    parser = argparse.ArgumentParser(parents=[parent], formatter_class=HideUnderscoresHelpFormatter)
     parser.add_argument(
         "-w",
+        "--workflow-path",
         "--workflow_path",
         required=True,
         help='Path to a workflow file or a directory with multiple workflow files ending with ".ga"',
     )
     parser.add_argument(
+        "--publish-workflows",
         "--publish_workflows",
         required=False,
         action="store_true",

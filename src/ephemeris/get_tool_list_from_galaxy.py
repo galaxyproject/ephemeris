@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Tool to extract a tool list from galaxy."""
 
-from argparse import (
-    ArgumentDefaultsHelpFormatter,
-    ArgumentParser,
-)
+from argparse import ArgumentParser
 from distutils.version import StrictVersion
 
 import yaml
@@ -12,7 +9,10 @@ from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.toolshed import ToolShedClient
 
 from . import get_galaxy_connection
-from .common_parser import get_common_args
+from .common_parser import (
+    ArgumentDefaultsHideUnderscoresHelpFormatter,
+    get_common_args,
+)
 from .shed_tools_methods import format_tool_shed_url
 
 
@@ -245,7 +245,7 @@ def _parser():
     """Creates the parser object."""
     parent = get_common_args(login_required=True)
     parser = ArgumentParser(
-        parents=[parent], formatter_class=ArgumentDefaultsHelpFormatter
+        parents=[parent], formatter_class=ArgumentDefaultsHideUnderscoresHelpFormatter
     )
     parser.add_argument(
         "-o",
@@ -255,6 +255,7 @@ def _parser():
         help="tool_list.yml output file",
     )
     parser.add_argument(
+        "--include-tool-panel-id",
         "--include_tool_panel_id",
         action="store_true",
         help="Include tool_panel_id in tool_list.yml ? "
@@ -262,11 +263,13 @@ def _parser():
         "https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample",
     )
     parser.add_argument(
+        "--skip-tool-panel-name",
         "--skip_tool_panel_name",
         action="store_true",
         help="Do not include tool_panel_name in tool_list.yml ?",
     )
     parser.add_argument(
+        "--skip-changeset-revision",
         "--skip_changeset_revision",
         action="store_true",
         help="Do not include the changeset revision when generating the tool list."
@@ -274,11 +277,13 @@ def _parser():
         "your galaxy instance using shed-install.",
     )
     parser.add_argument(
+        "--get-data-managers",
         "--get_data_managers",
         action="store_true",
         help="Include the data managers in the tool list. Requires admin login details",
     )
     parser.add_argument(
+        "--get-all-tools",
         "--get_all_tools",
         action="store_true",
         help="Get all tools and revisions, not just those which are present on the web ui."

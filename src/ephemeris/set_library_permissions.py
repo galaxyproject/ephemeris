@@ -9,7 +9,10 @@ from typing import List
 from bioblend import galaxy
 from rich.progress import Progress
 
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 # Print iterations progress
 
@@ -75,7 +78,9 @@ def _parser():
     """Constructs the parser object"""
     parent = get_common_args()
     parser = argparse.ArgumentParser(
-        parents=[parent], description="Populate the Galaxy data library with data."
+        parents=[parent],
+        formatter_class=HideUnderscoresHelpFormatter,
+        description="Populate the Galaxy data library with data."
     )
     parser.add_argument("library", help="Specify the data library ID")
     parser.add_argument(

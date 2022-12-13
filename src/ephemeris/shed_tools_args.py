@@ -2,7 +2,10 @@
 
 import argparse
 
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 
 def parser():
@@ -41,12 +44,14 @@ def parser():
         "install",
         help="This installs tools in Galaxy from the Tool Shed."
         "Use shed-tools install --help for more information",
+        formatter_class=HideUnderscoresHelpFormatter,
         parents=[common_arguments],
     )
     update_command_parser = subparsers.add_parser(
         "update",
         help="This updates all tools in Galaxy to the latest revision. "
         "Use shed-tools update --help for more information",
+        formatter_class=HideUnderscoresHelpFormatter,
         parents=[common_arguments],
     )
 
@@ -54,6 +59,7 @@ def parser():
         "test",
         help="This tests the supplied list of tools in Galaxy. "
         "Use shed-tools test --help for more information",
+        formatter_class=HideUnderscoresHelpFormatter,
         parents=[common_arguments],
     )
 
@@ -71,12 +77,14 @@ def parser():
     ]:
         command_parser.add_argument(
             "-t",
+            "--tools-file",
             "--toolsfile",
             dest="tool_list_file",
             help="Tools file to use (see tool_list.yaml.sample)",
         )
         command_parser.add_argument(
             "-y",
+            "--yaml-tool",
             "--yaml_tool",
             dest="tool_yaml",
             help="Install tool represented by yaml string",
@@ -102,6 +110,7 @@ def parser():
             "(Only applicable if the tools file is not provided).",
         )
         command_parser.add_argument(
+            "--tool-shed",
             "--toolshed",
             dest="tool_shed_url",
             help="The Tool Shed URL where to install the tool from. "
@@ -113,6 +122,7 @@ def parser():
 
     for command_parser in [update_command_parser, install_command_parser]:
         command_parser.add_argument(
+            "--skip-install-tool-dependencies",
             "--skip_install_tool_dependencies",
             action="store_false",
             dest="install_tool_dependencies",
@@ -120,6 +130,7 @@ def parser():
             help=argparse.SUPPRESS,
         )  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
+            "--install-tool-dependencies",
             "--install_tool_dependencies",
             action="store_true",
             dest="install_tool_dependencies",
@@ -127,6 +138,7 @@ def parser():
             "Can be overwritten on a per-tool basis in the tools file.",
         )
         command_parser.add_argument(
+            "--install-resolver-dependencies",
             "--install_resolver_dependencies",
             action="store_true",
             dest="install_resolver_dependencies",
@@ -134,6 +146,7 @@ def parser():
             help=argparse.SUPPRESS,
         )  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
+            "--skip-install-resolver-dependencies",
             "--skip_install_resolver_dependencies",
             action="store_false",
             dest="install_resolver_dependencies",
@@ -142,6 +155,7 @@ def parser():
             "Can be overwritten on a per-tool basis in the tools file",
         )
         command_parser.add_argument(
+            "--skip-install-repository-dependencies",
             "--skip_install_repository_dependencies",
             action="store_false",
             dest="install_repository_dependencies",
@@ -154,12 +168,14 @@ def parser():
             help="Run tool tests on install tools, requires Galaxy 18.05 or newer.",
         )
         command_parser.add_argument(
+            "--test-existing",
             "--test_existing",
             action="store_true",
             help="If testing tools during install, also run tool tests on repositories already installed "
             "(i.e. skipped repositories).",
         )
         command_parser.add_argument(
+            "--test-json",
             "--test_json",
             dest="test_json",
             default="tool_test_output.json",
@@ -167,6 +183,7 @@ def parser():
             "This file can be turned into reports with ``planemo test_reports <output.json>``.",
         )
         command_parser.add_argument(
+            "--test-user-api-key",
             "--test_user_api_key",
             dest="test_user",
             help="If testing tools, a user is needed to execute the tests. "
@@ -175,6 +192,7 @@ def parser():
             "not need to be specified and --api_key will be reused.",
         )
         command_parser.add_argument(
+            "--test-user",
             "--test_user",
             dest="test_user",
             help="If testing tools, a user is needed to execute the tests. "
@@ -183,6 +201,7 @@ def parser():
             "user will be created if needed.",
         )
         command_parser.add_argument(
+            "--parallel-tests",
             "--parallel_tests",
             dest="parallel_tests",
             default=1,
@@ -200,6 +219,7 @@ def parser():
         "only applicable if the tools file is not provided).",
     )
     install_command_parser.add_argument(
+        "--section-label",
         "--section_label",
         default=None,
         dest="tool_panel_section_label",
@@ -218,6 +238,7 @@ def parser():
     # OPTIONS UNIQUE TO TEST
     # Same test_json as above but language modified for test instead of install/update.
     test_command_parser.add_argument(
+        "--test-json",
         "--test_json",
         default="tool_test_output.json",
         dest="test_json",
@@ -226,6 +247,7 @@ def parser():
     )
 
     test_command_parser.add_argument(
+        "--test-user-api-key",
         "--test_user_api_key",
         dest="test_user_api_key",
         help="A user is needed to execute the tests. "
@@ -234,6 +256,7 @@ def parser():
         "not need to be specified and --api_key will be reused.",
     )
     test_command_parser.add_argument(
+        "--test-user",
         "--test_user",
         dest="test_user",
         help="A user is needed to execute the tests. "
@@ -242,6 +265,7 @@ def parser():
         "user will be created if needed.",
     )
     test_command_parser.add_argument(
+        "--test-history-name",
         "--test_history_name",
         dest="test_history_name",
         default=None,
@@ -251,6 +275,7 @@ def parser():
         "one returned by the Galaxy API will be selected.",
     )
     test_command_parser.add_argument(
+        "--parallel-tests",
         "--parallel_tests",
         dest="parallel_tests",
         default=1,
@@ -258,6 +283,7 @@ def parser():
         help="Specify the maximum number of tests that will be run in parallel.",
     )
     test_command_parser.add_argument(
+        "--test-all-versions",
         "--test_all_versions",
         action="store_true",
         dest="test_all_versions",
@@ -266,6 +292,7 @@ def parser():
         "the --revisions arg, --tool_file or --tool_yaml.",
     )
     test_command_parser.add_argument(
+        "--client-test-config",
         "--client_test_config",
         dest="client_test_config",
         help="Annotate expectations about tools in client testing YAML "

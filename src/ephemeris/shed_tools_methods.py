@@ -1,4 +1,14 @@
+from typing import (
+    Iterable,
+    List,
+    TYPE_CHECKING,
+)
+
 from bioblend.toolshed import ToolShedInstance
+
+if TYPE_CHECKING:
+    from .shed_tools import InstallRepoDict
+
 
 
 VALID_KEYS = [
@@ -14,31 +24,33 @@ VALID_KEYS = [
 ]
 
 
-def complete_repo_information(tool,
-                              default_toolshed_url,
-                              require_tool_panel_info,
-                              default_install_tool_dependencies,
-                              default_install_repository_dependencies,
-                              default_install_resolver_dependencies,
-                              force_latest_revision):
-    repo = dict()
+def complete_repo_information(tool: "InstallRepoDict",
+                              default_toolshed_url: str,
+                              require_tool_panel_info: bool,
+                              default_install_tool_dependencies: bool,
+                              default_install_repository_dependencies: bool,
+                              default_install_resolver_dependencies: bool,
+                              force_latest_revision) -> InstallRepoDict:
+    tool = get_changeset_revisions(tool, force_latest_revision=force_latest_revision)
+    repo: "InstallRepoDict" = dict(
+        name=tool["name"],
+        owner=tool["owner"],
+        tool_shed_url=format_tool_shed_url(tool.get('tool_shed_url') or default_toolshed_url),
+        changeset_revision=tool.get("changeset_revision"),
+        install_repository_dependencies=tool.get('install_repository_dependencies') or default_install_repository_dependencies,
+        install_resolver_dependencies=tool.get('install_resolver_dependencies') or default_install_resolver_dependencies,
+        install_tool_dependencies=tool.get('install_tool_dependencies') or default_install_tool_dependencies,
+    )
     # We need those values. Throw a KeyError when not present
-    repo['name'] = tool['name']
-    repo['owner'] = tool['owner']
-    repo['tool_panel_section_id'] = tool.get('tool_panel_section_id')
-    repo['tool_panel_section_label'] = tool.get('tool_panel_section_label')
-    if require_tool_panel_info and repo['tool_panel_section_id'] is None and repo[
-            'tool_panel_section_label'] is None and 'data_manager' not in repo.get('name'):
-        raise KeyError("Either tool_panel_section_id or tool_panel_section_name must be defined for tool '{0}'.".format(
-            repo.get('name')))
-    repo['tool_shed_url'] = format_tool_shed_url(tool.get('tool_shed_url', default_toolshed_url))
-    repo['changeset_revision'] = tool.get('changeset_revision')
-    repo = get_changeset_revisions(repo, force_latest_revision)
-    repo['install_repository_dependencies'] = tool.get('install_repository_dependencies',
-                                                       default_install_repository_dependencies)
-    repo['install_resolver_dependencies'] = tool.get('install_resolver_dependencies',
-                                                     default_install_resolver_dependencies)
-    repo['install_tool_dependencies'] = tool.get('install_tool_dependencies', default_install_tool_dependencies)
+    tool_panel_section_label = tool.get('tool_panel_section_label')
+    if tool_panel_section_label:
+        repo["tool_panel_section_label"] = tool_panel_section_label
+    else:
+        tool_panel_section_id = tool.get('tool_panel_section_id')
+        if require_tool_panel_info and not tool_panel_section_id:
+            raise KeyError(f"Either tool_panel_section_id or tool_panel_section_name must be defined for repo '{repo.get('owner')}: {repo.get('name')}'")
+        repo["tool_panel_section_id"] = tool_panel_section_id
+
     return repo
 
 
@@ -51,7 +63,7 @@ def format_tool_shed_url(tool_shed_url):
     return formatted_tool_shed_url
 
 
-def get_changeset_revisions(repository, force_latest_revision=False):
+def get_changeset_revisions(repository: "InstallRepoDict", force_latest_revision: bool = False):
     """
     Select the correct changeset revision for a repository,
     and make sure the repository exists
@@ -71,7 +83,7 @@ def get_changeset_revisions(repository, force_latest_revision=False):
     return repository
 
 
-def flatten_repo_info(repositories):
+def flatten_repo_info(repositories: Iterable["InstallRepoDict"]) -> List["InstallRepoDict"]:
     """
     Flatten the dict containing info about what tools to install.
     The tool definition YAML file allows multiple revisions to be listed for
@@ -86,12 +98,9 @@ def flatten_repo_info(repositories):
              values, those will be returned as separate list items.
     """
 
-    flattened_list = []
+    flattened_list: List["InstallRepoDict"] = []
     for repo_info in repositories:
-        new_repo_info = dict()
-        for key, value in repo_info.items():
-            if key in VALID_KEYS:
-                new_repo_info[key] = value
+        new_repo_info = repo_info.copy()
         if 'revisions' in repo_info:
             revisions = repo_info.get('revisions', [])
             if not revisions:  # Revisions are empty list or None
@@ -101,7 +110,7 @@ def flatten_repo_info(repositories):
                     # A new dictionary must be created, otherwise there will
                     # be aliasing of dictionaries. Which leads to multiple
                     # repos with the same revision in the end result.
-                    new_revision_dict = dict(**new_repo_info)
+                    new_revision_dict = new_repo_info.copy()
                     new_revision_dict['changeset_revision'] = revision
                     flattened_list.append(new_revision_dict)
         else:  # Revision was not defined at all

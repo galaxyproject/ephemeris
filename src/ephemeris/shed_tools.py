@@ -40,6 +40,7 @@ import re
 import time
 from collections import namedtuple
 from concurrent.futures import thread, ThreadPoolExecutor
+from typing import List
 
 import requests
 import yaml
@@ -51,6 +52,15 @@ from galaxy.tool_util.verify.interactor import (
     verify_tool,
 )
 from galaxy.util import unicodify
+from typing import (
+    Iterable,
+    Optional,
+)
+from typing_extensions import (
+    NamedTuple,
+    NotRequired,
+    TypedDict,
+)
 
 from . import get_galaxy_connection, load_yaml_file
 from .ephemeris_log import disable_external_library_logging, setup_global_logger
@@ -67,8 +77,31 @@ NON_TERMINAL_REPOSITORY_STATES = {
     'Loading proprietary datatypes'
 }
 
+class InstallRepoDict(TypedDict):
+    name: str
+    owner: str
+    changeset_revision: NotRequired[Optional[str]]
+    tool_panel_section_id: NotRequired[Optional[str]]
+    tool_panel_section_label: NotRequired[Optional[str]]
+    tool_shed_url: NotRequired[str]
+    revisions: NotRequired[List[str]]
+    install_repository_dependencies: NotRequired[bool]
+    install_resolver_dependencies: NotRequired[bool]
+    install_tool_dependencies: NotRequired[bool]
 
-class InstallRepositoryManager(object):
+
+class FilterResults(NamedTuple):
+    already_installed_repos: List[InstallRepoDict]
+    not_installed_repos: List[InstallRepoDict]
+
+
+class InstallResults(NamedTuple):
+    installed_repositories: List[InstallRepoDict]
+    skipped_repositories: List[InstallRepoDict]
+    errored_repositories: List[InstallRepoDict]
+
+
+class InstallRepositoryManager:
     """Manages the installation of new repositories on a galaxy instance"""
 
     def __init__(self,
@@ -77,7 +110,7 @@ class InstallRepositoryManager(object):
         self.gi = galaxy_instance
         self.tool_shed_client = ToolShedClient(self.gi)
 
-    def installed_repositories(self):
+    def installed_repositories(self) -> List[InstallRepoDict]:
         """Get currently installed tools"""
         return GiToToolYaml(
             gi=self.gi,
@@ -86,11 +119,10 @@ class InstallRepositoryManager(object):
             get_all_tools=True
         ).tool_list.get("tools")
 
-    def filter_installed_repos(self, repos, check_revision=True):
-        # TODO: Find a speedier algorithm.
+    def filter_installed_repos(self, repos: Iterable[InstallRepoDict], check_revision: bool = True) -> FilterResults:
         """This filters a list of repositories"""
-        not_installed_repos = []
-        already_installed_repos = []
+        not_installed_repos: List[InstallRepoDict] = []
+        already_installed_repos: List[InstallRepoDict] = []
         if check_revision:
             # If we want to check if revisions are equal, flatten the list,
             # so each repository - revision combination has its own entry
@@ -107,24 +139,21 @@ class InstallRepositoryManager(object):
                     break
             else:  # This executes when the for loop completes and no match has been found.
                 not_installed_repos.append(repo)
-        FilterResults = namedtuple("FilterResults", ["not_installed_repos", "already_installed_repos"])
         return FilterResults(already_installed_repos=already_installed_repos, not_installed_repos=not_installed_repos)
 
     def install_repositories(self,
-                             repositories,
+                             repositories: List[InstallRepoDict],
                              log=None,
-                             force_latest_revision=False,
-                             default_toolshed='https://toolshed.g2.bx.psu.edu/',
-                             default_install_tool_dependencies=False,
-                             default_install_resolver_dependencies=True,
-                             default_install_repository_dependencies=True):
+                             force_latest_revision: bool = False,
+                             default_toolshed: str = 'https://toolshed.g2.bx.psu.edu/',
+                             default_install_tool_dependencies: bool = False,
+                             default_install_resolver_dependencies: bool = True,
+                             default_install_repository_dependencies: bool = True):
         """Install a list of tools on the current galaxy"""
-        if not repositories:
-            raise ValueError("Empty list of tools was given")
         installation_start = dt.datetime.now()
-        installed_repositories = []
-        skipped_repositories = []
-        errored_repositories = []
+        installed_repositories: List[InstallRepoDict] = []
+        skipped_repositories: List[InstallRepoDict] = []
+        errored_repositories: List[InstallRepoDict] = []
         counter = 0
 
         # Check repos for invalid keys
@@ -139,7 +168,7 @@ class InstallRepositoryManager(object):
         total_num_repositories = len(flattened_repos)
 
         # Complete the repo information, and make sure each repository has a revision
-        repository_list = []
+        repository_list: List[InstallRepoDict] = []
         for repository in flattened_repos:
             start = dt.datetime.now()
             try:
@@ -206,8 +235,6 @@ class InstallRepositoryManager(object):
             )
             log.info("All repositories have been installed.")
             log.info("Total run time: {0}".format(dt.datetime.now() - installation_start))
-        InstallResults = namedtuple("InstallResults",
-                                    ["installed_repositories", "errored_repositories", "skipped_repositories"])
         return InstallResults(installed_repositories=installed_repositories,
                               skipped_repositories=skipped_repositories,
                               errored_repositories=errored_repositories)
@@ -565,7 +592,7 @@ def log_repository_install_start(repository, counter, total_num_repositories, in
     )
 
 
-def args_to_repos(args):
+def args_to_repos(args) -> List[InstallRepoDict]:
     if args.tool_list_file:
         tool_list = load_yaml_file(args.tool_list_file)
         repos = tool_list['tools']

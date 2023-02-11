@@ -2,9 +2,14 @@
 '''Tool to generate tools from workflows'''
 import json
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from typing import (
+    Iterable,
+    List,
+)
 
 import yaml
 
+from .shed_tools import InstallRepoDict
 from .shed_tools_methods import format_tool_shed_url
 
 INSTALL_TOOL_DEPENDENCIES = 'install_tool_dependencies: True'
@@ -51,9 +56,9 @@ def get_workflow_dictionary(json_file):
     return mydict
 
 
-def translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label):
+def translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label: str) -> List[InstallRepoDict]:
     starting_tool_list = extract_tool_shed_repositories_from_workflow_dict(workflow_dictionary)
-    tool_list = []
+    tool_list: List[InstallRepoDict] = []
     for tool in starting_tool_list:
         sub_dic = {
             'name': tool['name'],
@@ -84,7 +89,7 @@ def print_yaml_tool_list(tool_dictionary, output_file):
     return
 
 
-def reduce_tool_list(tool_list):
+def reduce_tool_list(tool_list: List[InstallRepoDict]) -> List[InstallRepoDict]:
     for current_tool in tool_list:
         for tool in tool_list:
             if current_tool is tool:
@@ -99,18 +104,21 @@ def reduce_tool_list(tool_list):
     return tool_list
 
 
-def generate_tool_list_from_workflow(workflow_files, panel_label, output_file):
-    """
-    :rtype: object
-    """
-    intermediate_tool_list = []
+def generate_repo_list_from_workflow(workflow_files: Iterable[str], panel_label: str) -> List[InstallRepoDict]:
+    intermediate_tool_list: List[InstallRepoDict] = []
     for workflow in workflow_files:
         workflow_dictionary = get_workflow_dictionary(workflow)
         intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)
-    reduced_tool_list = reduce_tool_list(intermediate_tool_list)
-    convert_dic = {}
-    convert_dic['tools'] = reduced_tool_list
-    print_yaml_tool_list(convert_dic, output_file)
+    return reduce_tool_list(intermediate_tool_list)
+
+
+def generate_tool_list_from_workflow(workflow_files: Iterable[str], panel_label: str, output_file: str):
+    """
+    :rtype: object
+    """
+
+    convert_dict = {"tools": generate_repo_list_from_workflow(workflow_files=workflow_files, panel_label=panel_label)}
+    print_yaml_tool_list(convert_dict, output_file)
 
 
 def main():

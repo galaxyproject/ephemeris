@@ -1,7 +1,7 @@
 # Default tests run with make test and make quick-tests
 NOSE_TESTS?=tests ephemeris
 # Default environment for make tox
-ENV?=py27
+ENV?=py37
 # Extra arguments supplied to tox command
 ARGS?=
 # Location of virtualenv used for development.

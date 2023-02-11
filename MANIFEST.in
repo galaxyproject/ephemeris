@@ -1,2 +1,2 @@
 graft src
-include *.rst LICENSE
+include *.rst LICENSE src/ephemeris/py.typed

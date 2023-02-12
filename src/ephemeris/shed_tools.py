@@ -516,17 +516,24 @@ class InstallRepositoryManager:
 
             executor.submit(run_test, test_index, test_id)
 
-    def install_repository_revision(self, repository, log):
+    def install_repository_revision(self, repository: InstallRepoDict, log):
         default_err_msg = (
             "All repositories that you are attempting to install "
             "have been previously installed."
         )
         start = dt.datetime.now()
         try:
-            repository["new_tool_panel_section_label"] = repository.pop(
-                "tool_panel_section_label"
+            response = self.tool_shed_client.install_repository_revision(
+                tool_shed_url=repository["tool_shed_url"],
+                name=repository["name"],
+                owner=repository["owner"],
+                changeset_revision=repository["changeset_revision"],
+                install_tool_dependencies=repository["install_tool_dependencies"],
+                install_repository_dependencies=repository["install_repository_dependencies"],
+                install_resolver_dependencies=repository["install_resolver_dependencies"],
+                new_tool_panel_section_label=repository.get("tool_panel_section_label"),
+                tool_panel_section_id=repository.get("tool_panel_section_id"),
             )
-            response = self.tool_shed_client.install_repository_revision(**repository)
             if isinstance(response, dict) and response.get("status", None) == "ok":
                 # This rare case happens if a repository is already installed but
                 # was not recognised as such in the above check. In such a
@@ -572,13 +579,13 @@ class InstallRepositoryManager:
                 else:
                     if log:
                         log_repository_install_error(
-                            repository=repository, start=start, msg=e.body, log=log
+                            repository=repository, start=start, msg=getattr(e, "body", unicodify(e)), log=log
                         )
                     return "error"
             else:
                 if log:
                     log_repository_install_error(
-                        repository=repository, start=start, msg=e.body, log=log
+                        repository=repository, start=start, msg=getattr(e, "body", unicodify(e)), log=log
                     )
                 return "error"
 
@@ -696,7 +703,7 @@ def log_repository_install_skip(repository, counter, total_num_repositories, log
 
 
 def log_repository_install_start(
-    repository, counter, total_num_repositories, installation_start, log
+    repository: InstallRepoDict, counter, total_num_repositories, installation_start, log
 ):
     log.debug(
         '(%s/%s) Installing repository %s from %s to section "%s" at revision %s (TRT: %s)'
@@ -705,9 +712,9 @@ def log_repository_install_start(
             total_num_repositories,
             repository["name"],
             repository["owner"],
-            repository["tool_panel_section_id"]
-            or repository["tool_panel_section_label"],
-            repository["changeset_revision"],
+            repository.get("tool_panel_section_id")
+            or repository.get("tool_panel_section_label"),
+            repository.get("changeset_revision"),
             dt.datetime.now() - installation_start,
         )
     )

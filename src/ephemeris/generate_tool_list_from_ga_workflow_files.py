@@ -78,7 +78,7 @@ def translate_workflow_dictionary_to_tool_list(
     )
     tool_list: List[InstallRepoDict] = []
     for tool in starting_tool_list:
-        sub_dic = {
+        sub_dic: InstallRepoDict = {
             "name": tool["name"],
             "owner": tool["owner"],
             "revisions": [tool["changeset_revision"]],

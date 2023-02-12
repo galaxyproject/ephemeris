@@ -7,21 +7,22 @@ class ProgressConsoleHandler(logging.StreamHandler):
     A handler class which allows the cursor to stay on
     one line for selected messages
     """
+
     on_same_line = False
 
     def emit(self, record):
         try:
             msg = self.format(record)
             stream = self.stream
-            same_line = hasattr(record, 'same_line')
+            same_line = hasattr(record, "same_line")
             if self.on_same_line and not same_line:
-                stream.write('\r\n')
+                stream.write("\r\n")
             stream.write(msg)
             if same_line:
-                stream.write('.')
+                stream.write(".")
                 self.on_same_line = True
             else:
-                stream.write('\r\n')
+                stream.write("\r\n")
                 self.on_same_line = False
             self.flush()
         except (KeyboardInterrupt, SystemExit):
@@ -32,8 +33,8 @@ class ProgressConsoleHandler(logging.StreamHandler):
 
 def disable_external_library_logging():
     # Omit (most of the) logging by external libraries
-    logging.getLogger('bioblend').setLevel(logging.ERROR)
-    logging.getLogger('requests').setLevel(logging.ERROR)
+    logging.getLogger("bioblend").setLevel(logging.ERROR)
+    logging.getLogger("requests").setLevel(logging.ERROR)
     try:
         logging.captureWarnings(True)  # Capture HTTPS warngings from urllib3
     except AttributeError:
@@ -41,7 +42,7 @@ def disable_external_library_logging():
 
 
 def setup_global_logger(name, log_file=None):
-    formatter = logging.Formatter('%(asctime)s %(levelname)-5s - %(message)s')
+    formatter = logging.Formatter("%(asctime)s %(levelname)-5s - %(message)s")
     progress = ProgressConsoleHandler()
     console = logging.StreamHandler()
     console.setFormatter(formatter)

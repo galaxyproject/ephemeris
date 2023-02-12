@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 """Tool to extract a tool list from galaxy."""
 
-from argparse import ArgumentDefaultsHelpFormatter
-from argparse import ArgumentParser
+from argparse import (
+    ArgumentDefaultsHelpFormatter,
+    ArgumentParser,
+)
 from distutils.version import StrictVersion
 
 import yaml
@@ -25,21 +27,23 @@ def get_tools(gi):
 
 
 def tools_for_repository(gi, repository, all_tools=False):
-    tool_shed_url = repository.get('tool_shed_url')
-    name = repository['name']
-    owner = repository['owner']
-    changeset_revision = repository.get('changeset_revision')
+    tool_shed_url = repository.get("tool_shed_url")
+    name = repository["name"]
+    owner = repository["owner"]
+    changeset_revision = repository.get("changeset_revision")
 
     tools = []
 
     def handle_tool(tool_elem):
-        if not tool_elem.get('tool_shed_repository', None):
+        if not tool_elem.get("tool_shed_repository", None):
             return
-        tsr = tool_elem['tool_shed_repository']
-        if tsr['name'] != name or tsr['owner'] != owner:
+        tsr = tool_elem["tool_shed_repository"]
+        if tsr["name"] != name or tsr["owner"] != owner:
             return
 
-        if tool_shed_url and format_tool_shed_url(tsr['tool_shed']) != format_tool_shed_url(tool_shed_url):
+        if tool_shed_url and format_tool_shed_url(
+            tsr["tool_shed"]
+        ) != format_tool_shed_url(tool_shed_url):
             return
 
         if changeset_revision and changeset_revision != tsr["changeset_revision"]:
@@ -55,19 +59,22 @@ def tools_for_repository(gi, repository, all_tools=False):
 
 def walk_tools(tool_panel, f):
     for elem in tool_panel:
-        if elem['model_class'] == 'Tool':
+        if elem["model_class"] == "Tool":
             f(elem)
-        elif elem['model_class'] == 'ToolSection':
+        elif elem["model_class"] == "ToolSection":
             walk_tools(elem.get("elems", []), f)
 
 
 class GiToToolYaml:
-    def __init__(self, gi,
-                 include_tool_panel_section_id=False,
-                 skip_tool_panel_section_name=True,
-                 skip_changeset_revision=False,
-                 get_data_managers=False,
-                 get_all_tools=False):
+    def __init__(
+        self,
+        gi,
+        include_tool_panel_section_id=False,
+        skip_tool_panel_section_name=True,
+        skip_changeset_revision=False,
+        get_data_managers=False,
+        get_all_tools=False,
+    ):
         self.gi = gi
 
         self.include_tool_panel_section_id = include_tool_panel_section_id
@@ -109,7 +116,7 @@ class GiToToolYaml:
 
         if self.get_data_managers:
             for tool in self.installed_tool_list:
-                if tool.get("model_class") == 'DataManagerTool':
+                if tool.get("model_class") == "DataManagerTool":
                     repo = get_repo_from_tool(tool)
                     if repo:
                         repositories.append(repo)
@@ -124,21 +131,29 @@ class GiToToolYaml:
             # If someone knows a more effecient way around this problem it
             # will be greatly appreciated.
             for repo in repos:
-                if not repo['deleted']:
+                if not repo["deleted"]:
                     tool_panel_section_id = None
                     tool_panel_section_label = None
                     for repo_with_panel in tools_with_panel:
-                        if the_same_repository(repo_with_panel, repo, check_revision=False):
-                            tool_panel_section_id = repo_with_panel.get('tool_panel_section_id')
-                            tool_panel_section_label = repo_with_panel.get('tool_panel_section_label')
+                        if the_same_repository(
+                            repo_with_panel, repo, check_revision=False
+                        ):
+                            tool_panel_section_id = repo_with_panel.get(
+                                "tool_panel_section_id"
+                            )
+                            tool_panel_section_label = repo_with_panel.get(
+                                "tool_panel_section_label"
+                            )
                             break
                     repositories.append(
-                        dict(name=repo.get('name'),
-                             owner=repo.get('owner'),
-                             tool_shed_url=repo.get('tool_shed'),
-                             revisions=[repo.get('changeset_revision')],
-                             tool_panel_section_label=tool_panel_section_label,
-                             tool_panel_section_id=tool_panel_section_id)
+                        dict(
+                            name=repo.get("name"),
+                            owner=repo.get("owner"),
+                            tool_shed_url=repo.get("tool_shed"),
+                            revisions=[repo.get("changeset_revision")],
+                            tool_panel_section_label=tool_panel_section_label,
+                            tool_panel_section_id=tool_panel_section_id,
+                        )
                     )
         return repositories
 
@@ -153,11 +168,11 @@ class GiToToolYaml:
         new_repo_list = []
         for repo in repository_list:
             if self.skip_tool_panel_section_name:
-                del repo['tool_panel_section_label']
+                del repo["tool_panel_section_label"]
             if not self.include_tool_panel_section_id:
-                del repo['tool_panel_section_id']
+                del repo["tool_panel_section_id"]
             if self.skip_changeset_revision:
-                del repo['revisions']
+                del repo["revisions"]
             new_repo_list.append(repo)
         return new_repo_list
 
@@ -174,11 +189,17 @@ def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
     (either `tool_shed` or `tool_shed_url`).
     """
     # Sort from most unique to least unique for fast comparison.
-    if not check_revision or repo_1_info.get('changeset_revision') == repo_2_info.get('changeset_revision'):
-        if repo_1_info.get('name') == repo_2_info.get('name'):
-            if repo_1_info.get('owner') == repo_2_info.get('owner'):
-                t1ts = repo_1_info.get('tool_shed', repo_1_info.get('tool_shed_url', None))
-                t2ts = repo_2_info.get('tool_shed', repo_2_info.get('tool_shed_url', None))
+    if not check_revision or repo_1_info.get("changeset_revision") == repo_2_info.get(
+        "changeset_revision"
+    ):
+        if repo_1_info.get("name") == repo_2_info.get("name"):
+            if repo_1_info.get("owner") == repo_2_info.get("owner"):
+                t1ts = repo_1_info.get(
+                    "tool_shed", repo_1_info.get("tool_shed_url", None)
+                )
+                t2ts = repo_2_info.get(
+                    "tool_shed", repo_2_info.get("tool_shed_url", None)
+                )
                 if t1ts in t2ts or t2ts in t1ts:
                     return True
     return False
@@ -194,20 +215,28 @@ def merge_repository_changeset_revisions(repository_list):
     for repo in repository_list:
         repo_key = repo_key_template.format(**repo)
         if repo_key in repositories:
-            repositories[repo_key].extend(repo['revisions'])
+            repositories[repo_key].extend(repo["revisions"])
         else:
-            repositories[repo_key] = repo['revisions']
+            repositories[repo_key] = repo["revisions"]
     new_repository_list = []
     for repo_key, changeset_revisions in repositories.items():
         changeset_revisions = list(set(changeset_revisions))
-        tool_shed_url, name, owner, tool_panel_section_id, tool_panel_section_label = repo_key.split('|')
+        (
+            tool_shed_url,
+            name,
+            owner,
+            tool_panel_section_id,
+            tool_panel_section_label,
+        ) = repo_key.split("|")
         new_repository_list.append(
-            {'tool_shed_url': tool_shed_url,
-             'name': name,
-             'owner': owner,
-             'tool_panel_section_id': tool_panel_section_id,
-             'tool_panel_section_label': tool_panel_section_label,
-             'revisions': changeset_revisions}
+            {
+                "tool_shed_url": tool_shed_url,
+                "name": name,
+                "owner": owner,
+                "tool_panel_section_id": tool_panel_section_id,
+                "tool_panel_section_label": tool_panel_section_label,
+                "revisions": changeset_revisions,
+            }
         )
     return new_repository_list
 
@@ -215,33 +244,46 @@ def merge_repository_changeset_revisions(repository_list):
 def _parser():
     """Creates the parser object."""
     parent = get_common_args(login_required=True)
-    parser = ArgumentParser(parents=[parent],
-                            formatter_class=ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-o", "--output-file",
-                        required=True,
-                        dest="output",
-                        help="tool_list.yml output file")
-    parser.add_argument("--include_tool_panel_id",
-                        action="store_true",
-                        help="Include tool_panel_id in tool_list.yml ? "
-                             "Use this only if the tool panel id already exists. See "
-                             "https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample")
-    parser.add_argument("--skip_tool_panel_name",
-                        action="store_true",
-                        help="Do not include tool_panel_name in tool_list.yml ?")
-    parser.add_argument("--skip_changeset_revision",
-                        action="store_true",
-                        help="Do not include the changeset revision when generating the tool list."
-                             "Use this if you would like to use the list to update all the tools in"
-                             "your galaxy instance using shed-install."
-                        )
-    parser.add_argument("--get_data_managers",
-                        action="store_true",
-                        help="Include the data managers in the tool list. Requires admin login details")
-    parser.add_argument("--get_all_tools",
-                        action="store_true",
-                        help="Get all tools and revisions, not just those which are present on the web ui."
-                             "Requires login details.")
+    parser = ArgumentParser(
+        parents=[parent], formatter_class=ArgumentDefaultsHelpFormatter
+    )
+    parser.add_argument(
+        "-o",
+        "--output-file",
+        required=True,
+        dest="output",
+        help="tool_list.yml output file",
+    )
+    parser.add_argument(
+        "--include_tool_panel_id",
+        action="store_true",
+        help="Include tool_panel_id in tool_list.yml ? "
+        "Use this only if the tool panel id already exists. See "
+        "https://github.com/galaxyproject/ansible-galaxy-tools/blob/master/files/tool_list.yaml.sample",
+    )
+    parser.add_argument(
+        "--skip_tool_panel_name",
+        action="store_true",
+        help="Do not include tool_panel_name in tool_list.yml ?",
+    )
+    parser.add_argument(
+        "--skip_changeset_revision",
+        action="store_true",
+        help="Do not include the changeset revision when generating the tool list."
+        "Use this if you would like to use the list to update all the tools in"
+        "your galaxy instance using shed-install.",
+    )
+    parser.add_argument(
+        "--get_data_managers",
+        action="store_true",
+        help="Include the data managers in the tool list. Requires admin login details",
+    )
+    parser.add_argument(
+        "--get_all_tools",
+        action="store_true",
+        help="Get all tools and revisions, not just those which are present on the web ui."
+        "Requires login details.",
+    )
     return parser
 
 
@@ -249,16 +291,18 @@ def get_repo_from_tool(tool):
     """
     Get the minimum items required for re-installing a (list of) tools
     """
-    if not tool.get('tool_shed_repository', None):
+    if not tool.get("tool_shed_repository", None):
         # Tool or Data Manager not installed from a tool shed
         return {}
-    tsr = tool['tool_shed_repository']
-    repo = {'name': tsr['name'],
-            'owner': tsr['owner'],
-            'tool_shed_url': tsr['tool_shed'],
-            'revisions': [tsr['changeset_revision']],
-            'tool_panel_section_id': tool['panel_section_id'],
-            'tool_panel_section_label': tool['panel_section_name']}
+    tsr = tool["tool_shed_repository"]
+    repo = {
+        "name": tsr["name"],
+        "owner": tsr["owner"],
+        "tool_shed_url": tsr["tool_shed"],
+        "revisions": [tsr["changeset_revision"]],
+        "tool_panel_section_id": tool["panel_section_id"],
+        "tool_panel_section_label": tool["panel_section_name"],
+    }
     return repo
 
 
@@ -272,8 +316,8 @@ def _parse_cli_options():
 
 def check_galaxy_version(gi):
     version = gi.config.get_version()
-    if StrictVersion(version['version_major']) < StrictVersion('16.04'):
-        raise Exception('This script needs galaxy version 16.04 or newer')
+    if StrictVersion(version["version_major"]) < StrictVersion("16.04"):
+        raise Exception("This script needs galaxy version 16.04 or newer")
 
 
 def main():
@@ -286,7 +330,8 @@ def main():
         skip_tool_panel_section_name=options.skip_tool_panel_name,
         skip_changeset_revision=options.skip_changeset_revision,
         get_data_managers=options.get_data_managers,
-        get_all_tools=options.get_all_tools)
+        get_all_tools=options.get_all_tools,
+    )
     gi_to_tool_yaml.write_to_yaml(options.output)
 
 

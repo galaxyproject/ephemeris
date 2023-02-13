@@ -4,6 +4,7 @@
 import argparse
 import logging as log
 import sys
+from typing import List
 
 from bioblend import galaxy
 from rich.progress import Progress
@@ -13,7 +14,7 @@ from .common_parser import get_common_args
 # Print iterations progress
 
 
-def get_datasets(gi, library_id) -> [str]:
+def get_datasets(gi, library_id) -> List[str]:
     objects = gi.libraries.show_dataset(library_id=library_id, dataset_id="")
     datasets = []
     for index in range(len(objects)):
@@ -77,7 +78,9 @@ def _parser():
         parents=[parent], description="Populate the Galaxy data library with data."
     )
     parser.add_argument("library", help="Specify the data library ID")
-    parser.add_argument("--roles", nargs="+", help="Specify a list of comma separated role IDs")
+    parser.add_argument(
+        "--roles", nargs="+", help="Specify a list of comma separated role IDs"
+    )
     parser.add_argument(
         "-y",
         "--yes",

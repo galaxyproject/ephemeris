@@ -9,7 +9,6 @@ import os
 import tempfile
 
 import pytest
-from docker_for_galaxy import start_container  # noqa: F401 prevent unused error
 
 from ephemeris.shed_tools import InstallRepositoryManager
 
@@ -22,7 +21,7 @@ class TestMiscellaneous(object):
 
     def test_invalid_keys_in_repo_list(
         self, caplog, start_container
-    ):  # noqa: F811 Prevent start_container unused warning.
+    ):
         container = start_container
         irm = InstallRepositoryManager(container.gi)
         caplog.set_level(logging.WARNING)
@@ -43,7 +42,7 @@ class TestMiscellaneous(object):
         )
 
     @pytest.mark.parametrize("parallel_tests", [1, 2])
-    def test_tool_tests(self, caplog, start_container, parallel_tests):  # noqa: F811
+    def test_tool_tests(self, caplog, start_container, parallel_tests):
         container = start_container
         irm = InstallRepositoryManager(container.gi)
         caplog.set_level(logging.WARNING)

@@ -7,11 +7,10 @@ import time
 
 import pytest
 import yaml
-from docker_for_galaxy import (  # noqa: F401 prevent unused error
+from conftest import (
     GALAXY_ADMIN_KEY,
     GALAXY_ADMIN_PASSWORD,
     GALAXY_ADMIN_USER,
-    start_container,
 )
 
 from ephemeris import run_data_managers
@@ -27,7 +26,7 @@ class TestRunDataManagers(object):
 
     def test_install_data_managers(
         self, start_container
-    ):  # noqa: F811 Prevent start_container unused warning.
+    ):
         """Install the data_managers on galaxy"""
         container = start_container
         data_managers = [
@@ -44,7 +43,7 @@ class TestRunDataManagers(object):
 
     def test_run_data_managers(
         self, start_container
-    ):  # noqa: F811 Prevent start_container unused warning.
+    ):
         """Tests an installation using the command line"""
         container = start_container
         argv = ["run-data-managers"]
@@ -67,7 +66,7 @@ class TestRunDataManagers(object):
 
     def test_run_data_managers_installation_skipped(
         self, start_container
-    ):  # noqa: F811 Prevent start_container unused warning.
+    ):
         container = start_container
         with open("tests/run_data_managers.yaml.test") as config_file:
             configuration = yaml.safe_load(config_file)
@@ -79,7 +78,7 @@ class TestRunDataManagers(object):
 
     def test_run_data_managers_installation_fail(
         self, start_container, caplog
-    ):  # noqa: F811 Prevent start_container unused warning.
+    ):
         container = start_container
         configuration = dict(
             data_managers=[

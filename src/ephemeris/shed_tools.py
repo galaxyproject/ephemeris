@@ -203,7 +203,6 @@ class InstallRepositoryManager:
                 complete_repo = complete_repo_information(
                     repository,
                     default_toolshed_url=default_toolshed,
-                    require_tool_panel_info=True,
                     default_install_tool_dependencies=default_install_tool_dependencies,
                     default_install_resolver_dependencies=default_install_resolver_dependencies,
                     default_install_repository_dependencies=default_install_repository_dependencies,

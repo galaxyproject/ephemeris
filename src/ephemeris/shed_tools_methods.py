@@ -26,19 +26,19 @@ VALID_KEYS = [
 def complete_repo_information(
     tool: "InstallRepoDict",
     default_toolshed_url: str,
-    require_tool_panel_info: bool,
     default_install_tool_dependencies: bool,
     default_install_repository_dependencies: bool,
     default_install_resolver_dependencies: bool,
     force_latest_revision,
 ) -> "InstallRepoDict":
+    tool["tool_shed_url"] = format_tool_shed_url(
+        tool.get("tool_shed_url") or default_toolshed_url
+    )
     tool = get_changeset_revisions(tool, force_latest_revision=force_latest_revision)
     repo: "InstallRepoDict" = dict(
         name=tool["name"],
         owner=tool["owner"],
-        tool_shed_url=format_tool_shed_url(
-            tool.get("tool_shed_url") or default_toolshed_url
-        ),
+        tool_shed_url=tool["tool_shed_url"],
         changeset_revision=tool.get("changeset_revision"),
         install_repository_dependencies=tool.get("install_repository_dependencies")
         or default_install_repository_dependencies,
@@ -52,17 +52,12 @@ def complete_repo_information(
     if tool_panel_section_label:
         repo["tool_panel_section_label"] = tool_panel_section_label
     else:
-        tool_panel_section_id = tool.get("tool_panel_section_id")
-        if require_tool_panel_info and not tool_panel_section_id:
-            raise KeyError(
-                f"Either tool_panel_section_id or tool_panel_section_name must be defined for repo '{repo.get('owner')}: {repo.get('name')}'"
-            )
-        repo["tool_panel_section_id"] = tool_panel_section_id
+        repo["tool_panel_section_id"] = tool.get("tool_panel_section_id")
 
     return repo
 
 
-def format_tool_shed_url(tool_shed_url):
+def format_tool_shed_url(tool_shed_url: str) -> str:
     formatted_tool_shed_url = tool_shed_url
     if not formatted_tool_shed_url.endswith("/"):
         formatted_tool_shed_url += "/"
@@ -116,8 +111,8 @@ def flatten_repo_info(
     flattened_list: List["InstallRepoDict"] = []
     for repo_info in repositories:
         new_repo_info = repo_info.copy()
-        if "revisions" in repo_info:
-            revisions = repo_info.get("revisions", [])
+        if "revisions" in new_repo_info:
+            revisions = new_repo_info.pop("revisions")
             if not revisions:  # Revisions are empty list or None
                 flattened_list.append(new_repo_info)
             else:

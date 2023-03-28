@@ -28,7 +28,9 @@ import json
 import logging
 import time
 from collections import namedtuple
+from typing import Literal
 
+from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
@@ -49,6 +51,7 @@ from .ephemeris_log import (
 
 DEFAULT_URL = "http://localhost"
 DEFAULT_SOURCE_TABLES = ["all_fasta"]
+DATA_MANAGER_MODES = Literal["dry_run", "populate", "bundle"]
 
 
 def wait(gi, job_list, log):
@@ -104,7 +107,7 @@ def get_first_valid_entry(input_dict, key_list):
 
 
 class DataManagers:
-    def __init__(self, galaxy_instance, configuration):
+    def __init__(self, galaxy_instance: GalaxyInstance, configuration):
         """
         :param galaxy_instance: A GalaxyInstance object (import from bioblend.galaxy)
         :param configuration: A dictionary. Examples in the ephemeris documentation.
@@ -236,7 +239,7 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log=None, ignore_errors=False, overwrite=False):
+    def run(self, log=None, ignore_errors=False, overwrite=False, data_manager_mode: DATA_MANAGER_MODES = "populate"):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -266,7 +269,7 @@ class DataManagers:
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.tool_client.run_tool(
-                    history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"]
+                    history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"], data_manager_mode=data_manager_mode
                 )
                 log.info(
                     'Dispatched job %i. Running DM: "%s" with parameters: %s'
@@ -327,6 +330,7 @@ def _parser():
         action="store_true",
         help="Do not stop running when jobs have failed.",
     )
+    parser.add_argument("--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate")
     return parser
 
 
@@ -342,7 +346,7 @@ def main(argv=None):
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
-    data_managers.run(log, args.ignore_errors, args.overwrite)
+    data_managers.run(log, args.ignore_errors, args.overwrite, data_manager_mode=args.data_manager_mode)
 
 
 if __name__ == "__main__":

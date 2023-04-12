@@ -52,7 +52,7 @@ def create_legacy(gi, desc):
             if name:
                 # Check to see if the folder already exists, if it doesn't create it.
                 rmt_folder_list = []
-                folder = gi.libraries.get_folders(lib_id, folder_id)
+                folder = gi.libraries.get_folders(lib_id)
                 new_folder_name = "/" + name
                 if folder and not folder[0]["name"] == "/":
                     new_folder_name = folder[0]["name"] + "/" + name

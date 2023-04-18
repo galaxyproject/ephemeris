@@ -327,6 +327,8 @@ History
 .. _@innovate-invent: https://github.com/innovate-invent
 .. _@erasche: https://github.com/erasche
 .. _@nsoranzo: https://github.com/nsoranzo
+.. _@mira-miracoli: https://github.com/mira-miracoli
+.. _@sanjaysrikakulam: https://github.com/sanjaysrikakulam
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

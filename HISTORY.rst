@@ -329,6 +329,7 @@ History
 .. _@nsoranzo: https://github.com/nsoranzo
 .. _@mira-miracoli: https://github.com/mira-miracoli
 .. _@sanjaysrikakulam: https://github.com/sanjaysrikakulam
+.. _@hexylena: https://github.com/hexylena
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

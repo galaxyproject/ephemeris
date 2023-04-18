@@ -6,6 +6,23 @@ History
 .. to_doc
 
 ---------------------
+0.10.8 (2023-04-18)
+---------------------
+
+* Prefer dashes instead of underscores in flags (thanks to `@natefoo`_). `Pull
+  Request 191`_
+* Remove folder id from get_folders function call in setup-data-libraries
+  (thanks to `@sanjaysrikakulam`_). `Pull Request 196`_
+* Standardize CLI commands on - instead of _ (thanks to `@hexylena`_). `Pull
+  Request 195`_
+* Add partial type annotations (thanks to `@mvdbeek`_). `Pull Request 193`_
+* Rename configuration option removed in tox 4.0 (thanks to `@nsoranzo`_).
+  `Pull Request 190`_
+* Set Library Permissions (thanks to `@mira-miracoli`_). `Pull Request 187`_
+* delete the extra random sleep lines from sleep.py (thanks to `@cat-bro`_).
+  `Pull Request 171`_
+
+---------------------
 0.10.7 (2021-06-08)
 ---------------------
 
@@ -239,6 +256,13 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 191: https://github.com/galaxyproject/ephemeris/pull/191
+.. _Pull Request 196: https://github.com/galaxyproject/ephemeris/pull/196
+.. _Pull Request 195: https://github.com/galaxyproject/ephemeris/pull/195
+.. _Pull Request 193: https://github.com/galaxyproject/ephemeris/pull/193
+.. _Pull Request 190: https://github.com/galaxyproject/ephemeris/pull/190
+.. _Pull Request 187: https://github.com/galaxyproject/ephemeris/pull/187
+.. _Pull Request 171: https://github.com/galaxyproject/ephemeris/pull/171
 .. _Pull Request 173: https://github.com/galaxyproject/ephemeris/pull/173
 .. _Pull Request 170: https://github.com/galaxyproject/ephemeris/pull/170
 .. _Pull Request 128: https://github.com/galaxyproject/ephemeris/pull/128

@@ -35,6 +35,7 @@ Galaxy's configuration directory and set Galaxy configuration option
 """
 import datetime as dt
 import json
+import logging
 import os
 import re
 import time
@@ -94,6 +95,7 @@ NON_TERMINAL_REPOSITORY_STATES = {
     "Loading proprietary datatypes",
 }
 
+log = logging.getLogger(__name__)
 
 class InstallRepoDict(TypedDict):
     name: str
@@ -166,7 +168,7 @@ class InstallRepositoryManager:
     def install_repositories(
         self,
         repositories: List[InstallRepoDict],
-        log=None,
+        log=log,
         force_latest_revision: bool = False,
         default_toolshed: str = "https://toolshed.g2.bx.psu.edu/",
         default_install_tool_dependencies: bool = False,
@@ -284,7 +286,7 @@ class InstallRepositoryManager:
             errored_repositories=errored_repositories,
         )
 
-    def update_repositories(self, repositories=None, log=None, **kwargs):
+    def update_repositories(self, repositories=None, log=log, **kwargs):
         if not repositories:  # Repositories None or empty list
             repositories = self.installed_repositories()
         else:
@@ -307,7 +309,7 @@ class InstallRepositoryManager:
         self,
         test_json,
         repositories=None,
-        log=None,
+        log=log,
         test_user_api_key=None,
         test_user="ephemeris@galaxyproject.org",
         test_history_name=None,
@@ -588,7 +590,7 @@ class InstallRepositoryManager:
                     )
                 return "error"
 
-    def wait_for_install(self, repository, log=None, timeout=3600):
+    def wait_for_install(self, repository, log=log, timeout=3600):
         """
         If nginx times out, we look into the list of installed repositories
         and try to determine if a repository of the same namer/owner is still installing.

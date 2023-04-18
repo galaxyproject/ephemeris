@@ -8,7 +8,10 @@ import time
 import yaml
 from bioblend import galaxy
 
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 
 def create_legacy(gi, desc):
@@ -211,7 +214,9 @@ def _parser():
     """Constructs the parser object"""
     parent = get_common_args()
     parser = argparse.ArgumentParser(
-        parents=[parent], description="Populate the Galaxy data library with data."
+        parents=[parent],
+        formatter_class=HideUnderscoresHelpFormatter,
+        description="Populate the Galaxy data library with data."
     )
     parser.add_argument("-i", "--infile", required=True, type=argparse.FileType("r"))
     parser.add_argument(

@@ -37,7 +37,10 @@ from . import (
     get_galaxy_connection,
     load_yaml_file,
 )
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 from .ephemeris_log import (
     disable_external_library_logging,
     setup_global_logger,
@@ -320,6 +323,7 @@ def _parser():
 
     parser = argparse.ArgumentParser(
         parents=[parent],
+        formatter_class=HideUnderscoresHelpFormatter,
         description="Running Galaxy data managers in a defined order with defined parameters."
         "'watch_tool_data_dir' in galaxy config should be set to true.'",
     )
@@ -334,6 +338,7 @@ def _parser():
         help="Disables checking whether the item already exists in the tool data table.",
     )
     parser.add_argument(
+        "--ignore-errors",
         "--ignore_errors",
         action="store_true",
         help="Do not stop running when jobs have failed.",

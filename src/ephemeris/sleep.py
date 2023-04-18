@@ -14,7 +14,10 @@ from argparse import ArgumentParser
 import requests
 from galaxy.util import unicodify
 
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 DEFAULT_SLEEP_WAIT = 1
 MESSAGE_KEY_NOT_YET_VALID = "[%02d] Provided key not (yet) valid... %s\n"
@@ -35,6 +38,7 @@ def _parser():
     parser = ArgumentParser(
         parents=[parent],
         usage="usage: %(prog)s <options>",
+        formatter_class=HideUnderscoresHelpFormatter,
         description="Script to sleep and wait for Galaxy to be alive.",
     )
     parser.add_argument(
@@ -44,9 +48,9 @@ def _parser():
         help="Galaxy startup timeout in seconds. The default value of 0 waits forever",
     )
     parser.add_argument(
-        "-a", "--api_key", dest="api_key", help="Sleep until key becomes available."
+        "-a", "--api-key", "--api_key", dest="api_key", help="Sleep until key becomes available."
     )
-    parser.add_argument("--ensure_admin", default=False, action="store_true")
+    parser.add_argument("--ensure-admin", "--ensure_admin", default=False, action="store_true")
     return parser
 
 

@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 """Tool to generate tools from workflows"""
 import json
-from argparse import (
-    ArgumentParser,
-    RawDescriptionHelpFormatter,
-)
+from argparse import ArgumentParser
 from typing import (
     Iterable,
     List,
@@ -12,6 +9,7 @@ from typing import (
 
 import yaml
 
+from .common_parser import RawDescriptionHideUnderscoresHelpFormatter
 from .shed_tools import InstallRepoDict
 from .shed_tools_methods import format_tool_shed_url
 
@@ -30,7 +28,7 @@ def _parse_cli_options():
 
 def _parser():
     parser = ArgumentParser(
-        formatter_class=RawDescriptionHelpFormatter,
+        formatter_class=RawDescriptionHideUnderscoresHelpFormatter,
         usage="%(prog)s <options>",
         epilog="Workflow files must have been exported from Galaxy release 16.04 or newer.\n\n"
         "example:\n"
@@ -55,6 +53,7 @@ def _parser():
     )
     parser.add_argument(
         "-l",
+        "--panel-label",
         "--panel_label",
         dest="panel_label",
         default="Tools from workflows",

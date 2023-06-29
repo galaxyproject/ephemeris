@@ -28,15 +28,17 @@ import json
 import logging
 import time
 from collections import namedtuple
-from typing import Literal
+from typing import Optional
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
+from typing_extensions import Literal
 
 from . import (
     get_galaxy_connection,
+    get_or_create_history,
     load_yaml_file,
 )
 from .common_parser import (
@@ -248,7 +250,14 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log=None, ignore_errors=False, overwrite=False, data_manager_mode: DATA_MANAGER_MODES = "populate"):
+    def run(
+        self,
+        log=None,
+        ignore_errors=False,
+        overwrite=False,
+        data_manager_mode: DATA_MANAGER_MODES = "populate",
+        history_name: Optional[str] = None,
+    ):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -262,6 +271,10 @@ class DataManagers:
 
         if not log:
             log = logging.getLogger()
+
+        history_id: Optional[str] = None
+        if history_name is not None:
+            history_id = get_or_create_history()["id"]
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []
@@ -280,7 +293,7 @@ class DataManagers:
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.tool_client.run_tool(
-                    history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"], data_manager_mode=data_manager_mode
+                    history_id=history_id, tool_id=job["tool_id"], tool_inputs=job["inputs"], data_manager_mode=data_manager_mode
                 )
                 log.info(
                     'Dispatched job %i. Running DM: "%s" with parameters: %s'
@@ -346,7 +359,8 @@ def _parser():
         action="store_true",
         help="Do not stop running when jobs have failed.",
     )
-    parser.add_argument("--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate")
+    parser.add_argument("--data-manager-mode", "--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate")
+    parser.add_argument("--history-name", default=None)
     return parser
 
 
@@ -362,7 +376,7 @@ def main():
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
-    data_managers.run(log, args.ignore_errors, args.overwrite, data_manager_mode=args.data_manager_mode)
+    data_managers.run(log, args.ignore_errors, args.overwrite, data_manager_mode=args.data_manager_mode, history_name=args.history_name)
 
 
 if __name__ == "__main__":

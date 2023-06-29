@@ -97,6 +97,7 @@ NON_TERMINAL_REPOSITORY_STATES = {
 
 log = logging.getLogger(__name__)
 
+
 class InstallRepoDict(TypedDict):
     name: str
     owner: str

@@ -11,6 +11,14 @@ PROJECT_EMAIL = "jmchilton@gmail.com"
 RAW_CONTENT_URL = f"https://raw.github.com/{PROJECT_USERAME}/{PROJECT_NAME}/master/"
 
 
+def get_or_create_history(history_name: str, gi: galaxy.GalaxyInstance):
+    histories = gi.histories.get_histories(name=history_name)
+    if histories:
+        return histories[0]
+    else:
+        return gi.histories.create_history(name=history_name)
+
+
 def check_url(url, log=None):
     if not url.startswith("http"):
         if log:

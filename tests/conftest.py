@@ -13,8 +13,6 @@ GALAXY_ADMIN_KEY = "fakekey"
 GALAXY_ADMIN_PASSWORD = "password"
 GALAXY_ADMIN_USER = "admin@galaxy.org"
 
-client = docker.from_env()
-
 GalaxyContainer = namedtuple(
     "GalaxyContainer", ["url", "container", "attributes", "gi"]
 )
@@ -32,6 +30,7 @@ def start_container(**kwargs):
     key = kwargs.get("api_key", GALAXY_ADMIN_KEY)
     ensure_admin = kwargs.get("ensure_admin", True)
 
+    client = docker.from_env()
     container = client.containers.run(
         GALAXY_IMAGE, detach=True, ports={"80/tcp": None}, **kwargs
     )

@@ -18,21 +18,29 @@ class ArgumentDefaultsHideUnderscoresHelpFormatter(HideUnderscoresHelpFormatter,
     pass
 
 
+def add_verbosity_argument(parser_or_group):
+    parser_or_group.add_argument(
+        "-v", "--verbose", help="Increase output verbosity.", action="store_true"
+    )
+
+
+def add_log_file_argument(parser_or_group):
+    parser_or_group.add_argument(
+        "--log-file",
+        "--log_file",
+        dest="log_file",
+        help="Where the log file should be stored. "
+        "Default is a file in your system's temp folder",
+        default=None,
+    )
+
+
 def get_common_args(login_required=True, log_file=False):
     parser = argparse.ArgumentParser(add_help=False)
     general_group = parser.add_argument_group("General options")
-    general_group.add_argument(
-        "-v", "--verbose", help="Increase output verbosity.", action="store_true"
-    )
+    add_verbosity_argument(general_group)
     if log_file:
-        general_group.add_argument(
-            "--log-file",
-            "--log_file",
-            dest="log_file",
-            help="Where the log file should be stored. "
-            "Default is a file in your system's temp folder",
-            default=None,
-        )
+        add_log_file_argument(general_group)
 
     con_group = parser.add_argument_group("Galaxy connection")
     con_group.add_argument(

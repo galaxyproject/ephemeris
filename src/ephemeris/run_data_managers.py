@@ -265,7 +265,7 @@ class DataManagers:
 
         history_id: Optional[str] = None
         if history_name is not None:
-            history_id = get_or_create_history()["id"]
+            history_id = get_or_create_history(history_name, self.gi)["id"]
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []

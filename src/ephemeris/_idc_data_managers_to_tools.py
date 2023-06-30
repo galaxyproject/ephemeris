@@ -79,6 +79,7 @@ def _parser():
     add_log_file_argument(general_group)
     parser.add_argument('--data-managers-conf', default="data_managers.yml")
     parser.add_argument('--shed-install-output-conf', default="tools.yml")
+    return parser
 
 
 def main():

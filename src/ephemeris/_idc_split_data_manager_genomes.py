@@ -59,9 +59,9 @@ def tool_id_for(indexer: str, data_managers: Dict[str, DataManager]) -> str:
 
 class RunDataManager(BaseModel):
     id: str
-    items: Optional[List[Any]] = None
+    items: Optional[List[Any]] = []
     params: Optional[List[Any]] = None
-    data_table_reload: Optional[List[str]] = None
+    data_table_reload: Optional[List[str]] = []
 
 
 class RunDataManagers(BaseModel):
@@ -172,7 +172,7 @@ def split_genomes(split_options: SplitOptions) -> None:
 
             item = deepcopy(genome)
             item.pop("indexers", None)
-            item.pop("blacklist", None)
+            item.pop("skiplist", None)
 
             run_data_manager = RunDataManager(
                 id=tool_id,

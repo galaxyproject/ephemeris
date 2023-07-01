@@ -121,6 +121,7 @@ def split_genomes(split_options: SplitOptions) -> None:
             elif source == "ucsc":
                 fetch_params.append({"reference_source|reference_source_selector": "ucsc"})
                 fetch_params.append({"reference_source|requested_dbkey": genome["id"]})
+                fetch_params.append({"sequence_name": genome["description"]})
             elif re.match("^[A-Z_]+[0-9.]+", source):
                 fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
                 fetch_params.append({"reference_source|reference_source_selector": "ncbi"})

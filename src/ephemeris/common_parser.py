@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import argparse
+import os
 
 
 class HideUnderscoresHelpFormatter(argparse.HelpFormatter):
@@ -43,11 +44,12 @@ def get_common_args(login_required=True, log_file=False):
         add_log_file_argument(general_group)
 
     con_group = parser.add_argument_group("Galaxy connection")
+    default_galaxy = os.environ.get("EPHEMERIS_GALAXY") or "http://localhost:8080"
     con_group.add_argument(
         "-g",
         "--galaxy",
         help="Target Galaxy instance URL/IP address",
-        default="http://localhost:8080",
+        default=default_galaxy,
     )
 
     if login_required:

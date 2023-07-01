@@ -80,4 +80,12 @@ def test_split_genomes(tmp_path: Path):
     complete_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_star_index_builder"
     assert new_task.exists()
     assert not complete_task.exists()
-    read_and_validate_run_data_manager_yaml(new_task / "run_data_managers.yaml")
+    new_task_run_yaml = new_task / "run_data_managers.yaml"
+    # ensure we don't serialize unset fields
+    assert "data_table_reload" not in new_task_run_yaml.read_text()
+    run = read_and_validate_run_data_manager_yaml(new_task_run_yaml)
+    assert len(run.data_managers) == 1
+    data_manager = run.data_managers[0]
+    assert data_manager.id == "toolshed.g2.bx.psu.edu/repos/devteam/data_manager_twobit_builder/twobit_builder_data_manager/0.0.2"
+    assert data_manager.items[0]["id"] == "hg19_rCRS_pUC18_phiX174"
+    assert data_manager.items[0]["dbkey"] == "hg19_rCRS_pUC18_phiX174"

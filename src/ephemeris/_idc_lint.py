@@ -21,7 +21,12 @@ def lint_idc_directory(directory: Path):
     assert data_managers_path.exists()
     data_managers = read_data_managers(data_managers_path).__root__
     genomes = read_genomes(genomes_path)
-    print(genomes)
+
+    for data_manager in data_managers.values():
+        data_manager_tool_id = data_manager.tool_id
+        if not data_manager_tool_id.startswith("toolshed.g2.bx.psu.edu/"):
+            raise Exception(f"Expected a data manager repository from main Galaxy tool shed but discovered tool ID {data_manager_tool_id}")
+
     for genome in genomes.genomes:
         print(genome)
         for indexer in (genome.indexers or []):

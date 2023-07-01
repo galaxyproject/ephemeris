@@ -34,8 +34,8 @@ class Genome(BaseModel):
     # The following fields are currently purely for human consumption and unused by
     # IDC infrastructure.
     doi: Optional[str]  # Any DOI associated with the data
-    blob: Optional[str] # A blob for any other pertinent information
-    checksum: Optional[str] # A SHA256 checksum of the original
+    blob: Optional[str]  # A blob for any other pertinent information
+    checksum: Optional[str]  # A SHA256 checksum of the original
     version: Optional[str]  # Any version information associated with the data
 
     # Description of actions (data managers) to run on target genome.

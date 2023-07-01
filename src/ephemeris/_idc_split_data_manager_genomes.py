@@ -26,12 +26,12 @@ from pydantic import (
 )
 
 from . import get_galaxy_connection
-from .common_parser import (
-    get_common_args,
-)
 from ._idc_data_managers_to_tools import (
     DataManager,
     read_data_managers_configuration,
+)
+from .common_parser import (
+    get_common_args,
 )
 from .ephemeris_log import (
     disable_external_library_logging,

@@ -59,9 +59,9 @@ def tool_id_for(indexer: str, data_managers: Dict[str, DataManager]) -> str:
 
 class RunDataManager(BaseModel):
     id: str
-    items: Optional[List[Any]] = []
+    items: Optional[List[Any]] = None
     params: Optional[List[Any]] = None
-    data_table_reload: Optional[List[str]] = []
+    data_table_reload: Optional[List[str]] = None
 
 
 class RunDataManagers(BaseModel):
@@ -91,7 +91,7 @@ def write_run_data_manager_to_file(run_data_manager: RunDataManager, path: str):
         safe_makedirs(parent)
     run_data_managers = RunDataManagers(data_managers=[run_data_manager])
     with open(path, "w") as of:
-        yaml.safe_dump(run_data_managers.dict(), of)
+        yaml.safe_dump(run_data_managers.dict(exclude_unset=True), of)
 
 
 def split_genomes(split_options: SplitOptions) -> None:

@@ -44,11 +44,27 @@ TASK_FILE_NAME = "run_data_managers.yaml"
 log = logging.getLogger(__name__)
 
 
+class Filters:
+    stage: Optional[int] = None
+    data_manager: Optional[str] = None
+    build_id: Optional[str] = None
+
+    def filter_out_data_manager(self, data_manager: str) -> bool:
+        return bool(self.data_manager and data_manager != self.data_manager)
+
+    def filter_out_build_id(self, build_id: str) -> bool:
+        return bool(self.build_id and build_id != self.build_id)
+
+    def filter_out_stage(self, stage: int) -> bool:
+        return bool(self.stage is not None and self.stage != stage)
+
+
 class SplitOptions:
     merged_genomes_path: str
     split_genomes_path: str
     data_managers_path: str
     is_build_complete: IsBuildComplete
+    filters: Filters = Filters()
 
 
 def tool_id_for(indexer: str, data_managers: Dict[str, DataManager]) -> str:
@@ -94,34 +110,31 @@ def write_run_data_manager_to_file(run_data_manager: RunDataManager, path: str):
         yaml.safe_dump(run_data_managers.dict(exclude_unset=True), of)
 
 
-def split_genomes(split_options: SplitOptions) -> None:
-
-    def write_task_file(run_data_manager: RunDataManager, build_id: str, indexer: str):
-        split_genomes_path = split_options.split_genomes_path
-        if not os.path.exists(split_options.split_genomes_path):
-            safe_makedirs(split_genomes_path)
-
-        task_file_dir = os.path.join(split_genomes_path, build_id, indexer)
-        task_file = os.path.join(task_file_dir, TASK_FILE_NAME)
-        write_run_data_manager_to_file(run_data_manager, task_file)
-
+def walk_over_incomplete_runs(split_options: SplitOptions):
     data_managers = read_data_managers_configuration(split_options.data_managers_path)
     with open(split_options.merged_genomes_path) as f:
         genomes_all = yaml.safe_load(f)
     genomes = genomes_all["genomes"]
     for genome in genomes:
         build_id = genome["id"]
+        if split_options.filters.filter_out_build_id(build_id):
+            continue
 
         fetch_indexer = "data_manager_fetch_genome_dbkeys_all_fasta"
-        if not split_options.is_build_complete(build_id, fetch_indexer):
+        do_fetch = not split_options.filters.filter_out_data_manager(fetch_indexer)
+        source = genome.get("source")
+        if source is None:
+            do_fetch = False
+        if do_fetch and split_options.filters.filter_out_stage(0):
+            do_fetch = False
+
+        if do_fetch and not split_options.is_build_complete(build_id, fetch_indexer):
             log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers)
             fetch_params = []
             fetch_params.append({"dbkey_source|dbkey": genome["id"]})
             source = genome.get("source")
-            if source is None:
-                continue
-            elif source == "ucsc":
+            if source == "ucsc":
                 fetch_params.append({"reference_source|reference_source_selector": "ucsc"})
                 fetch_params.append({"reference_source|requested_dbkey": genome["id"]})
                 fetch_params.append({"sequence_name": genome["description"]})
@@ -146,12 +159,18 @@ def split_genomes(split_options: SplitOptions) -> None:
                 # Not needed according to Marius
                 # data_table_reload=["all_fasta", "__dbkeys__"],
             )
-            write_task_file(fetch_run_data_manager, build_id, fetch_indexer)
+            yield (build_id, fetch_indexer, fetch_run_data_manager)
         else:
             log.debug(f"Fetch is already completed: {build_id}")
 
         indexers = genome.get("indexers", [])
         for indexer in indexers:
+            if split_options.filters.filter_out_data_manager(indexer):
+                continue
+
+            if split_options.filters.filter_out_stage(1):
+                continue
+
             if split_options.is_build_complete(build_id, indexer):
                 log.debug(f"Build is already completed: {build_id} {indexer}")
                 continue
@@ -179,7 +198,22 @@ def split_genomes(split_options: SplitOptions) -> None:
                 params=params,
                 items=[item],
             )
-            write_task_file(run_data_manager, build_id, indexer)
+            yield (build_id, indexer, run_data_manager)
+
+
+def split_genomes(split_options: SplitOptions) -> None:
+
+    def write_task_file(build_id: str, indexer: str, run_data_manager: RunDataManager):
+        split_genomes_path = split_options.split_genomes_path
+        if not os.path.exists(split_options.split_genomes_path):
+            safe_makedirs(split_genomes_path)
+
+        task_file_dir = os.path.join(split_genomes_path, build_id, indexer)
+        task_file = os.path.join(task_file_dir, TASK_FILE_NAME)
+        write_run_data_manager_to_file(run_data_manager, task_file)
+
+    for build_id, indexer, run_data_manager in walk_over_incomplete_runs(split_options):
+        write_task_file(build_id, indexer, run_data_manager)
 
 
 class GalaxyHistoryIsBuildComplete:
@@ -199,6 +233,12 @@ def _parser():
     parser.add_argument('--merged-genomes-path', '-m', default="genomes.yml")
     parser.add_argument('--split-genomes-path', '-s', default="data_manager_tasks")
     parser.add_argument('--data-managers-path', default="data_managers.yml")
+
+    # filters
+    parser.add_argument('--filter-stage', default=None)
+    parser.add_argument('--filter-data-manager', default=None)
+    parser.add_argument('--filter-build-id', default=None)
+
     return parser
 
 
@@ -224,6 +264,12 @@ def main():
     split_options.merged_genomes_path = args.merged_genomes_path
     split_options.split_genomes_path = args.split_genomes_path
     split_options.is_build_complete = is_build_complete
+
+    filters = Filters()
+    filters.build_id = args.filter_build_id
+    filters.data_manager = args.filter_data_manager
+    filters.stage = args.filter_stage
+    split_options.filters = filters
 
     split_genomes(split_options)
 

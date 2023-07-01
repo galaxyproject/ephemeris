@@ -41,6 +41,8 @@ from .ephemeris_log import (
 IsBuildComplete = Callable[[str, str], bool]
 TASK_FILE_NAME = "run_data_managers.yaml"
 
+log = logging.getLogger(__name__)
+
 
 class SplitOptions:
     merged_genomes_path: str
@@ -112,6 +114,7 @@ def split_genomes(split_options: SplitOptions) -> None:
 
         fetch_indexer = "data_manager_fetch_genome_dbkeys_all_fasta"
         if not split_options.is_build_complete(build_id, fetch_indexer):
+            log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers)
             fetch_params = []
             fetch_params.append({"dbkey_source|dbkey": genome["id"]})
@@ -144,21 +147,26 @@ def split_genomes(split_options: SplitOptions) -> None:
                 # data_table_reload=["all_fasta", "__dbkeys__"],
             )
             write_task_file(fetch_run_data_manager, build_id, fetch_indexer)
+        else:
+            log.debug(f"Fetch is already completed: {build_id}")
 
         indexers = genome.get("indexers", [])
         for indexer in indexers:
             if split_options.is_build_complete(build_id, indexer):
+                log.debug(f"Build is already completed: {build_id} {indexer}")
                 continue
 
-            data_manager = {}
+            log.info(f"Building: {build_id} {indexer}")
+
             tool_id = tool_id_for(indexer, data_managers)
             params = [
                 {"all_fasta_source": "{{ item.id }}"},
                 {"sequence_name": "{{ item.name }}"},
                 {"sequence_id": "{{ item.id }}"},
             ]
+            # why is this not pulled from the data managers conf? -nate
             if re.search("bwa", tool_id):
-                data_manager["params"].append({"index_algorithm": "bwtsw"})
+                params.append({"index_algorithm": "bwtsw"})
             if re.search("color_space", tool_id):
                 continue
 

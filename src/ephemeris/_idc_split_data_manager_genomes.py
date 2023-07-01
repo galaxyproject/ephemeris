@@ -186,11 +186,11 @@ class GalaxyHistoryIsBuildComplete:
 def _parser():
     """returns the parser object."""
     # login required to check history...
-    parser = get_common_args(login_required=True)
-
+    parser = get_common_args(login_required=True, log_file=True)
     parser.add_argument('--merged-genomes-path', '-m', default="genomes.yml")
     parser.add_argument('--split-genomes-path', '-s', default="data_manager_tasks")
     parser.add_argument('--data-managers-path', default="data_managers.yml")
+    return parser
 
 
 def get_galaxy_history_names(args) -> List[str]:

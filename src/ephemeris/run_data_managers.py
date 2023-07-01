@@ -222,6 +222,11 @@ class DataManagers:
     def input_entries_exist_in_data_tables(self, data_tables, input_dict):
         """Checks whether name and value entries from the input are already present in the data tables.
         If an entry is missing in of the tables, this function returns False"""
+        if data_tables is None or len(data_tables) == 0:
+            # this logic is all broken I (@jmchilton) think, but lets just skip it all
+            # if we know we don't have data tables to check
+            return False
+
         value_entry = get_first_valid_entry(input_dict, self.possible_value_keys)
         name_entry = get_first_valid_entry(input_dict, self.possible_name_keys)
 

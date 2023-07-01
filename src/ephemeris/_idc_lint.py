@@ -19,8 +19,14 @@ def lint_idc_directory(directory: Path):
     data_managers_path = directory / "data_managers.yml"
     assert genomes_path.exists()
     assert data_managers_path.exists()
-    read_data_managers(data_managers_path)
-    read_genomes(genomes_path)
+    data_managers = read_data_managers(data_managers_path).__root__
+    genomes = read_genomes(genomes_path)
+    print(genomes)
+    for genome in genomes.genomes:
+        print(genome)
+        for indexer in (genome.indexers or []):
+            if indexer not in data_managers:
+                raise Exception(f"Failed to find data manager {indexer} referenced for genome {genome}")
 
 
 def main():

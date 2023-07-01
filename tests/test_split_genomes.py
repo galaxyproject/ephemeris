@@ -95,6 +95,21 @@ def test_split_genomes(tmp_path: Path):
     assert data_manager.items[0]["dbkey"] == "hg19_rCRS_pUC18_phiX174"
 
 
+def test_split_genomes_short_ids(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    split_options.tool_id_mode = "short"
+    split_genomes(split_options)
+
+    new_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
+    new_task_run_yaml = new_task / "run_data_managers.yaml"
+    run = read_and_validate_run_data_manager_yaml(new_task_run_yaml)
+    assert len(run.data_managers) == 1
+    data_manager = run.data_managers[0]
+    assert data_manager.id == "twobit_builder_data_manager"
+
+
 def test_split_genomes_filter_on_data_manager(tmp_path: Path):
     setup_mock_idc_dir(tmp_path)
     split_path = tmp_path / "split"

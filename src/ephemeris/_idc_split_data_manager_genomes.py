@@ -40,6 +40,7 @@ from .ephemeris_log import (
 
 IsBuildComplete = Callable[[str, str], bool]
 TASK_FILE_NAME = "run_data_managers.yaml"
+DEFAULT_TOOL_ID_MODE = "tool_shed_guid"
 
 log = logging.getLogger(__name__)
 
@@ -64,13 +65,23 @@ class SplitOptions:
     split_genomes_path: str
     data_managers_path: str
     is_build_complete: IsBuildComplete
+    tool_id_mode: str = DEFAULT_TOOL_ID_MODE
     filters: Filters = Filters()
 
 
-def tool_id_for(indexer: str, data_managers: Dict[str, DataManager]) -> str:
+def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) -> str:
     data_manager = data_managers[indexer]
     assert data_manager, f"Could not find a target data manager for indexer name {indexer}"
-    return data_manager.tool_id
+    tool_shed_guid = data_manager.tool_id
+    if mode == "short":
+        _ts, _, _owner, _repo_name, rest = tool_shed_guid.split("/", 4)
+        if "/" in rest:
+            print(rest)
+            return rest.split("/")[0]
+        else:
+            return rest
+    else:
+        return tool_shed_guid
 
 
 class RunDataManager(BaseModel):
@@ -130,7 +141,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
         if do_fetch and not split_options.is_build_complete(build_id, fetch_indexer):
             log.info(f"Fetching: {build_id}")
-            fetch_tool_id = tool_id_for(fetch_indexer, data_managers)
+            fetch_tool_id = tool_id_for(fetch_indexer, data_managers, split_options.tool_id_mode)
             fetch_params = []
             fetch_params.append({"dbkey_source|dbkey": genome["id"]})
             source = genome.get("source")
@@ -177,7 +188,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             log.info(f"Building: {build_id} {indexer}")
 
-            tool_id = tool_id_for(indexer, data_managers)
+            tool_id = tool_id_for(indexer, data_managers, split_options.tool_id_mode)
             params = [
                 {"all_fasta_source": "{{ item.id }}"},
                 {"sequence_name": "{{ item.name }}"},
@@ -234,6 +245,8 @@ def _parser():
     parser.add_argument('--split-genomes-path', '-s', default="data_manager_tasks")
     parser.add_argument('--data-managers-path', default="data_managers.yml")
 
+    parser.add_argument("--tool-id-mode", choices=["tool_shed_guid", "short"], default=DEFAULT_TOOL_ID_MODE)
+
     # filters
     parser.add_argument('--filter-stage', default=None)
     parser.add_argument('--filter-data-manager', default=None)
@@ -264,6 +277,7 @@ def main():
     split_options.merged_genomes_path = args.merged_genomes_path
     split_options.split_genomes_path = args.split_genomes_path
     split_options.is_build_complete = is_build_complete
+    split_options.tool_id_mode = args.tool_id_mode
 
     filters = Filters()
     filters.build_id = args.filter_build_id

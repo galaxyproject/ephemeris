@@ -15,7 +15,10 @@ from typing import (
 
 import yaml
 
-from ._config_models import read_data_managers
+from ._config_models import (
+    read_data_managers,
+    RepositoryInstallTargets,
+)
 from .common_parser import (
     add_log_file_argument,
     add_verbosity_argument,
@@ -66,6 +69,10 @@ def build_shed_install_conf(path: str) -> dict:
 
 def write_shed_install_conf(data_manager_conf_path: str, output_path: str) -> None:
     tools_yaml = build_shed_install_conf(data_manager_conf_path)
+
+    # validate generated dict to ensure we're writing out valid file
+    RepositoryInstallTargets(**tools_yaml)
+
     with open(output_path, "w") as f:
         yaml.safe_dump(tools_yaml, f)
 

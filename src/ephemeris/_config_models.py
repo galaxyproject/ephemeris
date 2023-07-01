@@ -16,6 +16,25 @@ from pydantic import (
 StrOrPath = Union[Path, str]
 
 
+class RepositoryInstallTarget(BaseModel):
+    name: str
+    owner: str
+    tool_shed_url: Optional[str]
+    tool_panel_section_id: Optional[str]
+    tool_panel_section_label: Optional[str]
+    revisions: Optional[List[str]]
+    install_tool_dependencies: Optional[bool]
+    install_repository_dependencies: Optional[bool]
+    install_resolver_dependencies: Optional[bool]
+
+
+class RepositoryInstallTargets(BaseModel):
+    """ """
+    api_key: Optional[str]
+    galaxy_instance: Optional[str]
+    tools: List[RepositoryInstallTarget]
+
+
 class DataManager(BaseModel, extra=Extra.forbid):
     tags: List[str]
     tool_id: str
@@ -58,3 +77,7 @@ def read_data_managers(path: StrOrPath) -> DataManagers:
 
 def read_genomes(path: StrOrPath) -> Genomes:
     return Genomes(**_read_yaml(path))
+
+
+def read_tools(path: StrOrPath) -> RepositoryInstallTargets:
+    return RepositoryInstallTargets(**_read_yaml(path))

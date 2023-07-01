@@ -7,16 +7,16 @@ import time
 
 import pytest
 import yaml
-from conftest import (
-    GALAXY_ADMIN_KEY,
-    GALAXY_ADMIN_PASSWORD,
-    GALAXY_ADMIN_USER,
-)
 
 from ephemeris import run_data_managers
 from ephemeris.run_data_managers import DataManagers
 from ephemeris.shed_tools import InstallRepositoryManager
 from ephemeris.sleep import galaxy_wait
+from .conftest import (
+    GALAXY_ADMIN_KEY,
+    GALAXY_ADMIN_PASSWORD,
+    GALAXY_ADMIN_USER,
+)
 
 AUTH_BY = "key"
 

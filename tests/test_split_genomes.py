@@ -3,6 +3,7 @@ from pathlib import Path
 import yaml
 
 from ephemeris._idc_split_data_manager_genomes import (
+    Filters,
     GalaxyHistoryIsBuildComplete,
     RunDataManagers,
     split_genomes,
@@ -62,19 +63,22 @@ def read_and_validate_run_data_manager_yaml(path):
         return RunDataManagers(**yaml.safe_load(f))
 
 
-def test_split_genomes(tmp_path: Path):
-    setup_mock_idc_dir(tmp_path)
-
-    split_path = tmp_path / "split"
-
+def split_options_for(tmp_path: Path) -> SplitOptions:
     history_names = ["idc-hg19_rCRS_pUC18_phiX174-data_manager_star_index_builder"]
     is_build_complete = GalaxyHistoryIsBuildComplete(history_names)
 
     split_options = SplitOptions()
     split_options.merged_genomes_path = tmp_path / "genomes.yml"
-    split_options.split_genomes_path = str(split_path)
+    split_options.split_genomes_path = str(tmp_path / "split")
     split_options.data_managers_path = tmp_path / "data_managers.yml"
     split_options.is_build_complete = is_build_complete
+    return split_options
+
+
+def test_split_genomes(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
     split_genomes(split_options)
     new_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
     complete_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_star_index_builder"
@@ -89,3 +93,68 @@ def test_split_genomes(tmp_path: Path):
     assert data_manager.id == "toolshed.g2.bx.psu.edu/repos/devteam/data_manager_twobit_builder/twobit_builder_data_manager/0.0.2"
     assert data_manager.items[0]["id"] == "hg19_rCRS_pUC18_phiX174"
     assert data_manager.items[0]["dbkey"] == "hg19_rCRS_pUC18_phiX174"
+
+
+def test_split_genomes_filter_on_data_manager(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    filters = Filters()
+    filters.data_manager = "data_manager_star_index_builder"
+    split_options.filters = filters
+
+    split_genomes(split_options)
+    new_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
+    assert not new_task.exists()
+
+    filters.data_manager = "data_manager_twobit_builder"
+    split_genomes(split_options)
+    assert new_task.exists()
+
+
+def test_split_genomes_filter_on_build_id(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    filters = Filters()
+    filters.build_id = "rn6"
+    split_options.filters = filters
+
+    split_genomes(split_options)
+    filtered_out_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
+    assert not filtered_out_task.exists()
+
+    filtered_in_task = split_path / "rn6" / "data_manager_twobit_builder"
+    assert filtered_in_task.exists()
+
+
+def test_split_genomes_filter_on_stage_0(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    filters = Filters()
+    filters.stage = 0
+    split_options.filters = filters
+
+    split_genomes(split_options)
+    filtered_out_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
+    assert not filtered_out_task.exists()
+
+    filtered_in_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_fetch_genome_dbkeys_all_fasta"
+    assert filtered_in_task.exists()
+
+
+def test_split_genomes_filter_on_stage_1(tmp_path: Path):
+    setup_mock_idc_dir(tmp_path)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    filters = Filters()
+    filters.stage = 1
+    split_options.filters = filters
+
+    split_genomes(split_options)
+    filtered_out_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_fetch_genome_dbkeys_all_fasta"
+    assert not filtered_out_task.exists()
+
+    filtered_in_task = split_path / "hg19_rCRS_pUC18_phiX174" / "data_manager_twobit_builder"
+    assert filtered_in_task.exists()

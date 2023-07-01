@@ -159,8 +159,8 @@ class DataManagers:
         :returns job_list, skipped_job_list"""
         job_list = []
         skipped_job_list = []
-        items = self.parse_items(dm.get("items", [""]))
-        for item in items:
+
+        def handle_item(item: str):
             dm_id = dm["id"]
             params = dm["params"]
             inputs = dict()
@@ -174,11 +174,20 @@ class DataManagers:
 
             job = dict(tool_id=dm_id, inputs=inputs)
 
-            data_tables = dm.get("data_table_reload", [])
+            data_tables = dm.get("data_table_reload") or []
             if self.input_entries_exist_in_data_tables(data_tables, inputs):
                 skipped_job_list.append(job)
             else:
                 job_list.append(job)
+
+        raw_items = dm.get("items") or None
+        if raw_items:
+            items = self.parse_items(raw_items)
+            for item in items:
+                handle_item(item)
+        else:
+            handle_item("")
+
         return job_list, skipped_job_list
 
     def dm_is_fetcher(self, dm):

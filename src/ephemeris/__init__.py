@@ -1,3 +1,5 @@
+import os
+
 import yaml
 from bioblend import galaxy
 
@@ -40,7 +42,7 @@ def get_galaxy_connection(args, file=None, log=None, login_required=True):
 
     url = args.galaxy or file_content.get("galaxy_instance")
     galaxy_url = check_url(url, log)
-    api_key = args.api_key or file_content.get("api_key")
+    api_key = args.api_key or file_content.get("api_key") or os.environ.get("EPHEMERIS_API_KEY")
 
     if args.user and args.password:
         return galaxy.GalaxyInstance(url=galaxy_url, email=args.user, password=args.password)

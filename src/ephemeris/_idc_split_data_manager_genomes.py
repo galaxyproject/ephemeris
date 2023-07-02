@@ -12,7 +12,6 @@ import re
 from copy import deepcopy
 from typing import (
     Any,
-    Callable,
     Dict,
     List,
     Optional,
@@ -38,11 +37,17 @@ from .ephemeris_log import (
     setup_global_logger,
 )
 
-IsBuildComplete = Callable[[str, str], bool]
 TASK_FILE_NAME = "run_data_managers.yaml"
 DEFAULT_TOOL_ID_MODE = "tool_shed_guid"
+DEFAULT_BUILD_TRACKING_MODE = "galaxy_history"
 
 log = logging.getLogger(__name__)
+
+
+class BuildTracker:
+
+    def is_build_complete(self, build_id: str, indexer_name: str) -> bool:
+        pass
 
 
 class Filters:
@@ -64,7 +69,7 @@ class SplitOptions:
     merged_genomes_path: str
     split_genomes_path: str
     data_managers_path: str
-    is_build_complete: IsBuildComplete
+    build_tracker: BuildTracker
     tool_id_mode: str = DEFAULT_TOOL_ID_MODE
     filters: Filters = Filters()
 
@@ -139,7 +144,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
         if do_fetch and split_options.filters.filter_out_stage(0):
             do_fetch = False
 
-        if do_fetch and not split_options.is_build_complete(build_id, fetch_indexer):
+        if do_fetch and not split_options.build_tracker.is_build_complete(build_id, fetch_indexer):
             log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers, split_options.tool_id_mode)
             fetch_params = []
@@ -182,7 +187,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
             if split_options.filters.filter_out_stage(1):
                 continue
 
-            if split_options.is_build_complete(build_id, indexer):
+            if split_options.build_tracker.is_build_complete(build_id, indexer):
                 log.debug(f"Build is already completed: {build_id} {indexer}")
                 continue
 
@@ -227,14 +232,28 @@ def split_genomes(split_options: SplitOptions) -> None:
         write_task_file(build_id, indexer, run_data_manager)
 
 
-class GalaxyHistoryIsBuildComplete:
+class GalaxyHistoryBuildTracker(BuildTracker):
 
     def __init__(self, history_names: List[str]):
         self._history_names = history_names
 
-    def __call__(self, build_id: str, indexer_name: str) -> bool:
+    def is_build_complete(self, build_id: str, indexer_name: str) -> bool:
         target_history_name = f"idc-{build_id}-{indexer_name}"
         return target_history_name in self._history_names
+
+
+class DirectoryBuildTracker(BuildTracker):
+
+    def __init__(self, split_genomes_path: str):
+        self._split_genomes_path = split_genomes_path
+
+    def is_build_complete(self, build_id: str, indexer_name: str) -> bool:
+        target_directory = os.path.join(self._split_genomes_path, build_id, indexer_name)
+        if not os.path.exists(target_directory):
+            return False
+        bundle_path = os.path.join(target_directory, "data_bundle.tgz")
+        if not os.path.exists(bundle_path):
+            return False
 
 
 def _parser():
@@ -246,6 +265,7 @@ def _parser():
     parser.add_argument('--data-managers-path', default="data_managers.yml")
 
     parser.add_argument("--tool-id-mode", choices=["tool_shed_guid", "short"], default=DEFAULT_TOOL_ID_MODE)
+    parser.add_argument("--build-tracking", choices=["galaxy_history", "directory"], default=DEFAULT_BUILD_TRACKING_MODE)
 
     # filters
     parser.add_argument('--filter-stage', default=None)
@@ -260,6 +280,14 @@ def get_galaxy_history_names(args) -> List[str]:
     return [h["name"] for h in gi.histories.get_histories()]
 
 
+def get_build_tracker(args):
+    if args.build_tracking == "galaxy_history":
+        build_tracker = GalaxyHistoryBuildTracker(get_galaxy_history_names(args))
+    else:
+        build_tracker = DirectoryBuildTracker(args.split_genomes_path)
+    return build_tracker
+
+
 def main():
     disable_external_library_logging()
     parser = _parser()
@@ -270,13 +298,11 @@ def main():
     else:
         log.setLevel(logging.INFO)
 
-    is_build_complete = GalaxyHistoryIsBuildComplete(get_galaxy_history_names(args))
-
     split_options = SplitOptions()
     split_options.data_managers_path = args.data_managers_path
     split_options.merged_genomes_path = args.merged_genomes_path
     split_options.split_genomes_path = args.split_genomes_path
-    split_options.is_build_complete = is_build_complete
+    split_options.build_tracker = get_build_tracker(args)
     split_options.tool_id_mode = args.tool_id_mode
 
     filters = Filters()

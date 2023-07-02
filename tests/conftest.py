@@ -8,7 +8,11 @@ from ephemeris.sleep import galaxy_wait
 
 # It needs to work well with dev. Alternatively we can pin this to 'master' or another stable branch.
 # Preferably a branch that updates with each stable release
-GALAXY_IMAGE = "bgruening/galaxy-stable:20.05"
+DOCKER_IMAGE = "galaxy-min"  # or bgruening
+GALAXY_IMAGE_MIN = "galaxy/galaxy-min:23.1-auto"
+GALAXY_IMAGE_BGRUENING = "bgruening/galaxy-stable:20.05"
+GALAXY_IMAGE = GALAXY_IMAGE_MIN if DOCKER_IMAGE == "galaxy-min" else GALAXY_IMAGE_BGRUENING
+GALAXY_PORT = "80" if DOCKER_IMAGE == "bgruening" else "8080"
 GALAXY_ADMIN_KEY = "fakekey"
 GALAXY_ADMIN_PASSWORD = "password"
 GALAXY_ADMIN_USER = "admin@galaxy.org"
@@ -28,11 +32,21 @@ def start_container(**kwargs):
     # and use the internal ip address instead.
     # But alas, the trappings of a proprietary BSD kernel compel us to do ugly workarounds.
     key = kwargs.get("api_key", GALAXY_ADMIN_KEY)
-    ensure_admin = kwargs.get("ensure_admin", True)
+
+    # Set this to False as we try to get bootstrap working with galaxy-min.
+    # ensure_admin = kwargs.get("ensure_admin", True)
+    ensure_admin = False
 
     client = docker.from_env()
+
+    if DOCKER_IMAGE != "bgruening":
+        if "environment" not in kwargs:
+            kwargs["environment"] = {}
+        environment = kwargs["environment"]
+        environment["GALAXY_CONFIG_OVERRIDE_BOOTSTRAP_ADMIN_API_KEY"] = GALAXY_ADMIN_KEY
+
     container = client.containers.run(
-        GALAXY_IMAGE, detach=True, ports={"80/tcp": None}, **kwargs
+        GALAXY_IMAGE, detach=True, ports={f"{GALAXY_PORT}/tcp": None}, **kwargs
     )
     container_id = container.attrs.get("Id")
     print(container_id)
@@ -46,7 +60,7 @@ def start_container(**kwargs):
     exposed_port = (
         container_attributes.get("NetworkSettings")
         .get("Ports")
-        .get("80/tcp")[0]
+        .get(f"{GALAXY_PORT}/tcp")[0]
         .get("HostPort")
     )
 
@@ -56,6 +70,7 @@ def start_container(**kwargs):
         container_url, timeout=180, api_key=key, ensure_admin=ensure_admin
     )
     if not ready:
+        print(client.containers.get(container_id).logs())
         raise Exception("Failed to wait on Galaxy to start.")
     gi = GalaxyInstance(container_url, key=key)
     yield GalaxyContainer(

@@ -46,6 +46,7 @@ def start_container(**kwargs):
         environment["GALAXY_CONFIG_OVERRIDE_BOOTSTRAP_ADMIN_API_KEY"] = GALAXY_ADMIN_KEY
         environment["GALAXY_CONFIG_OVERRIDE_ADMIN_USERS"] = GALAXY_ADMIN_USER
         environment["GALAXY_CONFIG_OVERRIDE_CONDA_AUTO_INIT"] = "true"
+        environment["GALAXY_CONFIG_OVERRIDE_CONDA_PREFIX"] = "/galaxy/server/database/dependencies/_conda2"
 
     container = client.containers.run(
         GALAXY_IMAGE, detach=True, ports={f"{GALAXY_PORT}/tcp": None}, **kwargs

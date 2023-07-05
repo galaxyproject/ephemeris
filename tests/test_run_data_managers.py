@@ -24,7 +24,7 @@ class TestRunDataManagers(object):
     """This class tests run-data-managers"""
 
     def test_install_data_managers(
-        self, start_container
+        self, start_container, caplog
     ):
         """Install the data_managers on galaxy"""
         container = start_container
@@ -34,7 +34,10 @@ class TestRunDataManagers(object):
             dict(name="data_manager_bwa_mem_index_builder", owner="devteam"),
         ]
         irm = InstallRepositoryManager(container.gi)
-        irm.install_repositories(data_managers)
+        results = irm.install_repositories(data_managers)
+        import logging
+        caplog.set_level(logging.INFO)
+        assert len(results.errored_repositories) == 0, str(results)
         # Galaxy is restarted because otherwise data tables are not watched.
         container.container.exec_run("supervisorctl restart galaxy:")
         time.sleep(10)  # give time for the services to go down

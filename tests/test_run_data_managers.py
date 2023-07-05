@@ -64,7 +64,11 @@ class TestRunDataManagers(object):
             ["-g", container.url, "--config", "tests/run_data_managers.yaml.test"]
         )
         sys.argv = argv
-        run_data_managers.main()
+        try:
+            run_data_managers.main()
+        except RuntimeError:
+            print(container.container.logs())
+            raise
 
     def test_run_data_managers_installation_skipped(
         self, start_container

@@ -45,6 +45,7 @@ def start_container(**kwargs):
         environment = kwargs["environment"]
         environment["GALAXY_CONFIG_OVERRIDE_BOOTSTRAP_ADMIN_API_KEY"] = GALAXY_ADMIN_KEY
         environment["GALAXY_CONFIG_OVERRIDE_ADMIN_USERS"] = GALAXY_ADMIN_USER
+        environment["GALAXY_CONFIG_OVERRIDE_CONDA_AUTO_INIT"] = "true"
 
     container = client.containers.run(
         GALAXY_IMAGE, detach=True, ports={f"{GALAXY_PORT}/tcp": None}, **kwargs

@@ -65,7 +65,7 @@ def read_and_validate_run_data_manager_yaml(path):
 
 def split_options_for(tmp_path: Path) -> BuildOptions:
     history_names = ["idc-hg19_rCRS_pUC18_phiX174-data_manager_star_index_builder"]
-    build_tracker = GalaxyHistoryBuildTracker(history_names)
+    build_tracker = GalaxyHistoryBuildTracker(history_names, "idc")
 
     split_options = BuildOptions()
     split_options.merged_genomes_path = tmp_path / "genomes.yml"

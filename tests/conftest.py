@@ -44,6 +44,7 @@ def start_container(**kwargs):
             kwargs["environment"] = {}
         environment = kwargs["environment"]
         environment["GALAXY_CONFIG_OVERRIDE_BOOTSTRAP_ADMIN_API_KEY"] = GALAXY_ADMIN_KEY
+        environment["GALAXY_CONFIG_OVERRIDE_ADMIN_USERS"] = GALAXY_ADMIN_USER
 
     container = client.containers.run(
         GALAXY_IMAGE, detach=True, ports={f"{GALAXY_PORT}/tcp": None}, **kwargs
@@ -75,8 +76,8 @@ def start_container(**kwargs):
     gi = GalaxyInstance(container_url, key=key)
     if DOCKER_IMAGE != "bgruening":
         user_dict = gi.users.create_local_user("admin", GALAXY_ADMIN_USER, GALAXY_ADMIN_PASSWORD)
-        user_api_key = gi.users.get_user_apikey(user_dict["id"])
-        gi = GalaxyInstance(container_url, key=user_api_key)
+        print(user_dict)
+        gi = GalaxyInstance(container_url, email=GALAXY_ADMIN_USER,password=GALAXY_ADMIN_PASSWORD)
 
     yield GalaxyContainer(
         url=container_url, container=container, attributes=container_attributes, gi=gi

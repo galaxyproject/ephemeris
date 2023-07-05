@@ -41,6 +41,7 @@ from .ephemeris_log import (
 TASK_FILE_NAME = "run_data_managers.yaml"
 DEFAULT_TOOL_ID_MODE = "tool_shed_guid"
 DEFAULT_BUILD_TRACKING_MODE = "galaxy_history"
+DEFAULT_HISTORY_BUILD_PREFIX = "idc"
 
 log = logging.getLogger(__name__)
 
@@ -220,11 +221,12 @@ def walk_over_incomplete_runs(build_options: BuildOptions):
 
 class GalaxyHistoryBuildTracker(BuildTracker):
 
-    def __init__(self, history_names: List[str]):
+    def __init__(self, history_names: List[str], history_build_prefix: str):
         self._history_names = history_names
+        self._history_build_prefix = history_build_prefix
 
     def is_build_complete(self, build_id: str, indexer_name: str) -> bool:
-        target_history_name = f"idc-{build_id}-{indexer_name}"
+        target_history_name = f"{self._history_build_prefix}-{build_id}-{indexer_name}"
         return target_history_name in self._history_names
 
 
@@ -252,6 +254,7 @@ def _parser():
 
     parser.add_argument("--tool-id-mode", choices=["tool_shed_guid", "short"], default=DEFAULT_TOOL_ID_MODE)
     parser.add_argument("--build-tracking", choices=["galaxy_history", "directory"], default=DEFAULT_BUILD_TRACKING_MODE)
+    parser.add_argument("--history-build-prefix", default=DEFAULT_HISTORY_BUILD_PREFIX)
 
     # filters
     parser.add_argument('--filter-stage', default=None)
@@ -268,7 +271,7 @@ def get_galaxy_history_names(args) -> List[str]:
 
 def get_build_tracker(args):
     if args.build_tracking == "galaxy_history":
-        build_tracker = GalaxyHistoryBuildTracker(get_galaxy_history_names(args))
+        build_tracker = GalaxyHistoryBuildTracker(get_galaxy_history_names(args), args.history_build_prefix)
     else:
         build_tracker = DirectoryBuildTracker(args.split_genomes_path)
     return build_tracker

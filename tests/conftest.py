@@ -75,8 +75,7 @@ def start_container(**kwargs):
         raise Exception("Failed to wait on Galaxy to start.")
     gi = GalaxyInstance(container_url, key=key)
     if DOCKER_IMAGE != "bgruening":
-        user_dict = gi.users.create_local_user("admin", GALAXY_ADMIN_USER, GALAXY_ADMIN_PASSWORD)
-        print(user_dict)
+        gi.users.create_local_user("admin", GALAXY_ADMIN_USER, GALAXY_ADMIN_PASSWORD)
         gi = GalaxyInstance(container_url, email=GALAXY_ADMIN_USER,password=GALAXY_ADMIN_PASSWORD)
 
     yield GalaxyContainer(

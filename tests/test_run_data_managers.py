@@ -57,7 +57,7 @@ class TestRunDataManagers(object):
                 ]
             )
         else:
-            argv.extend(["-a", GALAXY_ADMIN_KEY])
+            argv.extend(["-a", start_container.api_key])
         argv.extend(
             ["-g", container.url, "--config", "tests/run_data_managers.yaml.test"]
         )

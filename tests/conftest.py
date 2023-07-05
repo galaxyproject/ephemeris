@@ -18,7 +18,7 @@ GALAXY_ADMIN_PASSWORD = "password"
 GALAXY_ADMIN_USER = "admin@galaxy.org"
 
 GalaxyContainer = namedtuple(
-    "GalaxyContainer", ["url", "container", "attributes", "gi"]
+    "GalaxyContainer", ["url", "container", "attributes", "gi", "api_key"]
 )
 
 
@@ -75,10 +75,12 @@ def start_container(**kwargs):
         raise Exception("Failed to wait on Galaxy to start.")
     gi = GalaxyInstance(container_url, key=key)
     if DOCKER_IMAGE != "bgruening":
-        gi.users.create_local_user("admin", GALAXY_ADMIN_USER, GALAXY_ADMIN_PASSWORD)
-        gi = GalaxyInstance(container_url, email=GALAXY_ADMIN_USER,password=GALAXY_ADMIN_PASSWORD)
-
+        user_dict = gi.users.create_local_user("admin", GALAXY_ADMIN_USER, GALAXY_ADMIN_PASSWORD)
+        api_key = gi.users.get_or_create_user_apikey(user_dict["id"])
+        gi = GalaxyInstance(container_url, key=api_key)
+    else:
+        api_key = GALAXY_ADMIN_KEY
     yield GalaxyContainer(
-        url=container_url, container=container, attributes=container_attributes, gi=gi
+        url=container_url, container=container, attributes=container_attributes, gi=gi, api_key=api_key
     )
     container.remove(force=True)

@@ -17,7 +17,9 @@ from typing import (
     List,
     Optional,
 )
+import xml.etree.ElementTree as ElementTree
 
+import requests
 import yaml
 from galaxy.util import safe_makedirs
 from pydantic import (
@@ -41,6 +43,7 @@ from .ephemeris_log import (
 IsBuildComplete = Callable[[str, str], bool]
 TASK_FILE_NAME = "run_data_managers.yaml"
 DEFAULT_TOOL_ID_MODE = "tool_shed_guid"
+UCSC_DSN_URL = "http://genome.cse.ucsc.edu/cgi-bin/das/dsn"
 
 log = logging.getLogger(__name__)
 
@@ -112,6 +115,32 @@ class Genomes(BaseModel):
     genomes: List[Genome]
 
 
+def ucsc_description_for_build(requested_build: str) -> str:
+    # from galaxy/cron/parse_builds.py
+    url = UCSC_DSN_URL
+    text = requests.get(url).text
+    tree = ElementTree.fromstring(text)
+
+    for dsn in tree:
+        build = dsn.find("SOURCE").attrib["id"]
+        if build != requested_build:
+            continue
+
+        description = dsn.find("DESCRIPTION").text.replace(" - Genome at UCSC", "").replace(" Genome at UCSC", "")
+
+        fields = description.split(" ")
+        temp = fields[0]
+        for i in range(len(fields) - 1):
+            if temp == fields[i + 1]:
+                fields.pop(i + 1)
+            else:
+                temp = fields[i + 1]
+        description = " ".join(fields)
+        return description
+
+    raise Exception(f"Could not fetch UCSC description for build, a description must be provided: {requested_build}")
+
+
 def write_run_data_manager_to_file(run_data_manager: RunDataManager, path: str):
     parent, _ = os.path.split(path)
     if not os.path.exists(parent):
@@ -143,14 +172,17 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
             log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers, split_options.tool_id_mode)
             fetch_params = []
+            fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
             fetch_params.append({"dbkey_source|dbkey": genome["id"]})
+            description = genome.get("description")
             source = genome.get("source")
             if source == "ucsc":
+                if not description:
+                    description = ucsc_description_for_build(genome["id"])
                 fetch_params.append({"reference_source|reference_source_selector": "ucsc"})
                 fetch_params.append({"reference_source|requested_dbkey": genome["id"]})
-                fetch_params.append({"sequence_name": genome["description"]})
+                fetch_params.append({"sequence_name": description})
             elif re.match("^[A-Z_]+[0-9.]+", source):
-                fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
                 fetch_params.append({"reference_source|reference_source_selector": "ncbi"})
                 fetch_params.append(
                     {"reference_source|requested_identifier": source}
@@ -158,11 +190,13 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
                 fetch_params.append({"sequence_name": genome["description"]})
                 fetch_params.append({"sequence.id": genome["id"]})
             elif re.match("^http", source):
-                fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
                 fetch_params.append({"reference_source|reference_source_selector": "url"})
                 fetch_params.append({"reference_source|user_url": source})
                 fetch_params.append({"sequence_name": genome["description"]})
                 fetch_params.append({"sequence.id": genome["id"]})
+
+            if description:
+                fetch_params.append({"dbkey_source|dbkey_name": description})
 
             fetch_run_data_manager = RunDataManager(
                 id=fetch_tool_id,

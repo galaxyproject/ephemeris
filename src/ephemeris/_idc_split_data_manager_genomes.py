@@ -271,6 +271,15 @@ class GalaxyHistoryIsBuildComplete:
         return target_history_name in self._history_names
 
 
+class CVMFSPublishIsComplete:
+
+    def __init__(self, records: Dict[str, List[str]]):
+        self.records = records
+
+    def __call__(self, build_id: str, indexer_name: str) -> bool:
+        return indexer_name in self.records.get(build_id, [])
+
+
 def _parser():
     """returns the parser object."""
     # login required to check history...
@@ -278,6 +287,8 @@ def _parser():
     parser.add_argument('--merged-genomes-path', '-m', default="genomes.yml")
     parser.add_argument('--split-genomes-path', '-s', default="data_manager_tasks")
     parser.add_argument('--data-managers-path', default="data_managers.yml")
+    parser.add_argument('--complete-check-cvmfs', default=False, action="store_true")
+    parser.add_argument('--cvmfs-root', default="/cvmfs/idc.galaxyproject.org")
 
     parser.add_argument("--tool-id-mode", choices=["tool_shed_guid", "short"], default=DEFAULT_TOOL_ID_MODE)
 
@@ -294,6 +305,18 @@ def get_galaxy_history_names(args) -> List[str]:
     return [h["name"] for h in gi.histories.get_histories()]
 
 
+def get_regular_files(dirname: str) -> List[str]:
+    return [f for f in os.listdir(dirname) if not f.startswith(".")]
+
+
+def get_cvmfs_publish_records(args) -> Dict[str, List[str]]:
+    records = {}
+    records_dir = os.path.join(args.cvmfs_root, "record")
+    for build_id in get_regular_files(records_dir):
+        records[build_id] = get_regular_files(os.path.join(records_dir, build_id))
+    return records
+
+
 def main():
     disable_external_library_logging()
     parser = _parser()
@@ -304,7 +327,10 @@ def main():
     else:
         log.setLevel(logging.INFO)
 
-    is_build_complete = GalaxyHistoryIsBuildComplete(get_galaxy_history_names(args))
+    if args.complete_check_cvmfs:
+        is_build_complete = CVMFSPublishIsComplete(get_cvmfs_publish_records(args))
+    else:
+        is_build_complete = GalaxyHistoryIsBuildComplete(get_galaxy_history_names(args))
 
     split_options = SplitOptions()
     split_options.data_managers_path = args.data_managers_path

@@ -50,6 +50,8 @@ def main():
     """
     args = _parser().parse_args()
     gi = get_galaxy_connection(args)
+    if args.skip_verify:
+        gi.verify = False
     tool_client = ToolClient(gi)
 
     if args.verbose:

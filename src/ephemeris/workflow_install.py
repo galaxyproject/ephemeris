@@ -51,6 +51,9 @@ def main():
     """
     args = _parser().parse_args()
     gi = get_galaxy_connection(args)
+    
+    if args.skip_verify:
+        gi.verify = False
 
     if os.path.isdir(args.workflow_path):
         for file_path in os.listdir(args.workflow_path):

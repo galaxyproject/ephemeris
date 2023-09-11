@@ -748,6 +748,10 @@ def main():
     gi = get_galaxy_connection(
         args, file=args.tool_list_file, log=log, login_required=True
     )
+    
+    if args.skip_verify:
+        gi.verify = False
+    
     install_repository_manager = InstallRepositoryManager(gi)
 
     repos = args_to_repos(args)

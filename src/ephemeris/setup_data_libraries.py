@@ -246,7 +246,10 @@ def main():
         sys.exit(
             "Please specify either a valid Galaxy username/password or an API key."
         )
-
+    
+    if args.skip_verify:
+        gi.verify = False
+    
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 

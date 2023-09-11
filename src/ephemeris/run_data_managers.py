@@ -356,6 +356,8 @@ def main():
     else:
         log.setLevel(logging.INFO)
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
+    if args.skip_verify:
+        gi.verify = False
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
     data_managers.run(log, args.ignore_errors, args.overwrite)

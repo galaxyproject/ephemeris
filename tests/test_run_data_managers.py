@@ -3,20 +3,13 @@
 # for pytest to work.
 # pylint: disable=no-self-use,unused-import
 import sys
-import time
 
 import pytest
 import yaml
-from conftest import (
-    GALAXY_ADMIN_KEY,
-    GALAXY_ADMIN_PASSWORD,
-    GALAXY_ADMIN_USER,
-)
 
 from ephemeris import run_data_managers
 from ephemeris.run_data_managers import DataManagers
 from ephemeris.shed_tools import InstallRepositoryManager
-from ephemeris.sleep import galaxy_wait
 
 AUTH_BY = "key"
 
@@ -36,10 +29,6 @@ class TestRunDataManagers(object):
         ]
         irm = InstallRepositoryManager(container.gi)
         irm.install_repositories(data_managers)
-        # Galaxy is restarted because otherwise data tables are not watched.
-        container.container.exec_run("supervisorctl restart galaxy:")
-        time.sleep(10)  # give time for the services to go down
-        galaxy_wait(container.url)
 
     def test_run_data_managers(
         self, start_container
@@ -51,13 +40,13 @@ class TestRunDataManagers(object):
             argv.extend(
                 [
                     "--user",
-                    GALAXY_ADMIN_USER,
+                    container.username,
                     "-p",
-                    GALAXY_ADMIN_PASSWORD,
+                    container.password,
                 ]
             )
         else:
-            argv.extend(["-a", GALAXY_ADMIN_KEY])
+            argv.extend(["-a", container.api_key])
         argv.extend(
             ["-g", container.url, "--config", "tests/run_data_managers.yaml.test"]
         )

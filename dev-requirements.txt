@@ -3,7 +3,7 @@ tox
 coverage
 pytest
 pytest-cov
-docker
+galaxy-test-driver
 
 #Building Docs
 sphinx_rtd_theme

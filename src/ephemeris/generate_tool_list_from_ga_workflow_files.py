@@ -18,14 +18,6 @@ INSTALL_REPOSITORY_DEPENDENCIES = "install_repository_dependencies: True"
 INSTALL_RESOLVER_DEPENDENCIES = "install_resolver_dependencies: True"
 
 
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
-    parser = _parser()
-    return parser.parse_args()
-
-
 def _parser():
     parser = ArgumentParser(
         formatter_class=RawDescriptionHideUnderscoresHelpFormatter,
@@ -164,8 +156,8 @@ def generate_tool_list_from_workflow(
     print_yaml_tool_list(convert_dict, output_file)
 
 
-def main():
-    options = _parse_cli_options()
+def main(argv=None):
+    options = _parser().parse_args(argv)
     generate_tool_list_from_workflow(
         options.workflow_files, options.panel_label, options.output_file
     )

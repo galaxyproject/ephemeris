@@ -234,8 +234,8 @@ def _parser():
     return parser
 
 
-def main():
-    args = _parser().parse_args()
+def main(argv=None):
+    args = _parser().parse_args(argv)
     if args.user and args.password:
         gi = galaxy.GalaxyInstance(
             url=args.galaxy, email=args.user, password=args.password

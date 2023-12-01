@@ -17,9 +17,7 @@ AUTH_BY = "key"
 class TestRunDataManagers(object):
     """This class tests run-data-managers"""
 
-    def test_install_data_managers(
-        self, start_container
-    ):
+    def test_install_data_managers(self, start_container):
         """Install the data_managers on galaxy"""
         container = start_container
         data_managers = [
@@ -30,9 +28,7 @@ class TestRunDataManagers(object):
         irm = InstallRepositoryManager(container.gi)
         irm.install_repositories(data_managers)
 
-    def test_run_data_managers(
-        self, start_container
-    ):
+    def test_run_data_managers(self, start_container):
         """Tests an installation using the command line"""
         container = start_container
         argv = ["run-data-managers"]
@@ -53,9 +49,7 @@ class TestRunDataManagers(object):
         sys.argv = argv
         run_data_managers.main()
 
-    def test_run_data_managers_installation_skipped(
-        self, start_container
-    ):
+    def test_run_data_managers_installation_skipped(self, start_container):
         container = start_container
         with open("tests/run_data_managers.yaml.test") as config_file:
             configuration = yaml.safe_load(config_file)
@@ -65,9 +59,7 @@ class TestRunDataManagers(object):
         assert len(install_results.skipped_jobs) == 9
         assert len(install_results.failed_jobs) == 0
 
-    def test_run_data_managers_installation_fail(
-        self, start_container, caplog
-    ):
+    def test_run_data_managers_installation_fail(self, start_container, caplog):
         container = start_container
         configuration = dict(
             data_managers=[

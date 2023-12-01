@@ -44,11 +44,11 @@ def _install(tool_client, tool_id):
             raise
 
 
-def main():
+def main(argv=None):
     """
     This script uses bioblend to trigger dependencies installations for the provided tools
     """
-    args = _parser().parse_args()
+    args = _parser().parse_args(argv)
     gi = get_galaxy_connection(args)
     tool_client = ToolClient(gi)
 

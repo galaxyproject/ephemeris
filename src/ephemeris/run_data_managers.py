@@ -346,10 +346,10 @@ def _parser():
     return parser
 
 
-def main():
+def main(argv=None):
     disable_external_library_logging()
     parser = _parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     if args.verbose:
         log.setLevel(logging.DEBUG)

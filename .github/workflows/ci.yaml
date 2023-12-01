@@ -11,6 +11,7 @@ jobs:
         tox-action:
           - lint
           - pytest
+          - mypy
     steps:
       - uses: actions/checkout@v4
         with:

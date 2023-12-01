@@ -2,6 +2,8 @@
 
 import argparse
 
+DEFAULT_JOB_SLEEP = 3
+
 
 class HideUnderscoresHelpFormatter(argparse.HelpFormatter):
     def add_arguments(self, actions):

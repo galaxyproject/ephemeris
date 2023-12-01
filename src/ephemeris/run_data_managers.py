@@ -38,6 +38,7 @@ from . import (
     load_yaml_file,
 )
 from .common_parser import (
+    DEFAULT_JOB_SLEEP,
     get_common_args,
     HideUnderscoresHelpFormatter,
 )
@@ -94,7 +95,7 @@ def wait(gi, job_list, log):
             job_list.remove(finished_job)
         # only sleep if job_list is not empty yet.
         if bool(job_list):
-            time.sleep(30)
+            time.sleep(DEFAULT_JOB_SLEEP)
     return successful_jobs, failed_jobs
 
 

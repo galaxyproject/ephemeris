@@ -9,6 +9,7 @@ import yaml
 from bioblend import galaxy
 
 from .common_parser import (
+    DEFAULT_JOB_SLEEP,
     get_common_args,
     HideUnderscoresHelpFormatter,
 )
@@ -205,7 +206,7 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
 
             if all(job_states):
                 break
-            time.sleep(3)
+            time.sleep(DEFAULT_JOB_SLEEP)
 
         log.info("Finished importing test data.")
 

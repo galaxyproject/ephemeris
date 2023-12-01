@@ -16,7 +16,7 @@ from ephemeris.shed_tools import InstallRepositoryManager
 # The start_container fixture has the "class" scope.
 
 
-class TestMiscellaneous(object):
+class TestMiscellaneous:
     """This class is for miscellaneous tests that can use the same galaxy container"""
 
     def test_invalid_keys_in_repo_list(self, caplog, start_container):
@@ -34,10 +34,7 @@ class TestMiscellaneous(object):
             ],
             log=logging.getLogger(),
         )
-        assert (
-            "'sesame_ouvre_toi' not a valid key. Will be skipped during parsing"
-            in caplog.text
-        )
+        assert "'sesame_ouvre_toi' not a valid key. Will be skipped during parsing" in caplog.text
 
     @pytest.mark.parametrize("parallel_tests", [1, 2])
     def test_tool_tests(self, caplog, start_container, parallel_tests):

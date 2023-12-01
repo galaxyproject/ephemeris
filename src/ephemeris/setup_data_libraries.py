@@ -18,9 +18,7 @@ from .common_parser import (
 def create_legacy(gi, desc):
     destination = desc["destination"]
     if destination["type"] != "library":
-        raise Exception(
-            "Only libraries may be created with pre-18.05 Galaxies using this script."
-        )
+        raise Exception("Only libraries may be created with pre-18.05 Galaxies using this script.")
     library_name = destination.get("name")
     library_description = destination.get("description")
     library_synopsis = destination.get("synopsis")
@@ -42,9 +40,7 @@ def create_legacy(gi, desc):
         print("Library already exists! id: " + str(lib_id))
         folder_id = gi.libraries.show_library(lib_id)["root_folder_id"]
     else:
-        lib = gi.libraries.create_library(
-            library_name, library_description, library_synopsis
-        )
+        lib = gi.libraries.create_library(library_name, library_description, library_synopsis)
         lib_id = lib["id"]
         folder_id = lib["root_folder_id"]
 
@@ -64,21 +60,15 @@ def create_legacy(gi, desc):
                 if rmt_folder_list:
                     folder_id = rmt_folder_list[0]["id"]
                 else:
-                    folder = gi.libraries.create_folder(
-                        lib_id, name, description, base_folder_id=base_folder_id
-                    )
+                    folder = gi.libraries.create_folder(lib_id, name, description, base_folder_id=base_folder_id)
                     folder_id = folder[0]["id"]
             for item in has_items["items"]:
                 populate_items(folder_id, item)
         else:
             src = has_items["src"]
             if src != "url":
-                raise Exception(
-                    "For pre-18.05 Galaxies only support URLs src items are supported."
-                )
-            rmt_library_files = gi.folders.show_folder(base_folder_id, contents=True)[
-                "folder_contents"
-            ]
+                raise Exception("For pre-18.05 Galaxies only support URLs src items are supported.")
+            rmt_library_files = gi.folders.show_folder(base_folder_id, contents=True)["folder_contents"]
             file_names = []
             for item in rmt_library_files:
                 if item["type"] == "file":
@@ -163,9 +153,7 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
 
     if training:
         destination["name"] = destination.get("name", "Training Data")
-        destination["description"] = destination.get(
-            "description", "Data pulled from online archives."
-        )
+        destination["description"] = destination.get("description", "Data pulled from online archives.")
     else:
         destination["name"] = destination.get("name", "New Data Library")
         destination["description"] = destination.get("description", "")
@@ -191,17 +179,10 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
                         job_ids.append(subjob["id"])
 
         while True:
-            job_states = [
-                jc.get_state(job) in ("ok", "error", "deleted") for job in job_ids
-            ]
+            job_states = [jc.get_state(job) in ("ok", "error", "deleted") for job in job_ids]
             log.debug(
                 "Job states: %s"
-                % ",".join(
-                    [
-                        "%s=%s" % (job_id, job_state)
-                        for (job_id, job_state) in zip(job_ids, job_states)
-                    ]
-                )
+                % ",".join([f"{job_id}={job_state}" for (job_id, job_state) in zip(job_ids, job_states)])
             )
 
             if all(job_states):
@@ -217,7 +198,7 @@ def _parser():
     parser = argparse.ArgumentParser(
         parents=[parent],
         formatter_class=HideUnderscoresHelpFormatter,
-        description="Populate the Galaxy data library with data."
+        description="Populate the Galaxy data library with data.",
     )
     parser.add_argument("-i", "--infile", required=True, type=argparse.FileType("r"))
     parser.add_argument(
@@ -238,15 +219,11 @@ def _parser():
 def main(argv=None):
     args = _parser().parse_args(argv)
     if args.user and args.password:
-        gi = galaxy.GalaxyInstance(
-            url=args.galaxy, email=args.user, password=args.password
-        )
+        gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
     elif args.api_key:
         gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
     else:
-        sys.exit(
-            "Please specify either a valid Galaxy username/password or an API key."
-        )
+        sys.exit("Please specify either a valid Galaxy username/password or an API key.")
 
     if args.verbose:
         log.basicConfig(level=log.DEBUG)

@@ -31,9 +31,7 @@ def complete_repo_information(
     default_install_resolver_dependencies: bool,
     force_latest_revision,
 ) -> "InstallRepoDict":
-    tool["tool_shed_url"] = format_tool_shed_url(
-        tool.get("tool_shed_url") or default_toolshed_url
-    )
+    tool["tool_shed_url"] = format_tool_shed_url(tool.get("tool_shed_url") or default_toolshed_url)
     tool = get_changeset_revisions(tool, force_latest_revision=force_latest_revision)
     repo: "InstallRepoDict" = dict(
         name=tool["name"],
@@ -44,8 +42,7 @@ def complete_repo_information(
         or default_install_repository_dependencies,
         install_resolver_dependencies=tool.get("install_resolver_dependencies")
         or default_install_resolver_dependencies,
-        install_tool_dependencies=tool.get("install_tool_dependencies")
-        or default_install_tool_dependencies,
+        install_tool_dependencies=tool.get("install_tool_dependencies") or default_install_tool_dependencies,
     )
     # We need those values. Throw a KeyError when not present
     tool_panel_section_label = tool.get("tool_panel_section_label")
@@ -66,9 +63,7 @@ def format_tool_shed_url(tool_shed_url: str) -> str:
     return formatted_tool_shed_url
 
 
-def get_changeset_revisions(
-    repository: "InstallRepoDict", force_latest_revision: bool = False
-):
+def get_changeset_revisions(repository: "InstallRepoDict", force_latest_revision: bool = False):
     """
     Select the correct changeset revision for a repository,
     and make sure the repository exists
@@ -83,9 +78,7 @@ def get_changeset_revisions(
             repository["name"], repository["owner"]
         )
         if not installable_revisions:  #
-            raise LookupError(
-                "Repo does not exist in tool shed: {0}".format(repository)
-            )
+            raise LookupError(f"Repo does not exist in tool shed: {repository}")
         repository["changeset_revision"] = installable_revisions[-1]
 
     return repository

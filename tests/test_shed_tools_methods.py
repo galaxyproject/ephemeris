@@ -11,9 +11,7 @@ def test_flatten_repo_info():
             tool_panel_section_label="NGS: Alignment",
             revisions=["1", "2"],
         ),
-        dict(
-            name="bowtie2", owner="devteam", tool_panel_section_label="NGS: Alignment"
-        ),
+        dict(name="bowtie2", owner="devteam", tool_panel_section_label="NGS: Alignment"),
     ]
     flattened_repos = flatten_repo_info(test_repositories)
     assert flattened_repos == [
@@ -29,7 +27,5 @@ def test_flatten_repo_info():
             tool_panel_section_label="NGS: Alignment",
             changeset_revision="2",
         ),
-        dict(
-            name="bowtie2", owner="devteam", tool_panel_section_label="NGS: Alignment"
-        ),
+        dict(name="bowtie2", owner="devteam", tool_panel_section_label="NGS: Alignment"),
     ]

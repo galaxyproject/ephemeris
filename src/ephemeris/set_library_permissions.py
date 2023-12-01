@@ -43,9 +43,7 @@ def set_permissions(gi, library_id, role_ids, auto):
     )
     if auto:
         for current in range(total):
-            log.debug(
-                "Processing dataset %d of %d, ID=%s", current, total, datasets[current]
-            )
+            log.debug("Processing dataset %d of %d, ID=%s", current, total, datasets[current])
             gi.libraries.set_dataset_permissions(
                 dataset_id=datasets[current],
                 access_in=role_ids,
@@ -80,12 +78,10 @@ def _parser():
     parser = argparse.ArgumentParser(
         parents=[parent],
         formatter_class=HideUnderscoresHelpFormatter,
-        description="Populate the Galaxy data library with data."
+        description="Populate the Galaxy data library with data.",
     )
     parser.add_argument("library", help="Specify the data library ID")
-    parser.add_argument(
-        "--roles", nargs="+", help="Specify a list of comma separated role IDs"
-    )
+    parser.add_argument("--roles", nargs="+", help="Specify a list of comma separated role IDs")
     parser.add_argument(
         "-y",
         "--yes",
@@ -106,15 +102,11 @@ def _parser():
 def main(argv=None):
     args = _parser().parse_args(argv)
     if args.user and args.password:
-        gi = galaxy.GalaxyInstance(
-            url=args.galaxy, email=args.user, password=args.password
-        )
+        gi = galaxy.GalaxyInstance(url=args.galaxy, email=args.user, password=args.password)
     elif args.api_key:
         gi = galaxy.GalaxyInstance(url=args.galaxy, key=args.api_key)
     else:
-        sys.exit(
-            "Please specify either a valid Galaxy username/password or an API key."
-        )
+        sys.exit("Please specify either a valid Galaxy username/password or an API key.")
 
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
@@ -126,9 +118,7 @@ def main(argv=None):
     if args.roles and args.library:
         args.roles = [r.strip() for r in args.roles.split(",")]
     else:
-        sys.exit(
-            "Specify library ID (--library myLibraryID) and (list of) role(s) (--roles roleId1,roleId2)"
-        )
+        sys.exit("Specify library ID (--library myLibraryID) and (list of) role(s) (--roles roleId1,roleId2)")
     set_permissions(gi, library_id=args.library, role_ids=args.roles, auto=args.yes)
     log.info(
         "\nThis script uses bioblend to update ALL permissions of ALL datasets in a"

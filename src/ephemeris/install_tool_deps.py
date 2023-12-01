@@ -27,9 +27,7 @@ def _parser():
         help="Path to a tool file, tool_conf file, or yaml file containing a sequence of tool ids",
         nargs="*",
     )
-    parser.add_argument(
-        "-i", "--id", help="Space-separated list of tool ids", nargs="*"
-    )
+    parser.add_argument("-i", "--id", help="Space-separated list of tool ids", nargs="*")
 
     return parser
 
@@ -70,35 +68,24 @@ def main(argv=None):
                         os.path.abspath(os.path.dirname(tool_conf_path)),
                     )
                     if tool_path:
-                        log.info("Searching for tools relative to " + tool_path)
+                        log.info("Searching for tools relative to %s", tool_path)
                     tools = root.findall(".//tool[@file]")
                     if len(tools) == 0:
                         log.warning("No tools found in tool_conf")
                         continue
 
                     for tool in tools:
-                        tool_id = (
-                            ET.ElementTree(
-                                file=os.path.join(tool_path, tool.get("file"))
-                            )
-                            .getroot()
-                            .get("id")
-                        )
+                        tool_id = ET.ElementTree(file=os.path.join(tool_path, tool.get("file"))).getroot().get("id")
                         if tool_id:
                             log.info(
-                                "Installing tool dependencies for "
-                                + tool_id
-                                + " from: "
-                                + tool.get("file")
+                                "Installing tool dependencies for %s from: %s",
+                                tool_id,
+                                tool.get("file"),
                             )
                             _install(tool_client, tool_id)
                 elif root.tag == "tool" and root.get("id"):
                     # Install from single tool file
-                    log.info(
-                        "Tool xml found. Installing "
-                        + root.get("id")
-                        + " dependencies.."
-                    )
+                    log.info("Tool xml found. Installing %s dependencies", root.get("id"))
                     _install(tool_client, root.get("id"))
             else:
                 log.info("YAML tool list found, parsing..")
@@ -106,12 +93,12 @@ def main(argv=None):
                     tool_ids = yaml.safe_load(fh)
                 for tool_id in tool_ids:
                     # Install from yaml file
-                    log.info("Installing " + tool_id + " dependencies..")
+                    log.info("Installing %s dependencies..", tool_id)
                     _install(tool_client, tool_id)
 
     if args.id:
         for tool_id in args.id:  # type: str
-            log.info("Installing " + tool_id + " dependencies..")
+            log.info("Installing %s dependencies..", tool_id)
             _install(tool_client, tool_id.strip())
 
 

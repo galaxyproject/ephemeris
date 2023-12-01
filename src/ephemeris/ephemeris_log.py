@@ -59,5 +59,5 @@ def setup_global_logger(name, log_file=None):
         log_file = temp.name
     file_handler = logging.FileHandler(log_file)
     logger.addHandler(file_handler)
-    logger.info("Storing log file in: {0}".format(log_file))
+    logger.info(f"Storing log file in: {log_file}")
     return logger

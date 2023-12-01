@@ -136,9 +136,7 @@ class InstallRepositoryManager:
             get_all_tools=True,
         ).tool_list.get("tools")
 
-    def filter_installed_repos(
-        self, repos: Iterable[InstallRepoDict], check_revision: bool = True
-    ) -> FilterResults:
+    def filter_installed_repos(self, repos: Iterable[InstallRepoDict], check_revision: bool = True) -> FilterResults:
         """This filters a list of repositories"""
         not_installed_repos: List[InstallRepoDict] = []
         already_installed_repos: List[InstallRepoDict] = []
@@ -185,11 +183,7 @@ class InstallRepositoryManager:
             for key in repo.keys():
                 if key not in VALID_KEYS and key != "revisions":
                     if log:
-                        log.warning(
-                            "'{0}' not a valid key. Will be skipped during parsing".format(
-                                key
-                            )
-                        )
+                        log.warning(f"'{key}' not a valid key. Will be skipped during parsing")
 
         # Start by flattening the repo list per revision
         flattened_repos = flatten_repo_info(repositories)
@@ -221,9 +215,7 @@ class InstallRepositoryManager:
         for skipped_repo in filtered_repos.already_installed_repos:
             counter += 1
             if log:
-                log_repository_install_skip(
-                    skipped_repo, counter, total_num_repositories, log
-                )
+                log_repository_install_skip(skipped_repo, counter, total_num_repositories, log)
             skipped_repositories.append(skipped_repo)
 
         # Install repos
@@ -248,36 +240,25 @@ class InstallRepositoryManager:
         # Log results
         if log:
             log.info(
-                "Installed repositories ({0}): {1}".format(
+                "Installed repositories ({}): {}".format(
                     len(installed_repositories),
-                    [
-                        (t["name"], t.get("changeset_revision"))
-                        for t in installed_repositories
-                    ],
+                    [(t["name"], t.get("changeset_revision")) for t in installed_repositories],
                 )
             )
             log.info(
-                "Skipped repositories ({0}): {1}".format(
+                "Skipped repositories ({}): {}".format(
                     len(skipped_repositories),
-                    [
-                        (t["name"], t.get("changeset_revision"))
-                        for t in skipped_repositories
-                    ],
+                    [(t["name"], t.get("changeset_revision")) for t in skipped_repositories],
                 )
             )
             log.info(
-                "Errored repositories ({0}): {1}".format(
+                "Errored repositories ({}): {}".format(
                     len(errored_repositories),
-                    [
-                        (t["name"], t.get("changeset_revision", ""))
-                        for t in errored_repositories
-                    ],
+                    [(t["name"], t.get("changeset_revision", "")) for t in errored_repositories],
                 )
             )
             log.info("All repositories have been installed.")
-            log.info(
-                "Total run time: {0}".format(dt.datetime.now() - installation_start)
-            )
+            log.info(f"Total run time: {dt.datetime.now() - installation_start}")
         return InstallResults(
             installed_repositories=installed_repositories,
             skipped_repositories=skipped_repositories,
@@ -288,20 +269,16 @@ class InstallRepositoryManager:
         if not repositories:  # Repositories None or empty list
             repositories = self.installed_repositories()
         else:
-            filtered_repos = self.filter_installed_repos(
-                repositories, check_revision=False
-            )
+            filtered_repos = self.filter_installed_repos(repositories, check_revision=False)
             if filtered_repos.not_installed_repos:
                 if log:
                     log.warning(
-                        "The following tools are not installed and will not be upgraded: {0}".format(
+                        "The following tools are not installed and will not be upgraded: {}".format(
                             filtered_repos.not_installed_repos
                         )
                     )
             repositories = filtered_repos.already_installed_repos
-        return self.install_repositories(
-            repositories, force_latest_revision=True, log=log, **kwargs
-        )
+        return self.install_repositories(repositories, force_latest_revision=True, log=log, **kwargs)
 
     def test_tools(
         self,
@@ -329,26 +306,20 @@ class InstallRepositoryManager:
 
         installed_tools = []
         for target_repository in target_repositories:
-            repo_tools = tools_for_repository(
-                self.gi, target_repository, all_tools=test_all_versions
-            )
+            repo_tools = tools_for_repository(self.gi, target_repository, all_tools=test_all_versions)
             installed_tools.extend(repo_tools)
 
         all_test_results = []
         galaxy_interactor = self._get_interactor(test_user, test_user_api_key)
         if client_test_config_path is not None:
-            with open(client_test_config_path, "r") as f:
+            with open(client_test_config_path) as f:
                 client_test_config_dict = yaml.full_load(f)
-            client_test_config = DictClientTestConfig(
-                client_test_config_dict.get("tools")
-            )
+            client_test_config = DictClientTestConfig(client_test_config_dict.get("tools"))
         else:
             client_test_config = None
 
         if test_history_name:
-            for history in self.gi.histories.get_histories(
-                name=test_history_name, deleted=False
-            ):
+            for history in self.gi.histories.get_histories(name=test_history_name, deleted=False):
                 test_history = history["id"]
                 log.debug(
                     "Using existing history with id '%s', last updated: %s",
@@ -357,9 +328,7 @@ class InstallRepositoryManager:
                 )
                 break
             else:
-                test_history = galaxy_interactor.new_history(
-                    history_name=test_history_name
-                )
+                test_history = galaxy_interactor.new_history(history_name=test_history_name)
         else:
             test_history = galaxy_interactor.new_history()
 
@@ -401,21 +370,9 @@ class InstallRepositoryManager:
                     json.dump(report_obj, f)
                 if log:
                     log.info("Report written to '%s'", os.path.abspath(test_json))
-                    log.info(
-                        "Passed tool tests ({0}): {1}".format(
-                            n_passed, [t for t in tests_passed]
-                        )
-                    )
-                    log.info(
-                        "Failed tool tests ({0}): {1}".format(
-                            n_failed, [t[0] for t in test_exceptions]
-                        )
-                    )
-                    log.info(
-                        "Total tool test time: {0}".format(
-                            dt.datetime.now() - tool_test_start
-                        )
-                    )
+                    log.info(f"Passed tool tests ({n_passed}): {[t for t in tests_passed]}")
+                    log.info(f"Failed tool tests ({n_failed}): {[t[0] for t in test_exceptions]}")
+                    log.info(f"Total tool test time: {dt.datetime.now() - tool_test_start}")
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -458,9 +415,7 @@ class InstallRepositoryManager:
         if tool_version:
             label_base += "/" + str(tool_version)
         try:
-            tool_test_dicts = galaxy_interactor.get_tool_tests(
-                tool_id, tool_version=tool_version
-            )
+            tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
         except Exception as e:
             if log:
                 log.warning(
@@ -469,9 +424,7 @@ class InstallRepositoryManager:
                     exc_info=True,
                 )
             test_exceptions.append((label_base, e))
-            Results = namedtuple(
-                "Results", ["tool_test_results", "tests_passed", "test_exceptions"]
-            )
+            Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
             return Results(
                 tool_test_results=tool_test_results,
                 tests_passed=tests_passed,
@@ -516,10 +469,7 @@ class InstallRepositoryManager:
             executor.submit(run_test, test_index, test_id)
 
     def install_repository_revision(self, repository: InstallRepoDict, log):
-        default_err_msg = (
-            "All repositories that you are attempting to install "
-            "have been previously installed."
-        )
+        default_err_msg = "All repositories that you are attempting to install " "have been previously installed."
         start = dt.datetime.now()
         try:
             response = self.tool_shed_client.install_repository_revision(
@@ -541,23 +491,18 @@ class InstallRepositoryManager:
                 #  installed, possibly because the selected repository has
                 #  already been installed.'}
                 if log:
-                    log.debug(
-                        "\tRepository {0} is already installed.".format(
-                            repository["name"]
-                        )
-                    )
+                    log.debug("\tRepository {} is already installed.".format(repository["name"]))
             if log:
-                log_repository_install_success(
-                    repository=repository, start=start, log=log
-                )
+                log_repository_install_success(repository=repository, start=start, log=log)
             return "installed"
         except (ConnectionError, requests.exceptions.ConnectionError) as e:
             if default_err_msg in unicodify(e):
                 # THIS SHOULD NOT HAPPEN DUE TO THE CHECKS EARLIER
                 if log:
                     log.debug(
-                        "\tRepository %s already installed (at revision %s)"
-                        % (repository["name"], repository["changeset_revision"])
+                        "\tRepository {} already installed (at revision {})".format(
+                            repository["name"], repository["changeset_revision"]
+                        )
                     )
                 return "skipped"
             elif "504" in unicodify(e) or "Connection aborted" in unicodify(e):
@@ -566,25 +511,27 @@ class InstallRepositoryManager:
                         "Timeout during install of %s, extending wait to 1h",
                         repository["name"],
                     )
-                success = self.wait_for_install(
-                    repository=repository, log=log, timeout=3600
-                )
+                success = self.wait_for_install(repository=repository, log=log, timeout=3600)
                 if success:
                     if log:
-                        log_repository_install_success(
-                            repository=repository, start=start, log=log
-                        )
+                        log_repository_install_success(repository=repository, start=start, log=log)
                     return "installed"
                 else:
                     if log:
                         log_repository_install_error(
-                            repository=repository, start=start, msg=getattr(e, "body", unicodify(e)), log=log
+                            repository=repository,
+                            start=start,
+                            msg=getattr(e, "body", unicodify(e)),
+                            log=log,
                         )
                     return "error"
             else:
                 if log:
                     log_repository_install_error(
-                        repository=repository, start=start, msg=getattr(e, "body", unicodify(e)), log=log
+                        repository=repository,
+                        start=start,
+                        msg=getattr(e, "body", unicodify(e)),
+                        log=log,
                     )
                 return "error"
 
@@ -601,15 +548,8 @@ class InstallRepositoryManager:
         owner = repository["owner"]
         changeset_revision = repository["changeset_revision"]
         installed_repos = self.tool_shed_client.get_repositories()
-        filtered_repos = [
-            r for r in installed_repos if r["name"] == name and r["owner"] == owner
-        ]
-        assert (
-            filtered_repos
-        ), "Repository '%s' from owner '%s' not in list of repositories." % (
-            name,
-            owner,
-        )
+        filtered_repos = [r for r in installed_repos if r["name"] == name and r["owner"] == owner]
+        assert filtered_repos, f"Repository '{name}' from owner '{owner}' not in list of repositories."
         # Check if exact repository revision in filtered_repos
         installing_repo_id = None
         for repo in filtered_repos:
@@ -618,11 +558,7 @@ class InstallRepositoryManager:
                 break
         else:
             # Galaxy may have decided to install a newer repository revision. We now try to guess which repository that is.
-            non_terminal = [
-                r
-                for r in filtered_repos
-                if r["status"] in NON_TERMINAL_REPOSITORY_STATES
-            ]
+            non_terminal = [r for r in filtered_repos if r["status"] in NON_TERMINAL_REPOSITORY_STATES]
             if len(non_terminal) == 1:
                 # Unambiguous, we wait for this repo
                 installing_repo_id = non_terminal[0]["id"]
@@ -633,15 +569,11 @@ class InstallRepositoryManager:
                 # Raise an exception and continue with the remaining repos.
                 msg = "Could not track repository for name '%s', owner '%s', revision '%s'. "
                 msg += "Please uninstall all non-terminal repositories and ensure revision '%s' is installable."
-                raise AssertionError(
-                    msg % (name, owner, changeset_revision, changeset_revision)
-                )
+                raise AssertionError(msg % (name, owner, changeset_revision, changeset_revision))
         start = dt.datetime.now()
         while (dt.datetime.now() - start) < dt.timedelta(seconds=timeout):
             try:
-                installed_repo = self.tool_shed_client.show_repository(
-                    installing_repo_id
-                )
+                installed_repo = self.tool_shed_client.show_repository(installing_repo_id)
                 status = installed_repo["status"]
                 if status == "Installed":
                     return True
@@ -650,10 +582,7 @@ class InstallRepositoryManager:
                 elif status in NON_TERMINAL_REPOSITORY_STATES:
                     time.sleep(10)
                 else:
-                    raise AssertionError(
-                        "Repository name '%s', owner '%s' in unknown status '%s'"
-                        % (name, owner, status)
-                    )
+                    raise AssertionError(f"Repository name '{name}', owner '{owner}' in unknown status '{status}'")
             except ConnectionError as e:
                 if log:
                     log.warning("Failed to get repositories list: %s", unicodify(e))
@@ -667,9 +596,7 @@ def log_repository_install_error(repository, start, msg, log):
     """
     end = dt.datetime.now()
     log.error(
-        "\t* Error installing a repository (after %s seconds)! Name: %s,"
-        "owner: %s, "
-        "revision: %s, error: %s",
+        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, " "revision: %s, error: %s",
         str(end - start),
         repository.get("name", ""),
         repository.get("owner", ""),
@@ -685,14 +612,15 @@ def log_repository_install_success(repository, start, log):
     """
     end = dt.datetime.now()
     log.debug(
-        "\trepository %s installed successfully (in %s) at revision %s"
-        % (repository["name"], str(end - start), repository["changeset_revision"])
+        "\trepository {} installed successfully (in {}) at revision {}".format(
+            repository["name"], str(end - start), repository["changeset_revision"]
+        )
     )
 
 
 def log_repository_install_skip(repository, counter, total_num_repositories, log):
     log.debug(
-        "({0}/{1}) repository {2} already installed at revision {3}. Skipping.".format(
+        "({}/{}) repository {} already installed at revision {}. Skipping.".format(
             counter,
             total_num_repositories,
             repository["name"],
@@ -702,17 +630,19 @@ def log_repository_install_skip(repository, counter, total_num_repositories, log
 
 
 def log_repository_install_start(
-    repository: InstallRepoDict, counter, total_num_repositories, installation_start, log
+    repository: InstallRepoDict,
+    counter,
+    total_num_repositories,
+    installation_start,
+    log,
 ):
     log.debug(
-        '(%s/%s) Installing repository %s from %s to section "%s" at revision %s (TRT: %s)'
-        % (
+        '({}/{}) Installing repository {} from {} to section "{}" at revision {} (TRT: {})'.format(
             counter,
             total_num_repositories,
             repository["name"],
             repository["owner"],
-            repository.get("tool_panel_section_id")
-            or repository.get("tool_panel_section_label"),
+            repository.get("tool_panel_section_id") or repository.get("tool_panel_section_label"),
             repository.get("changeset_revision"),
             dt.datetime.now() - installation_start,
         )
@@ -745,9 +675,7 @@ def main(argv=None):
     disable_external_library_logging()
     args = parser().parse_args(argv)
     log = setup_global_logger(name=__name__, log_file=args.log_file)
-    gi = get_galaxy_connection(
-        args, file=args.tool_list_file, log=log, login_required=True
-    )
+    gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_repository_manager = InstallRepositoryManager(gi)
 
     repos = args_to_repos(args)
@@ -761,13 +689,9 @@ def main(argv=None):
     kwargs = dict(
         default_install_tool_dependencies=tool_list.get("install_tool_dependencies")
         or getattr(args, "install_tool_dependencies", False),
-        default_install_repository_dependencies=tool_list.get(
-            "install_repository_dependencies"
-        )
+        default_install_repository_dependencies=tool_list.get("install_repository_dependencies")
         or getattr(args, "install_repository_dependencies", False),
-        default_install_resolver_dependencies=tool_list.get(
-            "install_resolver_dependencies"
-        )
+        default_install_resolver_dependencies=tool_list.get("install_resolver_dependencies")
         or getattr(args, "install_resolver_dependencies", False),
     )
 
@@ -775,9 +699,7 @@ def main(argv=None):
     # Or do testing if the action is `test`
     install_results = None
     if args.action == "update":
-        install_results = install_repository_manager.update_repositories(
-            repositories=repos, log=log, **kwargs
-        )
+        install_results = install_repository_manager.update_repositories(repositories=repos, log=log, **kwargs)
     elif args.action == "install":
         install_results = install_repository_manager.install_repositories(
             repos, log=log, force_latest_revision=args.force_latest_revision, **kwargs
@@ -795,9 +717,7 @@ def main(argv=None):
             client_test_config_path=args.client_test_config,
         )
     else:
-        raise NotImplementedError(
-            "This point in the code should not be reached. Please contact the developers."
-        )
+        raise NotImplementedError("This point in the code should not be reached. Please contact the developers.")
 
     # Run tests on the install results if required.
     if install_results and args.test or args.test_existing:

@@ -81,11 +81,7 @@ def wait(gi, job_list, log):
                         job_hid=job_hid, **job_details
                     )
                 )
-                log.debug(
-                    "Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(
-                        job_hid=job_hid, **job_details
-                    )
-                )
+                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(job_hid=job_hid, **job_details))
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
@@ -197,9 +193,7 @@ class DataManagers:
         try:
             column_index = data_table_content.get("columns").index(column)
         except IndexError:
-            raise IndexError(
-                'Column "%s" does not exist in %s' % (column, data_table_name)
-            )
+            raise IndexError(f'Column "{column}" does not exist in {data_table_name}')
 
         for field in data_table_content.get("fields"):
             if field[column_index] == entry:
@@ -220,14 +214,10 @@ class DataManagers:
         # Return False as soon as entry is not present
         for data_table in data_tables:
             if value_entry:
-                if not self.data_table_entry_exists(
-                    data_table, value_entry, column="value"
-                ):
+                if not self.data_table_entry_exists(data_table, value_entry, column="value"):
                     return False
             if name_entry:
-                if not self.data_table_entry_exists(
-                    data_table, name_entry, column="name"
-                ):
+                if not self.data_table_entry_exists(data_table, name_entry, column="name"):
                     return False
         # If all checks are passed the entries are present in the database tables.
         return True
@@ -266,15 +256,13 @@ class DataManagers:
             for skipped_job in skipped_jobs:
                 if overwrite:
                     log.info(
-                        "%s already run for %s. Entry will be overwritten."
-                        % (skipped_job["tool_id"], skipped_job["inputs"])
+                        "{} already run for {}. Entry will be overwritten.".format(
+                            skipped_job["tool_id"], skipped_job["inputs"]
+                        )
                     )
                     jobs.append(skipped_job)
                 else:
-                    log.info(
-                        "%s already run for %s. Skipping."
-                        % (skipped_job["tool_id"], skipped_job["inputs"])
-                    )
+                    log.info("{} already run for {}. Skipping.".format(skipped_job["tool_id"], skipped_job["inputs"]))
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.tool_client.run_tool(
@@ -296,10 +284,7 @@ class DataManagers:
             all_succesful_jobs.extend(successful_jobs)
             all_failed_jobs.extend(failed_jobs)
 
-        log.info(
-            "Running data managers that populate the following source data tables: %s"
-            % self.source_tables
-        )
+        log.info("Running data managers that populate the following source data tables: %s" % self.source_tables)
         run_jobs(self.fetch_jobs, self.skipped_fetch_jobs)
         log.info("Running data managers that index sequences.")
         run_jobs(self.index_jobs, self.skipped_index_jobs)
@@ -308,9 +293,7 @@ class DataManagers:
         log.info("Successful jobs: %i " % len(all_succesful_jobs))
         log.info("Skipped jobs: %i " % len(all_skipped_jobs))
         log.info("Failed jobs: %i " % len(all_failed_jobs))
-        InstallResults = namedtuple(
-            "InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"]
-        )
+        InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
         return InstallResults(
             successful_jobs=all_succesful_jobs,
             failed_jobs=all_failed_jobs,

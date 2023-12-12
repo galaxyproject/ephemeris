@@ -16,11 +16,9 @@ def import_workflow(gi, path, publish_wf=False):
     Given a connection to a Galaxy Instance (gi) and a path to a Galaxy workflow file,
     this function will import the worklfow into Galaxy.
     """
-    with open(path, "r") as wf_file:
+    with open(path) as wf_file:
         import_uuid = json.load(wf_file).get("uuid")
-    existing_uuids = [
-        d.get("latest_workflow_uuid") for d in gi.workflows.get_workflows()
-    ]
+    existing_uuids = [d.get("latest_workflow_uuid") for d in gi.workflows.get_workflows()]
     if import_uuid not in existing_uuids:
         gi.workflows.import_workflow_from_local_path(path, publish=publish_wf)
 

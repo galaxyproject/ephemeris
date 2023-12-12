@@ -1,5 +1,4 @@
 # Default tests run with make test and make quick-tests
-NOSE_TESTS?=tests ephemeris
 # Default environment for make tox
 ENV?=py37
 # Extra arguments supplied to tox command
@@ -72,17 +71,17 @@ setup-git-hook-lint:
 setup-git-hook-lint-and-test:
 	cp $(BUILD_SCRIPTS_DIR)/pre-commit-lint-and-test .git/hooks/pre-commit
 
-flake8:
-	$(IN_VENV) flake8 --max-complexity 15 $(SOURCE_DIR)  $(TEST_DIR)
+format:
+	$(IN_VENV) isort $(SOURCE_DIR) $(TEST_DIR) && black $(SOURCE_DIR) $(TEST_DIR) && ruff --fix $(SOURCE_DIR) $(TEST_DIR)
 
 lint:
-	$(IN_VENV) tox -e py27-lint && tox -e py34-lint
+	$(IN_VENV) tox -e py38-lint
 
 lint-readme:
 	$(IN_VENV) python setup.py check -r -s
 
 test:
-	$(IN_VENV) nosetests $(NOSE_TESTS)
+	$(IN_VENV) pytest $(TEST_DIR)
 
 tox:
 	$(IN_VENV) tox -e $(ENV) -- $(ARGS)

@@ -41,9 +41,7 @@ def tools_for_repository(gi, repository, all_tools=False):
         if tsr["name"] != name or tsr["owner"] != owner:
             return
 
-        if tool_shed_url and format_tool_shed_url(
-            tsr["tool_shed"]
-        ) != format_tool_shed_url(tool_shed_url):
+        if tool_shed_url and format_tool_shed_url(tsr["tool_shed"]) != format_tool_shed_url(tool_shed_url):
             return
 
         if changeset_revision and changeset_revision != tsr["changeset_revision"]:
@@ -135,15 +133,9 @@ class GiToToolYaml:
                     tool_panel_section_id = None
                     tool_panel_section_label = None
                     for repo_with_panel in tools_with_panel:
-                        if the_same_repository(
-                            repo_with_panel, repo, check_revision=False
-                        ):
-                            tool_panel_section_id = repo_with_panel.get(
-                                "tool_panel_section_id"
-                            )
-                            tool_panel_section_label = repo_with_panel.get(
-                                "tool_panel_section_label"
-                            )
+                        if the_same_repository(repo_with_panel, repo, check_revision=False):
+                            tool_panel_section_id = repo_with_panel.get("tool_panel_section_id")
+                            tool_panel_section_label = repo_with_panel.get("tool_panel_section_label")
                             break
                     repositories.append(
                         dict(
@@ -189,17 +181,11 @@ def the_same_repository(repo_1_info, repo_2_info, check_revision=True):
     (either `tool_shed` or `tool_shed_url`).
     """
     # Sort from most unique to least unique for fast comparison.
-    if not check_revision or repo_1_info.get("changeset_revision") == repo_2_info.get(
-        "changeset_revision"
-    ):
+    if not check_revision or repo_1_info.get("changeset_revision") == repo_2_info.get("changeset_revision"):
         if repo_1_info.get("name") == repo_2_info.get("name"):
             if repo_1_info.get("owner") == repo_2_info.get("owner"):
-                t1ts = repo_1_info.get(
-                    "tool_shed", repo_1_info.get("tool_shed_url", None)
-                )
-                t2ts = repo_2_info.get(
-                    "tool_shed", repo_2_info.get("tool_shed_url", None)
-                )
+                t1ts = repo_1_info.get("tool_shed", repo_1_info.get("tool_shed_url", None))
+                t2ts = repo_2_info.get("tool_shed", repo_2_info.get("tool_shed_url", None))
                 if t1ts in t2ts or t2ts in t1ts:
                     return True
     return False
@@ -244,9 +230,7 @@ def merge_repository_changeset_revisions(repository_list):
 def _parser():
     """Creates the parser object."""
     parent = get_common_args(login_required=True)
-    parser = ArgumentParser(
-        parents=[parent], formatter_class=ArgumentDefaultsHideUnderscoresHelpFormatter
-    )
+    parser = ArgumentParser(parents=[parent], formatter_class=ArgumentDefaultsHideUnderscoresHelpFormatter)
     parser.add_argument(
         "-o",
         "--output-file",
@@ -286,8 +270,7 @@ def _parser():
         "--get-all-tools",
         "--get_all_tools",
         action="store_true",
-        help="Get all tools and revisions, not just those which are present on the web ui."
-        "Requires login details.",
+        help="Get all tools and revisions, not just those which are present on the web ui." "Requires login details.",
     )
     return parser
 

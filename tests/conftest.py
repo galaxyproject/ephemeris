@@ -5,9 +5,7 @@ from bioblend.galaxy import GalaxyInstance
 from galaxy.tool_util.verify.interactor import GalaxyInteractorApi
 from galaxy_test.driver.driver_util import GalaxyTestDriver
 
-GalaxyContainer = namedtuple(
-    "GalaxyContainer", ["url", "gi", "password", "username", "api_key"]
-)
+GalaxyContainer = namedtuple("GalaxyContainer", ["url", "gi", "password", "username", "api_key"])
 
 
 @pytest.fixture(scope="class")
@@ -42,9 +40,7 @@ def start_container(tmpdir_factory):
     port = server_wrapper.port
     prefix = server_wrapper.prefix or ""
     url = f"http://{host}:{port}{prefix.rstrip('/')}/"
-    interactor = GalaxyInteractorApi(
-        galaxy_url=url, master_api_key="123456789", test_user="test@bx.psu.edu"
-    )
+    interactor = GalaxyInteractorApi(galaxy_url=url, master_api_key="123456789", test_user="test@bx.psu.edu")
     gi = GalaxyInstance(url, key=interactor.api_key, password="testpass")
     try:
         yield GalaxyContainer(

@@ -5,9 +5,7 @@ from conftest import GalaxyContainer
 from ephemeris.setup_data_libraries import main as setup_data_libraries_cli
 
 LIBRARY_DATA_EXAMPLE = pathlib.Path(__file__).parent / "library_data_example.yaml"
-LIBRARY_DATA_LEGACY_EXAMPLE = (
-    pathlib.Path(__file__).parent / "library_data_example_legacy.yaml"
-)
+LIBRARY_DATA_LEGACY_EXAMPLE = pathlib.Path(__file__).parent / "library_data_example_legacy.yaml"
 
 
 def test_setup_data_libraries_with_username_and_password(

@@ -31,9 +31,7 @@ def install_old_cdhit(start_container: GalaxyContainer):
 
 def get_tool_list(start_container: GalaxyContainer, *extra_args):
     with tempfile.NamedTemporaryFile(mode="r") as tool_list_file:
-        get_tool_list_cli(
-            ["-g", start_container.url, "-o", tool_list_file.name, *extra_args]
-        )
+        get_tool_list_cli(["-g", start_container.url, "-o", tool_list_file.name, *extra_args])
         return tool_list_file.read()
 
 

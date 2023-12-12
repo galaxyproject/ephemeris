@@ -15,6 +15,9 @@ CommonMark
 pyflakes
 flake8
 flake8-import-order
+isort
+black
+ruff
 
 # For release
 wheel

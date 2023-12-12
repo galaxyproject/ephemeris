@@ -42,8 +42,7 @@ def parser():
     # SUBPARSERS
     install_command_parser = subparsers.add_parser(
         "install",
-        help="This installs tools in Galaxy from the Tool Shed."
-        "Use shed-tools install --help for more information",
+        help="This installs tools in Galaxy from the Tool Shed." "Use shed-tools install --help for more information",
         formatter_class=HideUnderscoresHelpFormatter,
         parents=[common_arguments],
     )
@@ -57,8 +56,7 @@ def parser():
 
     test_command_parser = subparsers.add_parser(
         "test",
-        help="This tests the supplied list of tools in Galaxy. "
-        "Use shed-tools test --help for more information",
+        help="This tests the supplied list of tools in Galaxy. " "Use shed-tools test --help for more information",
         formatter_class=HideUnderscoresHelpFormatter,
         parents=[common_arguments],
     )
@@ -91,13 +89,11 @@ def parser():
         )
         command_parser.add_argument(
             "--name",
-            help="The name of the tool to install (only applicable "
-            "if the tools file is not provided).",
+            help="The name of the tool to install (only applicable " "if the tools file is not provided).",
         )
         command_parser.add_argument(
             "--owner",
-            help="The owner of the tool to install (only applicable "
-            "if the tools file is not provided).",
+            help="The owner of the tool to install (only applicable " "if the tools file is not provided).",
         )
         command_parser.add_argument(
             "--revisions",
@@ -295,8 +291,7 @@ def parser():
         "--client-test-config",
         "--client_test_config",
         dest="client_test_config",
-        help="Annotate expectations about tools in client testing YAML "
-        "configuration file.",
+        help="Annotate expectations about tools in client testing YAML " "configuration file.",
     )
 
     return shed_parser

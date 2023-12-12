@@ -14,7 +14,7 @@ from ephemeris.shed_tools import InstallRepositoryManager
 AUTH_BY = "key"
 
 
-class TestRunDataManagers(object):
+class TestRunDataManagers:
     """This class tests run-data-managers"""
 
     def test_install_data_managers(self, start_container):
@@ -43,9 +43,7 @@ class TestRunDataManagers(object):
             )
         else:
             argv.extend(["-a", container.api_key])
-        argv.extend(
-            ["-g", container.url, "--config", "tests/run_data_managers.yaml.test"]
-        )
+        argv.extend(["-g", container.url, "--config", "tests/run_data_managers.yaml.test"])
         sys.argv = argv
         run_data_managers.main()
 

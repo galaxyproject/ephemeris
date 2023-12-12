@@ -49,24 +49,19 @@ def _parser():
         "--panel_label",
         dest="panel_label",
         default="Tools from workflows",
-        help="The name of the panel where the tools will show up in Galaxy."
-        'If not specified: "Tools from workflows"',
+        help="The name of the panel where the tools will show up in Galaxy." 'If not specified: "Tools from workflows"',
     )
     return parser
 
 
 def get_workflow_dictionary(json_file):
-    with open(json_file, "r") as File:
+    with open(json_file) as File:
         mydict = json.load(File)
     return mydict
 
 
-def translate_workflow_dictionary_to_tool_list(
-    workflow_dictionary, panel_label: str
-) -> List[InstallRepoDict]:
-    starting_tool_list = extract_tool_shed_repositories_from_workflow_dict(
-        workflow_dictionary
-    )
+def translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label: str) -> List[InstallRepoDict]:
+    starting_tool_list = extract_tool_shed_repositories_from_workflow_dict(workflow_dictionary)
     tool_list: List[InstallRepoDict] = []
     for tool in starting_tool_list:
         sub_dic: InstallRepoDict = {
@@ -85,9 +80,7 @@ def extract_tool_shed_repositories_from_workflow_dict(workflow_dictionary):
     for step in workflow_dictionary["steps"].values():
         subworkflow = step.get("subworkflow")
         if subworkflow:
-            tool_list.extend(
-                extract_tool_shed_repositories_from_workflow_dict(subworkflow)
-            )
+            tool_list.extend(extract_tool_shed_repositories_from_workflow_dict(subworkflow))
         tsr = step.get("tool_shed_repository")
         if tsr:
             tool_list.append(tsr)
@@ -119,8 +112,7 @@ def reduce_tool_list(tool_list: List[InstallRepoDict]) -> List[InstallRepoDict]:
             if (
                 tool["name"] == current_tool["name"]
                 and tool["owner"] == current_tool["owner"]
-                and tool["tool_panel_section_label"]
-                == current_tool["tool_panel_section_label"]
+                and tool["tool_panel_section_label"] == current_tool["tool_panel_section_label"]
                 and tool["tool_shed_url"] == current_tool["tool_shed_url"]
             ):
                 current_tool["revisions"].extend(tool["revisions"])
@@ -129,38 +121,26 @@ def reduce_tool_list(tool_list: List[InstallRepoDict]) -> List[InstallRepoDict]:
     return tool_list
 
 
-def generate_repo_list_from_workflow(
-    workflow_files: Iterable[str], panel_label: str
-) -> List[InstallRepoDict]:
+def generate_repo_list_from_workflow(workflow_files: Iterable[str], panel_label: str) -> List[InstallRepoDict]:
     intermediate_tool_list: List[InstallRepoDict] = []
     for workflow in workflow_files:
         workflow_dictionary = get_workflow_dictionary(workflow)
-        intermediate_tool_list += translate_workflow_dictionary_to_tool_list(
-            workflow_dictionary, panel_label
-        )
+        intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)
     return reduce_tool_list(intermediate_tool_list)
 
 
-def generate_tool_list_from_workflow(
-    workflow_files: Iterable[str], panel_label: str, output_file: str
-):
+def generate_tool_list_from_workflow(workflow_files: Iterable[str], panel_label: str, output_file: str):
     """
     :rtype: object
     """
 
-    convert_dict = {
-        "tools": generate_repo_list_from_workflow(
-            workflow_files=workflow_files, panel_label=panel_label
-        )
-    }
+    convert_dict = {"tools": generate_repo_list_from_workflow(workflow_files=workflow_files, panel_label=panel_label)}
     print_yaml_tool_list(convert_dict, output_file)
 
 
 def main(argv=None):
     options = _parser().parse_args(argv)
-    generate_tool_list_from_workflow(
-        options.workflow_files, options.panel_label, options.output_file
-    )
+    generate_tool_list_from_workflow(options.workflow_files, options.panel_label, options.output_file)
 
 
 if __name__ == "__main__":

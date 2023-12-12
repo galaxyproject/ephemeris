@@ -38,6 +38,7 @@ from . import (
     load_yaml_file,
 )
 from .common_parser import (
+    DEFAULT_JOB_SLEEP,
     get_common_args,
     HideUnderscoresHelpFormatter,
 )
@@ -94,7 +95,7 @@ def wait(gi, job_list, log):
             job_list.remove(finished_job)
         # only sleep if job_list is not empty yet.
         if bool(job_list):
-            time.sleep(30)
+            time.sleep(DEFAULT_JOB_SLEEP)
     return successful_jobs, failed_jobs
 
 
@@ -346,10 +347,10 @@ def _parser():
     return parser
 
 
-def main():
+def main(argv=None):
     disable_external_library_logging()
     parser = _parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     if args.verbose:
         log.setLevel(logging.DEBUG)

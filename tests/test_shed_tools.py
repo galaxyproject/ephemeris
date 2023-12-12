@@ -19,9 +19,7 @@ from ephemeris.shed_tools import InstallRepositoryManager
 class TestMiscellaneous(object):
     """This class is for miscellaneous tests that can use the same galaxy container"""
 
-    def test_invalid_keys_in_repo_list(
-        self, caplog, start_container
-    ):
+    def test_invalid_keys_in_repo_list(self, caplog, start_container):
         container = start_container
         irm = InstallRepositoryManager(container.gi)
         caplog.set_level(logging.WARNING)

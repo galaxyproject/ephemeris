@@ -45,11 +45,11 @@ def _parser():
     return parser
 
 
-def main():
+def main(argv=None):
     """
     This script uses bioblend to import .ga workflow files into a running instance of Galaxy
     """
-    args = _parser().parse_args()
+    args = _parser().parse_args(argv)
     gi = get_galaxy_connection(args)
 
     if os.path.isdir(args.workflow_path):

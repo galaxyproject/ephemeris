@@ -54,14 +54,6 @@ def _parser():
     return parser
 
 
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
-    parser = _parser()
-    return parser.parse_args()
-
-
 class SleepCondition(object):
     def __init__(self):
         self.sleep = True
@@ -171,11 +163,11 @@ def galaxy_wait(
     return True
 
 
-def main():
+def main(argv=None):
     """
     Main function
     """
-    options = _parse_cli_options()
+    options = _parser().parse_args(argv)
 
     galaxy_alive = galaxy_wait(
         galaxy_url=options.galaxy,

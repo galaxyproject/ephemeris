@@ -311,22 +311,14 @@ def get_repo_from_tool(tool):
     return repo
 
 
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
-    parser = _parser()
-    return parser.parse_args()
-
-
 def check_galaxy_version(gi):
     version = gi.config.get_version()
     if StrictVersion(version["version_major"]) < StrictVersion("16.04"):
         raise Exception("This script needs galaxy version 16.04 or newer")
 
 
-def main():
-    options = _parse_cli_options()
+def main(argv=None):
+    options = _parser().parse_args(argv)
     gi = get_galaxy_connection(options, login_required=False)
     check_galaxy_version(gi)
     gi_to_tool_yaml = GiToToolYaml(

@@ -59,7 +59,7 @@ def setup_mock_idc_dir(directory: Path):
 
 
 def read_and_validate_run_data_manager_yaml(path):
-    with open(path, "r") as f:
+    with open(path) as f:
         return RunDataManagers(**yaml.safe_load(f))
 
 
@@ -90,7 +90,10 @@ def test_split_genomes(tmp_path: Path):
     run = read_and_validate_run_data_manager_yaml(new_task_run_yaml)
     assert len(run.data_managers) == 1
     data_manager = run.data_managers[0]
-    assert data_manager.id == "toolshed.g2.bx.psu.edu/repos/devteam/data_manager_twobit_builder/twobit_builder_data_manager/0.0.2"
+    assert (
+        data_manager.id
+        == "toolshed.g2.bx.psu.edu/repos/devteam/data_manager_twobit_builder/twobit_builder_data_manager/0.0.2"
+    )
     assert data_manager.items[0]["id"] == "hg19_rCRS_pUC18_phiX174"
     assert data_manager.items[0]["dbkey"] == "hg19_rCRS_pUC18_phiX174"
 

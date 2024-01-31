@@ -296,7 +296,10 @@ class DataManagers:
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.tool_client.run_tool(
-                    history_id=history_id, tool_id=job["tool_id"], tool_inputs=job["inputs"], data_manager_mode=data_manager_mode
+                    history_id=history_id,
+                    tool_id=job["tool_id"],
+                    tool_inputs=job["inputs"],
+                    data_manager_mode=data_manager_mode,
                 )
                 log.info(
                     'Dispatched job %i. Running DM: "%s" with parameters: %s'
@@ -357,7 +360,9 @@ def _parser():
         action="store_true",
         help="Do not stop running when jobs have failed.",
     )
-    parser.add_argument("--data-manager-mode", "--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate")
+    parser.add_argument(
+        "--data-manager-mode", "--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate"
+    )
     parser.add_argument("--history-name", default=None)
     return parser
 
@@ -374,7 +379,13 @@ def main(argv=None):
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
-    data_managers.run(log, args.ignore_errors, args.overwrite, data_manager_mode=args.data_manager_mode, history_name=args.history_name)
+    data_managers.run(
+        log,
+        args.ignore_errors,
+        args.overwrite,
+        data_manager_mode=args.data_manager_mode,
+        history_name=args.history_name,
+    )
 
 
 if __name__ == "__main__":

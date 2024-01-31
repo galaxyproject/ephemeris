@@ -9,6 +9,7 @@ installed data table configuration.
 import logging
 import os
 import re
+import xml.etree.ElementTree as ElementTree
 from copy import deepcopy
 from typing import (
     Any,
@@ -17,7 +18,6 @@ from typing import (
     List,
     Optional,
 )
-import xml.etree.ElementTree as ElementTree
 
 import requests
 import yaml
@@ -32,9 +32,7 @@ from ._idc_data_managers_to_tools import (
     DataManager,
     read_data_managers_configuration,
 )
-from .common_parser import (
-    get_common_args,
-)
+from .common_parser import get_common_args
 from .ephemeris_log import (
     disable_external_library_logging,
     setup_global_logger,
@@ -184,9 +182,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
                 fetch_params.append({"sequence_name": description})
             elif re.match("^[A-Z_]+[0-9.]+", source):
                 fetch_params.append({"reference_source|reference_source_selector": "ncbi"})
-                fetch_params.append(
-                    {"reference_source|requested_identifier": source}
-                )
+                fetch_params.append({"reference_source|requested_identifier": source})
                 fetch_params.append({"sequence_name": genome["description"]})
                 fetch_params.append({"sequence.id": genome["id"]})
             elif re.match("^http", source):
@@ -247,7 +243,6 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
 
 def split_genomes(split_options: SplitOptions) -> None:
-
     def write_task_file(build_id: str, indexer: str, run_data_manager: RunDataManager):
         split_genomes_path = split_options.split_genomes_path
         if not os.path.exists(split_options.split_genomes_path):
@@ -262,7 +257,6 @@ def split_genomes(split_options: SplitOptions) -> None:
 
 
 class GalaxyHistoryIsBuildComplete:
-
     def __init__(self, history_names: List[str]):
         self._history_names = history_names
 
@@ -272,7 +266,6 @@ class GalaxyHistoryIsBuildComplete:
 
 
 class CVMFSPublishIsComplete:
-
     def __init__(self, records: Dict[str, List[str]]):
         self.records = records
 
@@ -284,18 +277,18 @@ def _parser():
     """returns the parser object."""
     # login required to check history...
     parser = get_common_args(login_required=True, log_file=True)
-    parser.add_argument('--merged-genomes-path', '-m', default="genomes.yml")
-    parser.add_argument('--split-genomes-path', '-s', default="data_manager_tasks")
-    parser.add_argument('--data-managers-path', default="data_managers.yml")
-    parser.add_argument('--complete-check-cvmfs', default=False, action="store_true")
-    parser.add_argument('--cvmfs-root', default="/cvmfs/idc.galaxyproject.org")
+    parser.add_argument("--merged-genomes-path", "-m", default="genomes.yml")
+    parser.add_argument("--split-genomes-path", "-s", default="data_manager_tasks")
+    parser.add_argument("--data-managers-path", default="data_managers.yml")
+    parser.add_argument("--complete-check-cvmfs", default=False, action="store_true")
+    parser.add_argument("--cvmfs-root", default="/cvmfs/idc.galaxyproject.org")
 
     parser.add_argument("--tool-id-mode", choices=["tool_shed_guid", "short"], default=DEFAULT_TOOL_ID_MODE)
 
     # filters
-    parser.add_argument('--filter-stage', default=None)
-    parser.add_argument('--filter-data-manager', default=None)
-    parser.add_argument('--filter-build-id', default=None)
+    parser.add_argument("--filter-stage", default=None)
+    parser.add_argument("--filter-data-manager", default=None)
+    parser.add_argument("--filter-build-id", default=None)
 
     return parser
 

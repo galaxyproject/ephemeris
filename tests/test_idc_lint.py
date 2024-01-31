@@ -5,7 +5,6 @@ import pytest
 from ephemeris._idc_lint import lint_idc_directory
 from .test_split_genomes import setup_mock_idc_dir
 
-
 MISSPELLED_DATA_MANAGER_YAML_STR = """
 data_manager_fetch_genome_dbkeys_all_fasta:
   tool_id: 'toolshed.g2.bx.psu.edu/repos/devteam/data_manager_fetch_genome_dbkeys_all_fasta/data_manager_fetch_genome_all_fasta_dbkey/0.0.3'

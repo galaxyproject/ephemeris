@@ -84,8 +84,8 @@ def _parser():
     general_group = parser.add_argument_group("General options")
     add_verbosity_argument(general_group)
     add_log_file_argument(general_group)
-    parser.add_argument('--data-managers-conf', default="data_managers.yml")
-    parser.add_argument('--shed-install-output-conf', default="tools.yml")
+    parser.add_argument("--data-managers-conf", default="data_managers.yml")
+    parser.add_argument("--shed-install-output-conf", default="tools.yml")
     return parser
 
 

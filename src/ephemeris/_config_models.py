@@ -12,7 +12,6 @@ from pydantic import (
     Extra,
 )
 
-
 StrOrPath = Union[Path, str]
 
 
@@ -30,6 +29,7 @@ class RepositoryInstallTarget(BaseModel):
 
 class RepositoryInstallTargets(BaseModel):
     """ """
+
     api_key: Optional[str]
     galaxy_instance: Optional[str]
     tools: List[RepositoryInstallTarget]
@@ -58,7 +58,9 @@ class Genome(BaseModel):
     version: Optional[str]  # Any version information associated with the data
 
     # Description of actions (data managers) to run on target genome.
-    indexers: Optional[List[str]]  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
+    indexers: Optional[
+        List[str]
+    ]  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
     skiplist: Optional[List[str]]  # unimplemented: but if we implement classes of indexers, these will be ones to skip
 
 
@@ -67,7 +69,7 @@ class Genomes(BaseModel):
 
 
 def _read_yaml(path: StrOrPath):
-    with open(path, "r") as f:
+    with open(path) as f:
         return yaml.safe_load(f)
 
 

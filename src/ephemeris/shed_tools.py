@@ -33,6 +33,7 @@ running this script to install the tools, make sure to place such file into
 Galaxy's configuration directory and set Galaxy configuration option
 `tool_config_file` to include it.
 """
+
 import datetime as dt
 import json
 import logging

@@ -109,7 +109,7 @@ open-project:
 	open $(PROJECT_URL) || xdg-open $(PROJECT_URL)
 
 dist: clean
-	$(IN_VENV) python setup.py sdist bdist_egg bdist_wheel
+	$(IN_VENV) python setup.py sdist bdist_wheel
 	$(IN_VENV) twine check dist/*
 	ls -l dist
 

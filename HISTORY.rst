@@ -6,6 +6,17 @@ History
 .. to_doc
 
 ---------------------
+0.10.9 (2024-01-31)
+---------------------
+
+* Fix CI tests (thanks to `@mvdbeek`_). `Pull Request 208`_
+* Add black, ruff, isort and mypy (thanks to `@mvdbeek`_). `Pull Request 209`_
+* Add now mandatory readthedocs config file (thanks to `@nsoranzo`_). `Pull
+  Request 210`_
+* Enhancements to the IDC scripts (thanks to `@jmchilton`_). `Pull Request
+  201`_
+
+---------------------
 0.10.8 (2023-04-18)
 ---------------------
 
@@ -256,6 +267,10 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 208: https://github.com/galaxyproject/ephemeris/pull/208
+.. _Pull Request 209: https://github.com/galaxyproject/ephemeris/pull/209
+.. _Pull Request 210: https://github.com/galaxyproject/ephemeris/pull/210
+.. _Pull Request 201: https://github.com/galaxyproject/ephemeris/pull/201
 .. _Pull Request 191: https://github.com/galaxyproject/ephemeris/pull/191
 .. _Pull Request 196: https://github.com/galaxyproject/ephemeris/pull/196
 .. _Pull Request 195: https://github.com/galaxyproject/ephemeris/pull/195

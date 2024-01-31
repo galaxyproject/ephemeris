@@ -3,7 +3,7 @@ import os
 import yaml
 from bioblend import galaxy
 
-__version__ = "0.10.8"
+__version__ = "0.10.9"
 
 PROJECT_NAME = "ephemeris"
 PROJECT_OWNER = PROJECT_USERAME = "galaxyproject"

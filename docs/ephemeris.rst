@@ -52,6 +52,14 @@ ephemeris.run\_data\_managers module
    :undoc-members:
    :show-inheritance:
 
+ephemeris.set\_library\_permissions module
+------------------------------------------
+
+.. automodule:: ephemeris.set_library_permissions
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 ephemeris.setup\_data\_libraries module
 ---------------------------------------
 

@@ -1,8 +1,7 @@
 import pathlib
 
-from conftest import GalaxyContainer
-
 from ephemeris.workflow_install import main as workflow_install_cli
+from .conftest import GalaxyContainer
 
 TEST_WORKFLOW_PATH = pathlib.Path(__file__).parent / "test_workflow.ga"
 

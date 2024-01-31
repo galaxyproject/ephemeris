@@ -1,11 +1,10 @@
 import pathlib
 import tempfile
 
-from conftest import GalaxyContainer
-
 from ephemeris.generate_tool_list_from_ga_workflow_files import main as workflow_to_tools_cli
 from ephemeris.get_tool_list_from_galaxy import main as get_tool_list_cli
 from ephemeris.shed_tools import main as shed_tools_cli
+from .conftest import GalaxyContainer
 
 OLD_TOOL_YAML = "{'owner':'jjohnson','name':'cdhit','revisions':['34a799d173f7'],'tool_panel_section_label':'CD_HIT'}"
 

@@ -28,13 +28,17 @@ import json
 import logging
 import time
 from collections import namedtuple
+from typing import Optional
 
+from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
+from typing_extensions import Literal
 
 from . import (
     get_galaxy_connection,
+    get_or_create_history,
     load_yaml_file,
 )
 from .common_parser import (
@@ -49,6 +53,7 @@ from .ephemeris_log import (
 
 DEFAULT_URL = "http://localhost"
 DEFAULT_SOURCE_TABLES = ["all_fasta"]
+DATA_MANAGER_MODES = Literal["dry_run", "populate", "bundle"]
 
 
 def wait(gi, job_list, log):
@@ -104,7 +109,7 @@ def get_first_valid_entry(input_dict, key_list):
 
 
 class DataManagers:
-    def __init__(self, galaxy_instance, configuration):
+    def __init__(self, galaxy_instance: GalaxyInstance, configuration):
         """
         :param galaxy_instance: A GalaxyInstance object (import from bioblend.galaxy)
         :param configuration: A dictionary. Examples in the ephemeris documentation.
@@ -151,8 +156,8 @@ class DataManagers:
         :returns job_list, skipped_job_list"""
         job_list = []
         skipped_job_list = []
-        items = self.parse_items(dm.get("items", [""]))
-        for item in items:
+
+        def handle_item(item: str):
             dm_id = dm["id"]
             params = dm["params"]
             inputs = dict()
@@ -166,11 +171,20 @@ class DataManagers:
 
             job = dict(tool_id=dm_id, inputs=inputs)
 
-            data_tables = dm.get("data_table_reload", [])
+            data_tables = dm.get("data_table_reload") or []
             if self.input_entries_exist_in_data_tables(data_tables, inputs):
                 skipped_job_list.append(job)
             else:
                 job_list.append(job)
+
+        raw_items = dm.get("items") or None
+        if raw_items:
+            items = self.parse_items(raw_items)
+            for item in items:
+                handle_item(item)
+        else:
+            handle_item("")
+
         return job_list, skipped_job_list
 
     def dm_is_fetcher(self, dm):
@@ -203,6 +217,11 @@ class DataManagers:
     def input_entries_exist_in_data_tables(self, data_tables, input_dict):
         """Checks whether name and value entries from the input are already present in the data tables.
         If an entry is missing in of the tables, this function returns False"""
+        if data_tables is None or len(data_tables) == 0:
+            # this logic is all broken I (@jmchilton) think, but lets just skip it all
+            # if we know we don't have data tables to check
+            return False
+
         value_entry = get_first_valid_entry(input_dict, self.possible_value_keys)
         name_entry = get_first_valid_entry(input_dict, self.possible_name_keys)
 
@@ -236,7 +255,14 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log=None, ignore_errors=False, overwrite=False):
+    def run(
+        self,
+        log=None,
+        ignore_errors=False,
+        overwrite=False,
+        data_manager_mode: DATA_MANAGER_MODES = "populate",
+        history_name: Optional[str] = None,
+    ):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -250,6 +276,10 @@ class DataManagers:
 
         if not log:
             log = logging.getLogger()
+
+        history_id: Optional[str] = None
+        if history_name is not None:
+            history_id = get_or_create_history(history_name, self.gi)["id"]
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []
@@ -266,7 +296,10 @@ class DataManagers:
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
                 started_job = self.tool_client.run_tool(
-                    history_id=None, tool_id=job["tool_id"], tool_inputs=job["inputs"]
+                    history_id=history_id,
+                    tool_id=job["tool_id"],
+                    tool_inputs=job["inputs"],
+                    data_manager_mode=data_manager_mode,
                 )
                 log.info(
                     'Dispatched job %i. Running DM: "%s" with parameters: %s'
@@ -327,6 +360,10 @@ def _parser():
         action="store_true",
         help="Do not stop running when jobs have failed.",
     )
+    parser.add_argument(
+        "--data-manager-mode", "--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate"
+    )
+    parser.add_argument("--history-name", default=None)
     return parser
 
 
@@ -342,7 +379,13 @@ def main(argv=None):
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
-    data_managers.run(log, args.ignore_errors, args.overwrite)
+    data_managers.run(
+        log,
+        args.ignore_errors,
+        args.overwrite,
+        data_manager_mode=args.data_manager_mode,
+        history_name=args.history_name,
+    )
 
 
 if __name__ == "__main__":

@@ -45,6 +45,7 @@ class RepositoryInstallTargets(BaseModel):
 class DataManager(BaseModel, extra=Extra.forbid):
     tags: List[str]
     tool_id: str
+    parameters: Optional[List[Dict[str, str]]] = None
 
 
 class DataManagers(BaseModel, extra=Extra.forbid):

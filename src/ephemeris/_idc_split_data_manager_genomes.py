@@ -222,11 +222,14 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
             log.info(f"Building: {build_id} {indexer}")
 
             tool_id = tool_id_for(indexer, data_managers, split_options.tool_id_mode)
-            params = [
-                {"all_fasta_source": "{{ item.id }}"},
-                {"sequence_name": "{{ item.name }}"},
-                {"sequence_id": "{{ item.id }}"},
-            ]
+            data_manager = data_managers.__root__[indexer]
+            params = data_manager.parameters
+            if params is None:
+                params = [
+                    {"all_fasta_source": "{{ item.id }}"},
+                    {"sequence_name": "{{ item.name }}"},
+                    {"sequence_id": "{{ item.id }}"},
+                ]
             # why is this not pulled from the data managers conf? -nate
             if re.search("bwa", tool_id):
                 params.append({"index_algorithm": "bwtsw"})

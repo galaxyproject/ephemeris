@@ -6,6 +6,13 @@ History
 .. to_doc
 
 ---------------------
+0.10.10 (2024-02-01)
+---------------------
+
+* Use None default value where items are optional (thanks to `@mvdbeek`_).
+  `Pull Request 212`_
+
+---------------------
 0.10.9 (2024-01-31)
 ---------------------
 
@@ -267,6 +274,7 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 212: https://github.com/galaxyproject/ephemeris/pull/212
 .. _Pull Request 208: https://github.com/galaxyproject/ephemeris/pull/208
 .. _Pull Request 209: https://github.com/galaxyproject/ephemeris/pull/209
 .. _Pull Request 210: https://github.com/galaxyproject/ephemeris/pull/210

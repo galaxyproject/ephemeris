@@ -2,13 +2,13 @@ from pathlib import Path
 
 import yaml
 
-from ephemeris._idc_split_data_manager_genomes import (
+from ephemeris._idc_build import (
+    BuildOptions,
     Filters,
-    GalaxyHistoryIsBuildComplete,
+    GalaxyHistoryBuildTracker,
     RunDataManagers,
-    split_genomes,
-    SplitOptions,
 )
+from ephemeris._idc_split_data_manager_genomes import split_genomes
 
 MERGED_YAML_STR = """
 genomes:
@@ -63,15 +63,15 @@ def read_and_validate_run_data_manager_yaml(path):
         return RunDataManagers(**yaml.safe_load(f))
 
 
-def split_options_for(tmp_path: Path) -> SplitOptions:
+def split_options_for(tmp_path: Path) -> BuildOptions:
     history_names = ["idc-hg19_rCRS_pUC18_phiX174-data_manager_star_index_builder"]
-    is_build_complete = GalaxyHistoryIsBuildComplete(history_names)
+    build_tracker = GalaxyHistoryBuildTracker(history_names, "idc")
 
-    split_options = SplitOptions()
+    split_options = BuildOptions()
     split_options.merged_genomes_path = tmp_path / "genomes.yml"
     split_options.split_genomes_path = str(tmp_path / "split")
     split_options.data_managers_path = tmp_path / "data_managers.yml"
-    split_options.is_build_complete = is_build_complete
+    split_options.build_tracker = build_tracker
     return split_options
 
 

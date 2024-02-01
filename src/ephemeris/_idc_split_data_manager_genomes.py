@@ -22,10 +22,17 @@ from typing import (
 import requests
 import yaml
 from galaxy.util import safe_makedirs
-from pydantic import (
-    BaseModel,
-    Extra,
-)
+
+try:
+    from pydantic.v1 import (
+        BaseModel,
+        Extra,
+    )
+except ImportError:
+    from pydantic import (
+        BaseModel,
+        Extra,
+    )
 
 from . import get_galaxy_connection
 from ._idc_data_managers_to_tools import (

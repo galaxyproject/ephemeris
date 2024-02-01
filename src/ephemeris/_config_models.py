@@ -7,10 +7,17 @@ from typing import (
 )
 
 import yaml
-from pydantic import (
-    BaseModel,
-    Extra,
-)
+
+try:
+    from pydantic.v1 import (
+        BaseModel,
+        Extra,
+    )
+except ImportError:
+    from pydantic import (
+        BaseModel,
+        Extra,
+    )
 
 StrOrPath = Union[Path, str]
 

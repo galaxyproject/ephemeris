@@ -96,11 +96,6 @@ class RunDataManagers(BaseModel):
     data_managers: List[RunDataManager]
 
 
-class DataManager(BaseModel, extra=Extra.forbid):
-    tags: List[str]
-    tool_id: str
-
-
 class DataManagers(BaseModel, extra=Extra.forbid):
     __root__: Dict[str, DataManager]
 

@@ -35,9 +35,10 @@ except ImportError:
     )
 
 from . import get_galaxy_connection
-from ._idc_data_managers_to_tools import (
+from ._config_models import (
     DataManager,
-    read_data_managers_configuration,
+    DataManagers,
+    read_data_managers,
 )
 from .common_parser import get_common_args
 from .ephemeris_log import (
@@ -77,8 +78,8 @@ class SplitOptions:
     filters: Filters = Filters()
 
 
-def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) -> str:
-    data_manager = data_managers[indexer]
+def tool_id_for(indexer: str, data_managers: DataManagers, mode: str) -> str:
+    data_manager = data_managers.__root__[indexer]
     assert data_manager, f"Could not find a target data manager for indexer name {indexer}"
     tool_shed_guid = data_manager.tool_id
     if mode == "short":
@@ -151,7 +152,7 @@ def write_run_data_manager_to_file(run_data_manager: RunDataManager, path: str):
 
 
 def walk_over_incomplete_runs(split_options: SplitOptions):
-    data_managers = read_data_managers_configuration(split_options.data_managers_path)
+    data_managers = read_data_managers(split_options.data_managers_path)
     with open(split_options.merged_genomes_path) as f:
         genomes_all = yaml.safe_load(f)
     genomes = genomes_all["genomes"]

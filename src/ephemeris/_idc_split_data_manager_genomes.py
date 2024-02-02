@@ -208,27 +208,32 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
         indexers = genome.get("indexers", [])
         for indexer in indexers:
-            if split_options.filters.filter_out_data_manager(indexer):
+            if isinstance(indexer, dict):
+                indexer_name = next(iter(indexer.keys()))
+                indexer_parameters = indexer[indexer_name]["parameters"]
+            else:
+                indexer_name = indexer
+                indexer_parameters = {}
+            if split_options.filters.filter_out_data_manager(indexer_name):
                 continue
 
             if split_options.filters.filter_out_stage(1):
                 continue
 
-            if split_options.is_build_complete(build_id, indexer):
-                log.debug(f"Build is already completed: {build_id} {indexer}")
+            if split_options.is_build_complete(build_id, indexer_name):
+                log.debug(f"Build is already completed: {build_id} {indexer_name}")
                 continue
 
-            log.info(f"Building: {build_id} {indexer}")
+            log.info(f"Building: {build_id} {indexer_name}")
 
-            tool_id = tool_id_for(indexer, data_managers, split_options.tool_id_mode)
-            data_manager = data_managers.__root__[indexer]
-            params = {}
+            tool_id = tool_id_for(indexer_name, data_managers, split_options.tool_id_mode)
+            data_manager = data_managers.__root__[indexer_name]
+            data_manager_parameters = {}
             if data_manager.parameters:
-                params = json.loads(data_manager.parameters.json()) or {}
-            genome_params = genome.pop("parameters", None) or {}
-            params.update(genome_params)
-            if params is None:
-                params = {
+                data_manager_parameters = json.loads(data_manager.parameters.json()) or {}
+            data_manager_parameters.update(indexer_parameters)
+            if not data_manager_parameters:
+                data_manager_parameters = {
                     "all_fasta_source": "{{ item.id }}",
                     "sequence_name": "{{ item.name }}",
                     "sequence_id": "{{ item.id }}",
@@ -240,10 +245,10 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             run_data_manager = RunDataManager(
                 id=tool_id,
-                params=params,
+                params=data_manager_parameters,
                 items=[item],
             )
-            yield (build_id, indexer, run_data_manager)
+            yield (build_id, indexer_name, run_data_manager)
 
 
 def split_genomes(split_options: SplitOptions) -> None:

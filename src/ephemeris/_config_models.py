@@ -46,13 +46,16 @@ class DictOrValue(BaseModel):
     __root__: Union[Dict[str, Union[str, int, float, bool, "DictOrValue"]], Union[str, int, float, bool]]
 
 
+class Parameters(BaseModel):
+    parameters: Optional[DictOrValue] = None
+
+
 DictOrValue.update_forward_refs()
 
 
-class DataManager(BaseModel, extra=Extra.forbid):
+class DataManager(Parameters, extra=Extra.forbid):
     tags: List[str]
     tool_id: str
-    parameters: Optional[DictOrValue] = None
 
 
 class DataManagers(BaseModel, extra=Extra.forbid):
@@ -76,7 +79,7 @@ class Genome(BaseModel):
 
     # Description of actions (data managers) to run on target genome.
     indexers: Optional[
-        List[str]
+        List[Union[str, Dict[str, Parameters]]]
     ]  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
     skiplist: Optional[List[str]] = (
         None  # unimplemented: but if we implement classes of indexers, these will be ones to skip

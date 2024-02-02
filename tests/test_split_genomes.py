@@ -66,10 +66,10 @@ genomes:
     description: fluffy
     id: cat
     indexers:
-      - the_data_manager
-    parameters:
-      conditional:
-        param_c: c
+      - the_data_manager:
+          parameters:
+            conditional:
+              param_c: c
 """
 
 

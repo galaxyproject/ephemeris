@@ -49,13 +49,36 @@ data_manager_star_index_builder:
   - genome
 """
 
+DATA_MANAGER_YAML_WITH_PARAMS = """
+the_data_manager:
+  tool_id: toolshed.g2.bx.psu.edu/repos/iuc/the_data_manager/the_data_manager/0.0.1
+  parameters:
+    conditional:
+      param_a: a
+      param_b: b
+  tags:
+    - dm_tag
+"""
 
-def setup_mock_idc_dir(directory: Path):
+GENOMES_WITH_PARAMS = """
+genomes:
+  - dbkey: cat
+    description: fluffy
+    id: cat
+    indexers:
+      - the_data_manager
+    parameters:
+      conditional:
+        param_c: c
+"""
+
+
+def setup_mock_idc_dir(directory: Path, genomes=MERGED_YAML_STR, data_managers=DATA_MANAGER_YAML_STR):
     merged = directory / "genomes.yml"
-    merged.write_text(MERGED_YAML_STR)
+    merged.write_text(genomes)
 
-    data_managers = directory / "data_managers.yml"
-    data_managers.write_text(DATA_MANAGER_YAML_STR)
+    data_managers_path = directory / "data_managers.yml"
+    data_managers_path.write_text(data_managers)
 
 
 def read_and_validate_run_data_manager_yaml(path):
@@ -96,6 +119,20 @@ def test_split_genomes(tmp_path: Path):
     )
     assert data_manager.items[0]["id"] == "hg19_rCRS_pUC18_phiX174"
     assert data_manager.items[0]["dbkey"] == "hg19_rCRS_pUC18_phiX174"
+
+
+def test_split_genomes_with_params(tmp_path):
+    setup_mock_idc_dir(tmp_path, GENOMES_WITH_PARAMS, DATA_MANAGER_YAML_WITH_PARAMS)
+    split_path = tmp_path / "split"
+    split_options = split_options_for(tmp_path)
+    split_genomes(split_options)
+    new_task = split_path / "cat" / "the_data_manager"
+    new_task_run_yaml = new_task / "run_data_managers.yaml"
+    run = read_and_validate_run_data_manager_yaml(new_task_run_yaml)
+    assert len(run.data_managers) == 1
+    data_manager = run.data_managers[0]
+    # genome config overwrites data manager config
+    assert data_manager.params.json() == '{"conditional": {"param_c": "c"}}'
 
 
 def test_split_genomes_short_ids(tmp_path: Path):

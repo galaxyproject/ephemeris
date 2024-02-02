@@ -6,6 +6,7 @@ run_data_managers.py - while excluding data managers executions specified
 by genomes.yml that have already been executed and appear in the target
 installed data table configuration.
 """
+import json
 import logging
 import os
 import re
@@ -38,6 +39,7 @@ from . import get_galaxy_connection
 from ._config_models import (
     DataManager,
     DataManagers,
+    DictOrValue,
     read_data_managers,
 )
 from .common_parser import get_common_args
@@ -96,8 +98,7 @@ def tool_id_for(indexer: str, data_managers: DataManagers, mode: str) -> str:
 class RunDataManager(BaseModel):
     id: str
     items: Optional[List[Any]] = None
-    params: Optional[List[Any]] = None
-    data_table_reload: Optional[List[str]] = None
+    params: Optional[DictOrValue] = None
 
 
 class RunDataManagers(BaseModel):
@@ -172,36 +173,34 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
         if do_fetch and not split_options.is_build_complete(build_id, fetch_indexer):
             log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers, split_options.tool_id_mode)
-            fetch_params = []
-            fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
-            fetch_params.append({"dbkey_source|dbkey": genome["id"]})
             description = genome.get("description")
+            fetch_params = {
+                "dbkey_source": {"dbkey_source_selector": "new", "dbkey": genome["id"]},
+                "sequence_id": genome["id"],
+                "sequence_name": description,
+            }
             source = genome.get("source")
             if source == "ucsc":
                 if not description:
-                    description = ucsc_description_for_build(genome["id"])
-                fetch_params.append({"reference_source|reference_source_selector": "ucsc"})
-                fetch_params.append({"reference_source|requested_dbkey": genome["id"]})
-                fetch_params.append({"sequence_name": description})
+                    fetch_params["sequence_name"] = ucsc_description_for_build(genome["id"])
+                fetch_params["reference_source"] = {
+                    "reference_source_selector": "ucsc",
+                    "requested_dbkey": genome["id"],
+                }
             elif re.match("^[A-Z_]+[0-9.]+", source):
-                fetch_params.append({"reference_source|reference_source_selector": "ncbi"})
-                fetch_params.append({"reference_source|requested_identifier": source})
-                fetch_params.append({"sequence_name": genome["description"]})
-                fetch_params.append({"sequence.id": genome["id"]})
+                fetch_params["reference_source"] = {
+                    "reference_source_selector": "ncbi",
+                    "requested_identifier": source,
+                }
             elif re.match("^http", source):
-                fetch_params.append({"reference_source|reference_source_selector": "url"})
-                fetch_params.append({"reference_source|user_url": source})
-                fetch_params.append({"sequence_name": genome["description"]})
-                fetch_params.append({"sequence.id": genome["id"]})
+                fetch_params["reference_source"] = {"reference_source_selector": "url", "user_url": source}
 
             if description:
-                fetch_params.append({"dbkey_source|dbkey_name": description})
+                fetch_params["dbkey_source"]["dbkey_name"] = description
 
             fetch_run_data_manager = RunDataManager(
                 id=fetch_tool_id,
                 params=fetch_params,
-                # Not needed according to Marius
-                # data_table_reload=["all_fasta", "__dbkeys__"],
             )
             yield (build_id, fetch_indexer, fetch_run_data_manager)
         else:
@@ -223,18 +222,17 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             tool_id = tool_id_for(indexer, data_managers, split_options.tool_id_mode)
             data_manager = data_managers.__root__[indexer]
-            params = data_manager.parameters
+            params = {}
+            if data_manager.parameters:
+                params = json.loads(data_manager.parameters.json()) or {}
+            genome_params = genome.pop("parameters", None) or {}
+            params.update(genome_params)
             if params is None:
-                params = [
-                    {"all_fasta_source": "{{ item.id }}"},
-                    {"sequence_name": "{{ item.name }}"},
-                    {"sequence_id": "{{ item.id }}"},
-                ]
-            # why is this not pulled from the data managers conf? -nate
-            if re.search("bwa", tool_id):
-                params.append({"index_algorithm": "bwtsw"})
-            if re.search("color_space", tool_id):
-                continue
+                params = {
+                    "all_fasta_source": "{{ item.id }}",
+                    "sequence_name": "{{ item.name }}",
+                    "sequence_id": "{{ item.id }}",
+                }
 
             item = deepcopy(genome)
             item.pop("indexers", None)

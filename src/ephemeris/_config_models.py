@@ -42,10 +42,17 @@ class RepositoryInstallTargets(BaseModel):
     tools: List[RepositoryInstallTarget]
 
 
+class DictOrValue(BaseModel):
+    __root__: Union[Dict[str, Union[str, int, float, bool, "DictOrValue"]], Union[str, int, float, bool]]
+
+
+DictOrValue.update_forward_refs()
+
+
 class DataManager(BaseModel, extra=Extra.forbid):
     tags: List[str]
     tool_id: str
-    parameters: Optional[List[Dict[str, str]]] = None
+    parameters: Optional[DictOrValue] = None
 
 
 class DataManagers(BaseModel, extra=Extra.forbid):

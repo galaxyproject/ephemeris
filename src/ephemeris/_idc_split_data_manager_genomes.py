@@ -6,6 +6,7 @@ run_data_managers.py - while excluding data managers executions specified
 by genomes.yml that have already been executed and appear in the target
 installed data table configuration.
 """
+import json
 import logging
 import os
 import re
@@ -22,15 +23,24 @@ from typing import (
 import requests
 import yaml
 from galaxy.util import safe_makedirs
-from pydantic import (
-    BaseModel,
-    Extra,
-)
+
+try:
+    from pydantic.v1 import (
+        BaseModel,
+        Extra,
+    )
+except ImportError:
+    from pydantic import (
+        BaseModel,
+        Extra,
+    )
 
 from . import get_galaxy_connection
-from ._idc_data_managers_to_tools import (
+from ._config_models import (
     DataManager,
-    read_data_managers_configuration,
+    DataManagers,
+    DictOrValue,
+    read_data_managers,
 )
 from .common_parser import get_common_args
 from .ephemeris_log import (
@@ -70,8 +80,8 @@ class SplitOptions:
     filters: Filters = Filters()
 
 
-def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) -> str:
-    data_manager = data_managers[indexer]
+def tool_id_for(indexer: str, data_managers: DataManagers, mode: str) -> str:
+    data_manager = data_managers.__root__[indexer]
     assert data_manager, f"Could not find a target data manager for indexer name {indexer}"
     tool_shed_guid = data_manager.tool_id
     if mode == "short":
@@ -88,17 +98,11 @@ def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) 
 class RunDataManager(BaseModel):
     id: str
     items: Optional[List[Any]] = None
-    params: Optional[List[Any]] = None
-    data_table_reload: Optional[List[str]] = None
+    params: Optional[DictOrValue] = None
 
 
 class RunDataManagers(BaseModel):
     data_managers: List[RunDataManager]
-
-
-class DataManager(BaseModel, extra=Extra.forbid):
-    tags: List[str]
-    tool_id: str
 
 
 class DataManagers(BaseModel, extra=Extra.forbid):
@@ -149,7 +153,7 @@ def write_run_data_manager_to_file(run_data_manager: RunDataManager, path: str):
 
 
 def walk_over_incomplete_runs(split_options: SplitOptions):
-    data_managers = read_data_managers_configuration(split_options.data_managers_path)
+    data_managers = read_data_managers(split_options.data_managers_path)
     with open(split_options.merged_genomes_path) as f:
         genomes_all = yaml.safe_load(f)
     genomes = genomes_all["genomes"]
@@ -169,36 +173,34 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
         if do_fetch and not split_options.is_build_complete(build_id, fetch_indexer):
             log.info(f"Fetching: {build_id}")
             fetch_tool_id = tool_id_for(fetch_indexer, data_managers, split_options.tool_id_mode)
-            fetch_params = []
-            fetch_params.append({"dbkey_source|dbkey_source_selector": "new"})
-            fetch_params.append({"dbkey_source|dbkey": genome["id"]})
             description = genome.get("description")
+            fetch_params = {
+                "dbkey_source": {"dbkey_source_selector": "new", "dbkey": genome["id"]},
+                "sequence_id": genome["id"],
+                "sequence_name": description,
+            }
             source = genome.get("source")
             if source == "ucsc":
                 if not description:
-                    description = ucsc_description_for_build(genome["id"])
-                fetch_params.append({"reference_source|reference_source_selector": "ucsc"})
-                fetch_params.append({"reference_source|requested_dbkey": genome["id"]})
-                fetch_params.append({"sequence_name": description})
+                    fetch_params["sequence_name"] = ucsc_description_for_build(genome["id"])
+                fetch_params["reference_source"] = {
+                    "reference_source_selector": "ucsc",
+                    "requested_dbkey": genome["id"],
+                }
             elif re.match("^[A-Z_]+[0-9.]+", source):
-                fetch_params.append({"reference_source|reference_source_selector": "ncbi"})
-                fetch_params.append({"reference_source|requested_identifier": source})
-                fetch_params.append({"sequence_name": genome["description"]})
-                fetch_params.append({"sequence.id": genome["id"]})
+                fetch_params["reference_source"] = {
+                    "reference_source_selector": "ncbi",
+                    "requested_identifier": source,
+                }
             elif re.match("^http", source):
-                fetch_params.append({"reference_source|reference_source_selector": "url"})
-                fetch_params.append({"reference_source|user_url": source})
-                fetch_params.append({"sequence_name": genome["description"]})
-                fetch_params.append({"sequence.id": genome["id"]})
+                fetch_params["reference_source"] = {"reference_source_selector": "url", "user_url": source}
 
             if description:
-                fetch_params.append({"dbkey_source|dbkey_name": description})
+                fetch_params["dbkey_source"]["dbkey_name"] = description
 
             fetch_run_data_manager = RunDataManager(
                 id=fetch_tool_id,
                 params=fetch_params,
-                # Not needed according to Marius
-                # data_table_reload=["all_fasta", "__dbkeys__"],
             )
             yield (build_id, fetch_indexer, fetch_run_data_manager)
         else:
@@ -206,29 +208,36 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
         indexers = genome.get("indexers", [])
         for indexer in indexers:
-            if split_options.filters.filter_out_data_manager(indexer):
+            if isinstance(indexer, dict):
+                indexer_name = next(iter(indexer.keys()))
+                indexer_parameters = indexer[indexer_name]["parameters"]
+            else:
+                indexer_name = indexer
+                indexer_parameters = {}
+            if split_options.filters.filter_out_data_manager(indexer_name):
                 continue
 
             if split_options.filters.filter_out_stage(1):
                 continue
 
-            if split_options.is_build_complete(build_id, indexer):
-                log.debug(f"Build is already completed: {build_id} {indexer}")
+            if split_options.is_build_complete(build_id, indexer_name):
+                log.debug(f"Build is already completed: {build_id} {indexer_name}")
                 continue
 
-            log.info(f"Building: {build_id} {indexer}")
+            log.info(f"Building: {build_id} {indexer_name}")
 
-            tool_id = tool_id_for(indexer, data_managers, split_options.tool_id_mode)
-            params = [
-                {"all_fasta_source": "{{ item.id }}"},
-                {"sequence_name": "{{ item.name }}"},
-                {"sequence_id": "{{ item.id }}"},
-            ]
-            # why is this not pulled from the data managers conf? -nate
-            if re.search("bwa", tool_id):
-                params.append({"index_algorithm": "bwtsw"})
-            if re.search("color_space", tool_id):
-                continue
+            tool_id = tool_id_for(indexer_name, data_managers, split_options.tool_id_mode)
+            data_manager = data_managers.__root__[indexer_name]
+            data_manager_parameters = {}
+            if data_manager.parameters:
+                data_manager_parameters = json.loads(data_manager.parameters.json()) or {}
+            data_manager_parameters.update(indexer_parameters)
+            if not data_manager_parameters:
+                data_manager_parameters = {
+                    "all_fasta_source": "{{ item.id }}",
+                    "sequence_name": "{{ item.name }}",
+                    "sequence_id": "{{ item.id }}",
+                }
 
             item = deepcopy(genome)
             item.pop("indexers", None)
@@ -236,10 +245,10 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             run_data_manager = RunDataManager(
                 id=tool_id,
-                params=params,
+                params=data_manager_parameters,
                 items=[item],
             )
-            yield (build_id, indexer, run_data_manager)
+            yield (build_id, indexer_name, run_data_manager)
 
 
 def split_genomes(split_options: SplitOptions) -> None:

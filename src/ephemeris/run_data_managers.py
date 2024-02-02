@@ -33,6 +33,7 @@ from typing import Optional
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
+from boltons.iterutils import remap
 from jinja2 import Template
 from typing_extensions import Literal
 
@@ -160,14 +161,21 @@ class DataManagers:
         def handle_item(item: str):
             dm_id = dm["id"]
             params = dm["params"]
-            inputs = dict()
-            # Iterate over all parameters, replace occurences of {{item}} with the current processing item
+
+            # Iterate over all parameters, replace occurrences of {{item}} with the current processing item
             # and create the tool_inputs dict for running the data manager job
-            for param in params:
-                key, value = list(param.items())[0]
-                value_template = Template(value)
-                value = value_template.render(item=item)
-                inputs.update({key: value})
+            def template_values(path, key, value):
+                if isinstance(value, str):
+                    value = Template(value).render(item=item)
+                return key, value
+
+            inputs = remap(params, visit=template_values)
+
+            if isinstance(inputs, list):
+                # "legacy" run data manager input format
+                # which is a flat list with stringified param keys and values,
+                # this needs to be turned into a dict
+                inputs = {k: v for param in inputs for k, v in param.items()}
 
             job = dict(tool_id=dm_id, inputs=inputs)
 

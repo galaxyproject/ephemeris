@@ -41,10 +41,6 @@ import os
 import re
 import time
 from collections import namedtuple
-from concurrent.futures import (
-    thread,
-    ThreadPoolExecutor,
-)
 from typing import (
     Iterable,
     List,
@@ -58,7 +54,6 @@ from bioblend.galaxy.toolshed import ToolShedClient
 from galaxy.tool_util.verify.interactor import (
     DictClientTestConfig,
     GalaxyInteractorApi,
-    verify_tool,
 )
 from galaxy.tool_util.verify.script import build_case_references, test_tools, Results, setup_global_logger
 from galaxy.util import unicodify
@@ -322,22 +317,24 @@ class InstallRepositoryManager:
 
         test_references = []
         for installed_tool in installed_tools:
-            test_references.extend(build_case_references(
-                galaxy_interactor=galaxy_interactor,
-                tool_id = re.sub(f"/{installed_tool['version']}$", "", installed_tool["id"]),
-                tool_version = installed_tool['version']),
+            test_references.extend(
+                build_case_references(
+                    galaxy_interactor=galaxy_interactor,
+                    tool_id=re.sub(f"/{installed_tool['version']}$", "", installed_tool["id"]),
+                    tool_version=installed_tool["version"],
+                ),
             )
 
         results = Results(
             f"Ephemeris tool tests targeting {self.gi.base_url}",
             test_json,
-            append=False,  #?
+            append=False,  # ?
             galaxy_url=self.gi.base_url,
         )
 
         verify_kwds = {
-            'skip_with_reference_data': skip_with_reference_data,
-            'client_test_config': client_test_config,
+            "skip_with_reference_data": skip_with_reference_data,
+            "client_test_config": client_test_config,
         }
 
         test_tools(
@@ -346,7 +343,7 @@ class InstallRepositoryManager:
             results=results,
             log=log,
             parallel_tests=parallel_tests,
-            history_name=test_history_name or 'test_history',
+            history_name=test_history_name or "test_history",
             no_history_cleanup=True,  # TODO: Add command line option to make this False
             retries=0,  # TODO: Add command line option for this, would benefit Galaxy Australia
             verify_kwds=verify_kwds,

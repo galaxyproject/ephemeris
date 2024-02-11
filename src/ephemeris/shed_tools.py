@@ -60,6 +60,7 @@ from galaxy.tool_util.verify.interactor import (
     GalaxyInteractorApi,
     verify_tool,
 )
+from galaxy.tool_util.verify.script import build_case_references, test_tools, Results, setup_global_logger
 from galaxy.util import unicodify
 from typing_extensions import (
     NamedTuple,
@@ -294,12 +295,10 @@ class InstallRepositoryManager:
         test_history_name=None,
         parallel_tests=1,
         test_all_versions=False,
+        skip_with_reference_data=False,
         client_test_config_path=None,
     ):
         """Run tool tests for all tools in each repository in supplied tool list or ``self.installed_repositories()``."""
-        tool_test_start = dt.datetime.now()
-        tests_passed = []
-        test_exceptions = []
 
         if not repositories:  # If repositories is None or empty list
             # Consider a variant of this that doesn't even consume a tool list YAML? target
@@ -313,7 +312,6 @@ class InstallRepositoryManager:
             repo_tools = tools_for_repository(self.gi, target_repository, all_tools=test_all_versions)
             installed_tools.extend(repo_tools)
 
-        all_test_results = []
         galaxy_interactor = self._get_interactor(test_user, test_user_api_key)
         if client_test_config_path is not None:
             with open(client_test_config_path) as f:
@@ -322,61 +320,37 @@ class InstallRepositoryManager:
         else:
             client_test_config = None
 
-        if test_history_name:
-            for history in self.gi.histories.get_histories(name=test_history_name, deleted=False):
-                test_history = history["id"]
-                log.debug(
-                    "Using existing history with id '%s', last updated: %s",
-                    test_history,
-                    history["update_time"],
-                )
-                break
-            else:
-                test_history = galaxy_interactor.new_history(history_name=test_history_name)
-        else:
-            test_history = galaxy_interactor.new_history()
+        test_references = []
+        for installed_tool in installed_tools:
+            test_references.extend(build_case_references(
+                galaxy_interactor=galaxy_interactor,
+                tool_id = re.sub(f"/{installed_tool['version']}$", "", installed_tool["id"]),
+                tool_version = installed_tool['version']),
+            )
 
-        with ThreadPoolExecutor(max_workers=parallel_tests) as executor:
-            try:
-                for tool in installed_tools:
-                    self._test_tool(
-                        executor=executor,
-                        tool=tool,
-                        galaxy_interactor=galaxy_interactor,
-                        test_history=test_history,
-                        log=log,
-                        tool_test_results=all_test_results,
-                        tests_passed=tests_passed,
-                        test_exceptions=test_exceptions,
-                        client_test_config=client_test_config,
-                    )
-            finally:
-                # Always write report, even if test was cancelled.
-                try:
-                    executor.shutdown(wait=True)
-                except KeyboardInterrupt:
-                    executor._threads.clear()
-                    thread._threads_queues.clear()
-                n_passed = len(tests_passed)
-                n_failed = len(test_exceptions)
-                report_obj = {
-                    "version": "0.1",
-                    "suitename": "Ephemeris tool tests targeting %s" % self.gi.base_url,
-                    "results": {
-                        "total": n_passed + n_failed,
-                        "errors": n_failed,
-                        "failures": 0,
-                        "skips": 0,
-                    },
-                    "tests": sorted(all_test_results, key=lambda el: el["id"]),
-                }
-                with open(test_json, "w") as f:
-                    json.dump(report_obj, f)
-                if log:
-                    log.info("Report written to '%s'", os.path.abspath(test_json))
-                    log.info(f"Passed tool tests ({n_passed}): {[t for t in tests_passed]}")
-                    log.info(f"Failed tool tests ({n_failed}): {[t[0] for t in test_exceptions]}")
-                    log.info(f"Total tool test time: {dt.datetime.now() - tool_test_start}")
+        results = Results(
+            f"Ephemeris tool tests targeting {self.gi.base_url}",
+            test_json,
+            append=False,  #?
+            galaxy_url=self.gi.base_url,
+        )
+
+        verify_kwds = {
+            'skip_with_reference_data': skip_with_reference_data,
+            'client_test_config': client_test_config,
+        }
+
+        test_tools(
+            galaxy_interactor=galaxy_interactor,
+            test_references=test_references,
+            results=results,
+            log=log,
+            parallel_tests=parallel_tests,
+            history_name=test_history_name or 'test_history',
+            no_history_cleanup=True,  # TODO: Add command line option to make this False
+            retries=0,  # TODO: Add command line option for this, would benefit Galaxy Australia
+            verify_kwds=verify_kwds,
+        )
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -393,84 +367,6 @@ class InstallRepositoryManager:
             galaxy_interactor_kwds["test_user"] = test_user
         galaxy_interactor = GalaxyInteractorApi(**galaxy_interactor_kwds)
         return galaxy_interactor
-
-    @staticmethod
-    def _test_tool(
-        executor,
-        tool,
-        galaxy_interactor,
-        tool_test_results,
-        tests_passed,
-        test_exceptions,
-        log,
-        test_history=None,
-        client_test_config=None,
-    ):
-        if test_history is None:
-            test_history = galaxy_interactor.new_history()
-        tool_id = tool["id"]
-        tool_version = tool["version"]
-        # If given a tool_id with a version suffix, strip it off so we can treat tool_version
-        # correctly at least in client_test_config.
-        if tool_version and tool_id.endswith("/" + tool_version):
-            tool_id = tool_id[: -len("/" + tool_version)]
-
-        label_base = tool_id
-        if tool_version:
-            label_base += "/" + str(tool_version)
-        try:
-            tool_test_dicts = galaxy_interactor.get_tool_tests(tool_id, tool_version=tool_version)
-        except Exception as e:
-            if log:
-                log.warning(
-                    "Fetching test definition for tool '%s' failed",
-                    label_base,
-                    exc_info=True,
-                )
-            test_exceptions.append((label_base, e))
-            Results = namedtuple("Results", ["tool_test_results", "tests_passed", "test_exceptions"])
-            return Results(
-                tool_test_results=tool_test_results,
-                tests_passed=tests_passed,
-                test_exceptions=test_exceptions,
-            )
-        test_indices = list(range(len(tool_test_dicts)))
-
-        for test_index in test_indices:
-            test_id = label_base + "-" + str(test_index)
-
-            def run_test(index, test_id):
-                def register(job_data):
-                    tool_test_results.append(
-                        {
-                            "id": test_id,
-                            "has_data": True,
-                            "data": job_data,
-                        }
-                    )
-
-                try:
-                    if log:
-                        log.info("Executing test '%s'", test_id)
-                    verify_tool(
-                        tool_id,
-                        galaxy_interactor,
-                        test_index=index,
-                        tool_version=tool_version,
-                        register_job_data=register,
-                        quiet=True,
-                        test_history=test_history,
-                        client_test_config=client_test_config,
-                    )
-                    tests_passed.append(test_id)
-                    if log:
-                        log.info("Test '%s' passed", test_id)
-                except Exception as e:
-                    if log:
-                        log.warning("Test '%s' failed", test_id, exc_info=True)
-                    test_exceptions.append((test_id, e))
-
-            executor.submit(run_test, test_index, test_id)
 
     def install_repository_revision(self, repository: InstallRepoDict, log):
         default_err_msg = "All repositories that you are attempting to install " "have been previously installed."
@@ -718,6 +614,7 @@ def main(argv=None):
             test_history_name=args.test_history_name,
             parallel_tests=args.parallel_tests,
             test_all_versions=args.test_all_versions,
+            skip_with_reference_data=args.skip_with_reference_data,
             client_test_config_path=args.client_test_config,
         )
     else:

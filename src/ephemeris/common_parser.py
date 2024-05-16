@@ -27,13 +27,21 @@ def add_verbosity_argument(parser_or_group):
     parser_or_group.add_argument("-v", "--verbose", help="Increase output verbosity.", action="store_true")
 
 
-def add_log_file_argument(parser_or_group):
+def add_log_file_arguments(parser_or_group):
     parser_or_group.add_argument(
         "--log-file",
         "--log_file",
         dest="log_file",
-        help="Where the log file should be stored. " "Default is a file in your system's temp folder",
+        help="Where the log file should be stored. " "Default is a output to screen",
         default=None,
+    )
+    parser_or_group.add_argument(
+        "--log-level",
+        "--log_level",
+        dest="log_level",
+        choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
+        help="Level of debugging",
+        default='INFO',
     )
 
 
@@ -42,7 +50,7 @@ def get_common_args(login_required=True, log_file=False):
     general_group = parser.add_argument_group("General options")
     add_verbosity_argument(general_group)
     if log_file:
-        add_log_file_argument(general_group)
+        add_log_file_arguments(general_group)
 
     con_group = parser.add_argument_group("Galaxy connection")
     default_galaxy = os.environ.get("EPHEMERIS_GALAXY") or "http://localhost:8080"

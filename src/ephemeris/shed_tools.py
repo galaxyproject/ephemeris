@@ -39,6 +39,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 from collections import namedtuple
 from concurrent.futures import (
@@ -261,7 +262,8 @@ class InstallRepositoryManager:
                     [(t["name"], t.get("changeset_revision", "")) for t in errored_repositories],
                 )
             )
-            log.info("All repositories have been installed.")
+            if len(errored_repositories) == 0:
+                log.info("All repositories have been installed.")
             log.info(f"Total run time: {dt.datetime.now() - installation_start}")
         return InstallResults(
             installed_repositories=installed_repositories,
@@ -377,6 +379,8 @@ class InstallRepositoryManager:
                     log.info(f"Passed tool tests ({n_passed}): {[t for t in tests_passed]}")
                     log.info(f"Failed tool tests ({n_failed}): {[t[0] for t in test_exceptions]}")
                     log.info(f"Total tool test time: {dt.datetime.now() - tool_test_start}")
+
+        return n_failed == 0
 
     def _get_interactor(self, test_user, test_user_api_key):
         if test_user_api_key is None:
@@ -600,7 +604,7 @@ def log_repository_install_error(repository, start, msg, log):
     """
     end = dt.datetime.now()
     log.error(
-        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, " "revision: %s, error: %s",
+        "\tError installing a repository (after %s seconds)! Name: %s," "owner: %s, " "revision: %s, error: %s",
         str(end - start),
         repository.get("name", ""),
         repository.get("owner", ""),
@@ -678,7 +682,7 @@ def args_to_repos(args) -> List[InstallRepoDict]:
 def main(argv=None):
     disable_external_library_logging()
     args = parser().parse_args(argv)
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
+    log = setup_global_logger(name=__name__, log_file=args.log_file, log_level=args.log_level)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_repository_manager = InstallRepositoryManager(gi)
 
@@ -702,6 +706,7 @@ def main(argv=None):
     # Start installing/updating and store the results in install_results.
     # Or do testing if the action is `test`
     install_results = None
+    test_result = True
     if args.action == "update":
         install_results = install_repository_manager.update_repositories(repositories=repos, log=log, **kwargs)
     elif args.action == "install":
@@ -709,7 +714,7 @@ def main(argv=None):
             repos, log=log, force_latest_revision=args.force_latest_revision, **kwargs
         )
     elif args.action == "test":
-        install_repository_manager.test_tools(
+        test_result = install_repository_manager.test_tools(
             test_json=args.test_json,
             repositories=repos,
             log=log,
@@ -729,7 +734,7 @@ def main(argv=None):
         if args.test_existing:
             to_be_tested_repositories.extend(install_results.skipped_repositories)
         if to_be_tested_repositories:
-            install_repository_manager.test_tools(
+            test_result = install_repository_manager.test_tools(
                 test_json=args.test_json,
                 repositories=to_be_tested_repositories,
                 log=log,
@@ -739,6 +744,10 @@ def main(argv=None):
                 client_test_config_path=args.client_test_config,
             )
 
+    if install_results:
+        if len(install_results.errored_repositories) > 0:
+            sys.exit(1)
+    sys.exit(test_result)
 
 if __name__ == "__main__":
     main()

@@ -5,3 +5,4 @@ Jinja2
 galaxy-tool-util>=20.9.1
 galaxy-util>=20.9.0
 pysam
+rich

@@ -28,25 +28,39 @@ import json
 import logging
 import time
 from collections import namedtuple
+from typing import Optional
 
+from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
+from typing_extensions import Literal
 
-from . import get_galaxy_connection
-from . import load_yaml_file
-from .common_parser import get_common_args
-from .ephemeris_log import disable_external_library_logging, setup_global_logger
+from . import (
+    get_galaxy_connection,
+    get_or_create_history,
+    load_yaml_file,
+)
+from .common_parser import (
+    DEFAULT_JOB_SLEEP,
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
+from .ephemeris_log import (
+    disable_external_library_logging,
+    setup_global_logger,
+)
 
 DEFAULT_URL = "http://localhost"
 DEFAULT_SOURCE_TABLES = ["all_fasta"]
+DATA_MANAGER_MODES = Literal["dry_run", "populate", "bundle"]
 
 
 def wait(gi, job_list, log):
     """
-        Waits until all jobs in a list are finished or failed.
-        It will check the state of the created datasets every 30s.
-        It will return a tuple: ( finished_jobs, failed_jobs )
+    Waits until all jobs in a list are finished or failed.
+    It will check the state of the created datasets every 30s.
+    It will return a tuple: ( finished_jobs, failed_jobs )
     """
 
     failed_jobs = []
@@ -56,36 +70,33 @@ def wait(gi, job_list, log):
     while bool(job_list):
         finished_jobs = []
         for job in job_list:
-            job_hid = job['outputs'][0]['hid']
+            job_hid = job["outputs"][0]["hid"]
             # check if the output of the running job is either in 'ok' or 'error' state
-            state = gi.datasets.show_dataset(job['outputs'][0]['id'])['state']
-            if state == 'ok':
-                log.info('Job %i finished with state %s.' % (job_hid, state))
+            state = gi.datasets.show_dataset(job["outputs"][0]["id"])["state"]
+            if state == "ok":
+                log.info("Job %i finished with state %s." % (job_hid, state))
                 successful_jobs.append(job)
                 finished_jobs.append(job)
-            if state == 'error':
-                log.error('Job %i finished with state %s.' % (job_hid, state))
-                job_id = job['jobs'][0]['id']
+            if state == "error":
+                log.error("Job %i finished with state %s." % (job_hid, state))
+                job_id = job["jobs"][0]["id"]
                 job_details = gi.jobs.show_job(job_id, full_details=True)
                 log.error(
                     "Job {job_hid}: Tool '{tool_id}' finished with exit code: {exit_code}. Stderr: {stderr}".format(
-                        job_hid=job_hid,
-                        **job_details
-                    ))
-                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(
-                    job_hid=job_hid,
-                    **job_details
-                ))
+                        job_hid=job_hid, **job_details
+                    )
+                )
+                log.debug("Job {job_hid}: Tool '{tool_id}' stdout: {stdout}".format(job_hid=job_hid, **job_details))
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
-                log.debug('Job %i still running.' % job_hid)
+                log.debug("Job %i still running." % job_hid)
         # Remove finished jobs from job_list.
         for finished_job in finished_jobs:
             job_list.remove(finished_job)
         # only sleep if job_list is not empty yet.
         if bool(job_list):
-            time.sleep(30)
+            time.sleep(DEFAULT_JOB_SLEEP)
     return successful_jobs, failed_jobs
 
 
@@ -98,7 +109,7 @@ def get_first_valid_entry(input_dict, key_list):
 
 
 class DataManagers:
-    def __init__(self, galaxy_instance, configuration):
+    def __init__(self, galaxy_instance: GalaxyInstance, configuration):
         """
         :param galaxy_instance: A GalaxyInstance object (import from bioblend.galaxy)
         :param configuration: A dictionary. Examples in the ephemeris documentation.
@@ -107,10 +118,14 @@ class DataManagers:
         self.config = configuration
         self.tool_data_client = ToolDataClient(self.gi)
         self.tool_client = ToolClient(self.gi)
-        self.possible_name_keys = ['name', 'sequence_name']  # In order of importance!
-        self.possible_value_keys = ['value', 'sequence_id', 'dbkey']  # In order of importance!
-        self.data_managers = self.config.get('data_managers')
-        self.genomes = self.config.get('genomes', '')
+        self.possible_name_keys = ["name", "sequence_name"]  # In order of importance!
+        self.possible_value_keys = [
+            "value",
+            "sequence_id",
+            "dbkey",
+        ]  # In order of importance!
+        self.data_managers = self.config.get("data_managers")
+        self.genomes = self.config.get("genomes", "")
         self.source_tables = DEFAULT_SOURCE_TABLES
         self.fetch_jobs = []
         self.skipped_fetch_jobs = []
@@ -141,10 +156,10 @@ class DataManagers:
         :returns job_list, skipped_job_list"""
         job_list = []
         skipped_job_list = []
-        items = self.parse_items(dm.get('items', ['']))
-        for item in items:
-            dm_id = dm['id']
-            params = dm['params']
+
+        def handle_item(item: str):
+            dm_id = dm["id"]
+            params = dm["params"]
             inputs = dict()
             # Iterate over all parameters, replace occurences of {{item}} with the current processing item
             # and create the tool_inputs dict for running the data manager job
@@ -156,24 +171,33 @@ class DataManagers:
 
             job = dict(tool_id=dm_id, inputs=inputs)
 
-            data_tables = dm.get('data_table_reload', [])
+            data_tables = dm.get("data_table_reload") or []
             if self.input_entries_exist_in_data_tables(data_tables, inputs):
                 skipped_job_list.append(job)
             else:
                 job_list.append(job)
+
+        raw_items = dm.get("items") or None
+        if raw_items:
+            items = self.parse_items(raw_items)
+            for item in items:
+                handle_item(item)
+        else:
+            handle_item("")
+
         return job_list, skipped_job_list
 
     def dm_is_fetcher(self, dm):
         """Checks whether the data manager fetches a sequence instead of indexing.
         This is based on the source table.
         :returns True if dm is a fetcher. False if it is not."""
-        data_tables = dm.get('data_table_reload', [])
+        data_tables = dm.get("data_table_reload", [])
         for data_table in data_tables:
             if data_table in self.source_tables:
                 return True
         return False
 
-    def data_table_entry_exists(self, data_table_name, entry, column='value'):
+    def data_table_entry_exists(self, data_table_name, entry, column="value"):
         """Checks whether an entry exists in the a specified column in the data_table."""
         try:
             data_table_content = self.tool_data_client.show_data_table(data_table_name)
@@ -181,11 +205,11 @@ class DataManagers:
             raise Exception('Table "%s" does not exist' % data_table_name)
 
         try:
-            column_index = data_table_content.get('columns').index(column)
+            column_index = data_table_content.get("columns").index(column)
         except IndexError:
-            raise IndexError('Column "%s" does not exist in %s' % (column, data_table_name))
+            raise IndexError(f'Column "{column}" does not exist in {data_table_name}')
 
-        for field in data_table_content.get('fields'):
+        for field in data_table_content.get("fields"):
             if field[column_index] == entry:
                 return True
         return False
@@ -193,6 +217,11 @@ class DataManagers:
     def input_entries_exist_in_data_tables(self, data_tables, input_dict):
         """Checks whether name and value entries from the input are already present in the data tables.
         If an entry is missing in of the tables, this function returns False"""
+        if data_tables is None or len(data_tables) == 0:
+            # this logic is all broken I (@jmchilton) think, but lets just skip it all
+            # if we know we don't have data tables to check
+            return False
+
         value_entry = get_first_valid_entry(input_dict, self.possible_value_keys)
         name_entry = get_first_valid_entry(input_dict, self.possible_name_keys)
 
@@ -204,10 +233,10 @@ class DataManagers:
         # Return False as soon as entry is not present
         for data_table in data_tables:
             if value_entry:
-                if not self.data_table_entry_exists(data_table, value_entry, column='value'):
+                if not self.data_table_entry_exists(data_table, value_entry, column="value"):
                     return False
             if name_entry:
-                if not self.data_table_entry_exists(data_table, name_entry, column='name'):
+                if not self.data_table_entry_exists(data_table, name_entry, column="name"):
                     return False
         # If all checks are passed the entries are present in the database tables.
         return True
@@ -226,7 +255,14 @@ class DataManagers:
             items = json.loads(rendered_items)
         return items
 
-    def run(self, log=None, ignore_errors=False, overwrite=False):
+    def run(
+        self,
+        log=None,
+        ignore_errors=False,
+        overwrite=False,
+        data_manager_mode: DATA_MANAGER_MODES = "populate",
+        history_name: Optional[str] = None,
+    ):
         """
         Runs the data managers.
         :param log: The log to be used.
@@ -241,30 +277,43 @@ class DataManagers:
         if not log:
             log = logging.getLogger()
 
+        history_id: Optional[str] = None
+        if history_name is not None:
+            history_id = get_or_create_history(history_name, self.gi)["id"]
+
         def run_jobs(jobs, skipped_jobs):
             job_list = []
             for skipped_job in skipped_jobs:
                 if overwrite:
-                    log.info('%s already run for %s. Entry will be overwritten.' %
-                             (skipped_job["tool_id"], skipped_job["inputs"]))
+                    log.info(
+                        "{} already run for {}. Entry will be overwritten.".format(
+                            skipped_job["tool_id"], skipped_job["inputs"]
+                        )
+                    )
                     jobs.append(skipped_job)
                 else:
-                    log.info('%s already run for %s. Skipping.' % (skipped_job["tool_id"], skipped_job["inputs"]))
+                    log.info("{} already run for {}. Skipping.".format(skipped_job["tool_id"], skipped_job["inputs"]))
                     all_skipped_jobs.append(skipped_job)
             for job in jobs:
-                started_job = self.tool_client.run_tool(history_id=None, tool_id=job["tool_id"],
-                                                        tool_inputs=job["inputs"])
-                log.info('Dispatched job %i. Running DM: "%s" with parameters: %s' %
-                         (started_job['outputs'][0]['hid'], job["tool_id"], job["inputs"]))
+                started_job = self.tool_client.run_tool(
+                    history_id=history_id,
+                    tool_id=job["tool_id"],
+                    tool_inputs=job["inputs"],
+                    data_manager_mode=data_manager_mode,
+                )
+                log.info(
+                    'Dispatched job %i. Running DM: "%s" with parameters: %s'
+                    % (started_job["outputs"][0]["hid"], job["tool_id"], job["inputs"])
+                )
                 job_list.append(started_job)
 
             successful_jobs, failed_jobs = wait(self.gi, job_list, log)
             if failed_jobs:
                 if not ignore_errors:
-                    log.error('Not all jobs successful! aborting...')
-                    raise RuntimeError('Not all jobs successful! aborting...')
+                    log.error("Not all jobs successful! aborting...")
+                    raise RuntimeError("Not all jobs successful! aborting...")
                 else:
-                    log.warning('Not all jobs successful! ignoring...')
+                    log.warning("Not all jobs successful! ignoring...")
             all_succesful_jobs.extend(successful_jobs)
             all_failed_jobs.extend(failed_jobs)
 
@@ -273,13 +322,16 @@ class DataManagers:
         log.info("Running data managers that index sequences.")
         run_jobs(self.index_jobs, self.skipped_index_jobs)
 
-        log.info('Finished running data managers. Results:')
-        log.info('Successful jobs: %i ' % len(all_succesful_jobs))
-        log.info('Skipped jobs: %i ' % len(all_skipped_jobs))
-        log.info('Failed jobs: %i ' % len(all_failed_jobs))
+        log.info("Finished running data managers. Results:")
+        log.info("Successful jobs: %i " % len(all_succesful_jobs))
+        log.info("Skipped jobs: %i " % len(all_skipped_jobs))
+        log.info("Failed jobs: %i " % len(all_failed_jobs))
         InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
-        return InstallResults(successful_jobs=all_succesful_jobs, failed_jobs=all_failed_jobs,
-                              skipped_jobs=all_skipped_jobs)
+        return InstallResults(
+            successful_jobs=all_succesful_jobs,
+            failed_jobs=all_failed_jobs,
+            skipped_jobs=all_skipped_jobs,
+        )
 
 
 def _parser():
@@ -288,21 +340,37 @@ def _parser():
 
     parser = argparse.ArgumentParser(
         parents=[parent],
-        description='Running Galaxy data managers in a defined order with defined parameters.'
-                    "'watch_tool_data_dir' in galaxy config should be set to true.'")
-    parser.add_argument("--config", required=True,
-                        help="Path to the YAML config file with the list of data managers and data to install.")
-    parser.add_argument("--overwrite", action="store_true",
-                        help="Disables checking whether the item already exists in the tool data table.")
-    parser.add_argument("--ignore_errors", action="store_true",
-                        help="Do not stop running when jobs have failed.")
+        formatter_class=HideUnderscoresHelpFormatter,
+        description="Running Galaxy data managers in a defined order with defined parameters."
+        "'watch_tool_data_dir' in galaxy config should be set to true.'",
+    )
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="Path to the YAML config file with the list of data managers and data to install.",
+    )
+    parser.add_argument(
+        "--overwrite",
+        action="store_true",
+        help="Disables checking whether the item already exists in the tool data table.",
+    )
+    parser.add_argument(
+        "--ignore-errors",
+        "--ignore_errors",
+        action="store_true",
+        help="Do not stop running when jobs have failed.",
+    )
+    parser.add_argument(
+        "--data-manager-mode", "--data_manager_mode", choices=["bundle", "populate", "dry_run"], default="populate"
+    )
+    parser.add_argument("--history-name", default=None)
     return parser
 
 
-def main():
+def main(argv=None):
     disable_external_library_logging()
     parser = _parser()
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     log = setup_global_logger(name=__name__, log_file=args.log_file)
     if args.verbose:
         log.setLevel(logging.DEBUG)
@@ -311,8 +379,14 @@ def main():
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)
-    data_managers.run(log, args.ignore_errors, args.overwrite)
+    data_managers.run(
+        log,
+        args.ignore_errors,
+        args.overwrite,
+        data_manager_mode=args.data_manager_mode,
+        history_name=args.history_name,
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

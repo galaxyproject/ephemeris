@@ -1,0 +1,28 @@
+[tool.black]
+line-length = 120
+target-version = ["py37"]
+
+[tool.isort]
+combine_as_imports = true
+force_alphabetical_sort_within_sections = true
+# Override force_grid_wrap value from profile=black, but black is still happy
+force_grid_wrap = 2
+# Same line length as for black
+line_length = 120
+no_lines_before = "LOCALFOLDER"
+profile = "black"
+reverse_relative = true
+skip_gitignore = true
+
+[tool.ruff]
+# Enable: pycodestyle errors (E), Pyflakes (F), flake8-bugbear (B),
+# flake8-logging-format (G) and pyupgrade (UP)
+select = ["E", "F", "B", "G", "UP"]
+target-version = "py38"
+# Exceptions:
+# B008 Do not perform function calls in argument defaults (for FastAPI Depends and Body)
+# B9 flake8-bugbear opinionated warnings
+# E402 module level import not at top of file # TODO, we would like to improve this.
+# E501 is line length (delegated to black)
+# G* are TODOs
+ignore = ["B008", "B9", "E402", "E501", "G001", "G002", "G004"]

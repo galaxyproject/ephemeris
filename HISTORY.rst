@@ -6,6 +6,41 @@ History
 .. to_doc
 
 ---------------------
+0.10.10 (2024-02-01)
+---------------------
+
+* Use None default value where items are optional (thanks to `@mvdbeek`_).
+  `Pull Request 212`_
+
+---------------------
+0.10.9 (2024-01-31)
+---------------------
+
+* Fix CI tests (thanks to `@mvdbeek`_). `Pull Request 208`_
+* Add black, ruff, isort and mypy (thanks to `@mvdbeek`_). `Pull Request 209`_
+* Add now mandatory readthedocs config file (thanks to `@nsoranzo`_). `Pull
+  Request 210`_
+* Enhancements to the IDC scripts (thanks to `@jmchilton`_). `Pull Request
+  201`_
+
+---------------------
+0.10.8 (2023-04-18)
+---------------------
+
+* Prefer dashes instead of underscores in flags (thanks to `@natefoo`_). `Pull
+  Request 191`_
+* Remove folder id from get_folders function call in setup-data-libraries
+  (thanks to `@sanjaysrikakulam`_). `Pull Request 196`_
+* Standardize CLI commands on - instead of _ (thanks to `@hexylena`_). `Pull
+  Request 195`_
+* Add partial type annotations (thanks to `@mvdbeek`_). `Pull Request 193`_
+* Rename configuration option removed in tox 4.0 (thanks to `@nsoranzo`_).
+  `Pull Request 190`_
+* Set Library Permissions (thanks to `@mira-miracoli`_). `Pull Request 187`_
+* delete the extra random sleep lines from sleep.py (thanks to `@cat-bro`_).
+  `Pull Request 171`_
+
+---------------------
 0.10.7 (2021-06-08)
 ---------------------
 
@@ -239,6 +274,18 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 212: https://github.com/galaxyproject/ephemeris/pull/212
+.. _Pull Request 208: https://github.com/galaxyproject/ephemeris/pull/208
+.. _Pull Request 209: https://github.com/galaxyproject/ephemeris/pull/209
+.. _Pull Request 210: https://github.com/galaxyproject/ephemeris/pull/210
+.. _Pull Request 201: https://github.com/galaxyproject/ephemeris/pull/201
+.. _Pull Request 191: https://github.com/galaxyproject/ephemeris/pull/191
+.. _Pull Request 196: https://github.com/galaxyproject/ephemeris/pull/196
+.. _Pull Request 195: https://github.com/galaxyproject/ephemeris/pull/195
+.. _Pull Request 193: https://github.com/galaxyproject/ephemeris/pull/193
+.. _Pull Request 190: https://github.com/galaxyproject/ephemeris/pull/190
+.. _Pull Request 187: https://github.com/galaxyproject/ephemeris/pull/187
+.. _Pull Request 171: https://github.com/galaxyproject/ephemeris/pull/171
 .. _Pull Request 173: https://github.com/galaxyproject/ephemeris/pull/173
 .. _Pull Request 170: https://github.com/galaxyproject/ephemeris/pull/170
 .. _Pull Request 128: https://github.com/galaxyproject/ephemeris/pull/128
@@ -303,6 +350,9 @@ History
 .. _@innovate-invent: https://github.com/innovate-invent
 .. _@erasche: https://github.com/erasche
 .. _@nsoranzo: https://github.com/nsoranzo
+.. _@mira-miracoli: https://github.com/mira-miracoli
+.. _@sanjaysrikakulam: https://github.com/sanjaysrikakulam
+.. _@hexylena: https://github.com/hexylena
 
 .. _bioblend: https://github.com/galaxyproject/bioblend/
 .. _nose: https://nose.readthedocs.org/en/latest/

@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-'''Utility to do a blocking sleep until a Galaxy instance is responsive.
+"""Utility to do a blocking sleep until a Galaxy instance is responsive.
 This is useful in docker images, in RUN steps, where one needs to wait
 for a currently starting Galaxy to be alive, before API requests can be
 made successfully.
 The script functions by making repeated requests to
 ``http(s)://fqdn/api/version``, an API which requires no authentication
-to access.'''
+to access."""
 
 import sys
 import time
@@ -14,7 +14,10 @@ from argparse import ArgumentParser
 import requests
 from galaxy.util import unicodify
 
-from .common_parser import get_common_args
+from .common_parser import (
+    get_common_args,
+    HideUnderscoresHelpFormatter,
+)
 
 DEFAULT_SLEEP_WAIT = 1
 MESSAGE_KEY_NOT_YET_VALID = "[%02d] Provided key not (yet) valid... %s\n"
@@ -26,32 +29,32 @@ MESSAGE_TIMEOUT = "Failed to contact Galaxy within timeout (%s), exiting with er
 
 
 def _parser():
-    '''Constructs the parser object'''
+    """Constructs the parser object"""
     parent = get_common_args(login_required=False)
-    parser = ArgumentParser(parents=[parent], usage="usage: %(prog)s <options>",
-                            description="Script to sleep and wait for Galaxy to be alive.")
-    parser.add_argument("--timeout",
-                        default=0, type=int,
-                        help="Galaxy startup timeout in seconds. The default value of 0 waits forever")
-    parser.add_argument("-a", "--api_key",
-                        dest="api_key",
-                        help="Sleep until key becomes available.")
-    parser.add_argument("--ensure_admin",
-                        default=False,
-                        action="store_true")
+    parser = ArgumentParser(
+        parents=[parent],
+        usage="usage: %(prog)s <options>",
+        formatter_class=HideUnderscoresHelpFormatter,
+        description="Script to sleep and wait for Galaxy to be alive.",
+    )
+    parser.add_argument(
+        "--timeout",
+        default=0,
+        type=int,
+        help="Galaxy startup timeout in seconds. The default value of 0 waits forever",
+    )
+    parser.add_argument(
+        "-a",
+        "--api-key",
+        "--api_key",
+        dest="api_key",
+        help="Sleep until key becomes available.",
+    )
+    parser.add_argument("--ensure-admin", "--ensure_admin", default=False, action="store_true")
     return parser
 
 
-def _parse_cli_options():
-    """
-    Parse command line options, returning `parse_args` from `ArgumentParser`.
-    """
-    parser = _parser()
-    return parser.parse_args()
-
-
-class SleepCondition(object):
-
+class SleepCondition:
     def __init__(self):
         self.sleep = True
 
@@ -59,18 +62,25 @@ class SleepCondition(object):
         self.sleep = False
 
 
-def galaxy_wait(galaxy_url, verbose=False, timeout=0, sleep_condition=None, api_key=None, ensure_admin=False):
+def galaxy_wait(
+    galaxy_url,
+    verbose=False,
+    timeout=0,
+    sleep_condition=None,
+    api_key=None,
+    ensure_admin=False,
+):
     """Pass user_key to ensure it works before returning."""
     if verbose:
-        sys.stdout.write("calling galaxy_wait with timeout=%s ensure_admin=%s\n\n\n" % (timeout, ensure_admin))
+        sys.stdout.write(f"calling galaxy_wait with timeout={timeout} ensure_admin={ensure_admin}\n\n\n")
         sys.stdout.flush()
 
     version_url = galaxy_url + "/api/version"
     if api_key:
         # adding the key to the URL will ensure Galaxy returns invalid responses until
         # the key is available.
-        version_url = "%s?key=%s" % (version_url, api_key)
-        current_user_url = "%s/api/users/current?key=%s" % (galaxy_url, api_key)
+        version_url = f"{version_url}?key={api_key}"
+        current_user_url = f"{galaxy_url}/api/users/current?key={api_key}"
     else:
         assert not ensure_admin
 
@@ -92,7 +102,7 @@ def galaxy_wait(galaxy_url, verbose=False, timeout=0, sleep_condition=None, api_
                     try:
                         result = result.json()
                         if verbose:
-                            sys.stdout.write("Galaxy Version: %s\n" % result['version_major'])
+                            sys.stdout.write("Galaxy Version: %s\n" % result["version_major"])
                             sys.stdout.flush()
                         version_obtained = True
                     except ValueError:
@@ -110,7 +120,7 @@ def galaxy_wait(galaxy_url, verbose=False, timeout=0, sleep_condition=None, api_
                             return False
 
                     result = result.json()
-                    is_admin = result['is_admin']
+                    is_admin = result["is_admin"]
                     if is_admin:
                         if verbose:
                             sys.stdout.write("Verified supplied key an admin key.\n")
@@ -138,11 +148,11 @@ def galaxy_wait(galaxy_url, verbose=False, timeout=0, sleep_condition=None, api_
     return True
 
 
-def main():
+def main(argv=None):
     """
     Main function
     """
-    options = _parse_cli_options()
+    options = _parser().parse_args(argv)
 
     galaxy_alive = galaxy_wait(
         galaxy_url=options.galaxy,

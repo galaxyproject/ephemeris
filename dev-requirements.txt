@@ -3,7 +3,7 @@ tox
 coverage
 pytest
 pytest-cov
-docker
+galaxy-test-driver
 
 #Building Docs
 sphinx_rtd_theme
@@ -15,6 +15,9 @@ CommonMark
 pyflakes
 flake8
 flake8-import-order
+isort
+black
+ruff
 
 # For release
 wheel

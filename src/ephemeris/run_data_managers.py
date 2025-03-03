@@ -74,11 +74,11 @@ def wait(gi, job_list, log):
             # check if the output of the running job is either in 'ok' or 'error' state
             state = gi.datasets.show_dataset(job["outputs"][0]["id"])["state"]
             if state == "ok":
-                log.info("Job %i finished with state %s." % (job_hid, state))
+                log.info(f"Job {job_hid} finished with state {state}.")
                 successful_jobs.append(job)
                 finished_jobs.append(job)
             if state == "error":
-                log.error("Job %i finished with state %s." % (job_hid, state))
+                log.error(f"Job {job_hid} finished with state {state}.")
                 job_id = job["jobs"][0]["id"]
                 job_details = gi.jobs.show_job(job_id, full_details=True)
                 log.error(
@@ -90,7 +90,7 @@ def wait(gi, job_list, log):
                 failed_jobs.append(job)
                 finished_jobs.append(job)
             else:
-                log.debug("Job %i still running." % job_hid)
+                log.debug(f"Job {job_hid} still running.")
         # Remove finished jobs from job_list.
         for finished_job in finished_jobs:
             job_list.remove(finished_job)
@@ -202,7 +202,7 @@ class DataManagers:
         try:
             data_table_content = self.tool_data_client.show_data_table(data_table_name)
         except Exception:
-            raise Exception('Table "%s" does not exist' % data_table_name)
+            raise Exception(f'Table "{data_table_name}" does not exist')
 
         try:
             column_index = data_table_content.get("columns").index(column)
@@ -302,8 +302,7 @@ class DataManagers:
                     data_manager_mode=data_manager_mode,
                 )
                 log.info(
-                    'Dispatched job %i. Running DM: "%s" with parameters: %s'
-                    % (started_job["outputs"][0]["hid"], job["tool_id"], job["inputs"])
+                    f'Dispatched job {started_job["outputs"][0]["hid"]}. Running DM: {job["tool_id"]} with parameters: {job["inputs"]}'
                 )
                 job_list.append(started_job)
 
@@ -317,15 +316,15 @@ class DataManagers:
             all_succesful_jobs.extend(successful_jobs)
             all_failed_jobs.extend(failed_jobs)
 
-        log.info("Running data managers that populate the following source data tables: %s" % self.source_tables)
+        log.info(f"Running data managers that populate the following source data tables: {self.source_tables}")
         run_jobs(self.fetch_jobs, self.skipped_fetch_jobs)
         log.info("Running data managers that index sequences.")
         run_jobs(self.index_jobs, self.skipped_index_jobs)
 
         log.info("Finished running data managers. Results:")
-        log.info("Successful jobs: %i " % len(all_succesful_jobs))
-        log.info("Skipped jobs: %i " % len(all_skipped_jobs))
-        log.info("Failed jobs: %i " % len(all_failed_jobs))
+        log.info(f"Successful jobs: {len(all_succesful_jobs)} ")
+        log.info(f"Skipped jobs: {len(all_skipped_jobs)} ")
+        log.info(f"Failed jobs: {len(all_failed_jobs)} ")
         InstallResults = namedtuple("InstallResults", ["successful_jobs", "failed_jobs", "skipped_jobs"])
         return InstallResults(
             successful_jobs=all_succesful_jobs,

@@ -25,6 +25,7 @@ from galaxy.util import safe_makedirs
 from pydantic import (
     BaseModel,
     Extra,
+    RootModel,
 )
 
 from . import get_galaxy_connection
@@ -101,8 +102,8 @@ class DataManager(BaseModel, extra=Extra.forbid):
     tool_id: str
 
 
-class DataManagers(BaseModel, extra=Extra.forbid):
-    __root__: Dict[str, DataManager]
+class DataManagers(RootModel):
+    root: Dict[str, DataManager]
 
 
 class Genome(BaseModel):

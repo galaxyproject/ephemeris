@@ -7,3 +7,4 @@ galaxy-util>=20.9.0
 pysam
 rich
 setuptools
+pydantic>=2.0

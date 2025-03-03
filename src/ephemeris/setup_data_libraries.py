@@ -99,7 +99,7 @@ def create_batch_api(gi, desc):
     tc = galaxy.tools.ToolClient(gi)
 
     history = hc.create_history()
-    url = "%s/tools/fetch" % gi.url
+    url = f"{gi.url}/tools/fetch"
     payload = {"targets": [desc], "history_id": history["id"]}
     yield tc._post(payload=payload, url=url)
 
@@ -181,8 +181,7 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
         while True:
             job_states = [jc.get_state(job) in ("ok", "error", "deleted") for job in job_ids]
             log.debug(
-                "Job states: %s"
-                % ",".join([f"{job_id}={job_state}" for (job_id, job_state) in zip(job_ids, job_states)])
+                f'Job states: {",".join([f"{job_id}={job_state}" for (job_id, job_state) in zip(job_ids, job_states)])}'
             )
 
             if all(job_states):

@@ -38,7 +38,7 @@ class DataManager(NamedTuple):
 def read_data_managers_configuration(path: str) -> Dict[str, DataManager]:
     raw_data_managers = read_data_managers(path)
     data_managers: Dict[str, DataManager] = {}
-    for repository_name, data_manager_configuration in raw_data_managers.__root__.items():
+    for repository_name, data_manager_configuration in raw_data_managers.root.items():
         data_manager = DataManager(
             tool_id=data_manager_configuration.tool_id,
             repository_name=repository_name,

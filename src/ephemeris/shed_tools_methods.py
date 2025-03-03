@@ -33,7 +33,7 @@ def complete_repo_information(
 ) -> "InstallRepoDict":
     tool["tool_shed_url"] = format_tool_shed_url(tool.get("tool_shed_url") or default_toolshed_url)
     tool = get_changeset_revisions(tool, force_latest_revision=force_latest_revision)
-    repo: "InstallRepoDict" = dict(
+    repo: InstallRepoDict = dict(
         name=tool["name"],
         owner=tool["owner"],
         tool_shed_url=tool["tool_shed_url"],
@@ -101,7 +101,7 @@ def flatten_repo_info(
              values, those will be returned as separate list items.
     """
 
-    flattened_list: List["InstallRepoDict"] = []
+    flattened_list: List[InstallRepoDict] = []
     for repo_info in repositories:
         new_repo_info = repo_info.copy()
         if "revisions" in new_repo_info:

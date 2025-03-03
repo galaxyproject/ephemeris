@@ -102,7 +102,7 @@ def galaxy_wait(
                     try:
                         result = result.json()
                         if verbose:
-                            sys.stdout.write("Galaxy Version: %s\n" % result["version_major"])
+                            sys.stdout.write(f"Galaxy Version: {result['version_major']}\n")
                             sys.stdout.flush()
                         version_obtained = True
                     except ValueError:

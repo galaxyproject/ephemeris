@@ -277,9 +277,7 @@ class InstallRepositoryManager:
             if filtered_repos.not_installed_repos:
                 if log:
                     log.warning(
-                        "The following tools are not installed and will not be upgraded: {}".format(
-                            filtered_repos.not_installed_repos
-                        )
+                        f"The following tools are not installed and will not be upgraded: {filtered_repos.not_installed_repos}"
                     )
             repositories = filtered_repos.already_installed_repos
         return self.install_repositories(repositories, force_latest_revision=True, log=log, **kwargs)
@@ -361,7 +359,7 @@ class InstallRepositoryManager:
                 n_failed = len(test_exceptions)
                 report_obj = {
                     "version": "0.1",
-                    "suitename": "Ephemeris tool tests targeting %s" % self.gi.base_url,
+                    "suitename": f"Ephemeris tool tests targeting {self.gi.base_url}",
                     "results": {
                         "total": n_passed + n_failed,
                         "errors": n_failed,

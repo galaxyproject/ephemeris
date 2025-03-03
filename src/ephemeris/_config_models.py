@@ -10,6 +10,7 @@ import yaml
 from pydantic import (
     BaseModel,
     Extra,
+    RootModel,
 )
 
 StrOrPath = Union[Path, str]
@@ -40,8 +41,8 @@ class DataManager(BaseModel, extra=Extra.forbid):
     tool_id: str
 
 
-class DataManagers(BaseModel, extra=Extra.forbid):
-    __root__: Dict[str, DataManager]
+class DataManagers(RootModel):
+    root: Dict[str, DataManager]
 
 
 class Genome(BaseModel):
@@ -78,7 +79,7 @@ def _read_yaml(path: StrOrPath):
 
 
 def read_data_managers(path: StrOrPath) -> DataManagers:
-    return DataManagers(__root__=_read_yaml(path))
+    return DataManagers(root=_read_yaml(path))
 
 
 def read_genomes(path: StrOrPath) -> Genomes:

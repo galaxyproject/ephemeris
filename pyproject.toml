@@ -1,6 +1,6 @@
 [tool.black]
 line-length = 120
-target-version = ["py37"]
+target-version = ["py39"]
 
 [tool.isort]
 combine_as_imports = true
@@ -18,7 +18,7 @@ skip_gitignore = true
 # Enable: pycodestyle errors (E), Pyflakes (F), flake8-bugbear (B),
 # flake8-logging-format (G) and pyupgrade (UP)
 select = ["E", "F", "B", "G", "UP"]
-target-version = "py38"
+target-version = "py39"
 # Exceptions:
 # B008 Do not perform function calls in argument defaults (for FastAPI Depends and Body)
 # B9 flake8-bugbear opinionated warnings

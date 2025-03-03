@@ -1,6 +1,6 @@
 # Default tests run with make test and make quick-tests
 # Default environment for make tox
-ENV?=py37
+ENV?=py39
 # Extra arguments supplied to tox command
 ARGS?=
 # Location of virtualenv used for development.
@@ -27,7 +27,7 @@ help:
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "clean-test - remove test and coverage artifacts"
 	@echo "setup-venv - setup a development virutalenv in current directory."
-	@echo "lint - check style using tox and flake8 for Python 2 and Python 3"
+	@echo "lint - check style using tox and flake8 for Python 3"
 	@echo "lint-readme - check README formatting for PyPI"
 	@echo "flake8 - check style using flake8 for current Python (faster than lint)"
 	@echo "test - run tests with the default Python (faster than tox)"
@@ -75,7 +75,7 @@ format:
 	$(IN_VENV) isort $(SOURCE_DIR) $(TEST_DIR) && black $(SOURCE_DIR) $(TEST_DIR) && ruff --fix $(SOURCE_DIR) $(TEST_DIR)
 
 lint:
-	$(IN_VENV) tox -e py38-lint
+	$(IN_VENV) tox -e py39-lint
 
 lint-readme:
 	$(IN_VENV) python setup.py check -r -s

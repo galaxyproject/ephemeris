@@ -121,9 +121,7 @@ Before you submit a pull request, check that it meets these guidelines:
 
 1. If the pull request adds functionality, the docs should be updated. Put
    your new functionality into a function with a docstring.
-2. The pull request should work for Python 2.7. Check
-   https://travis-ci.org/galaxyproject/ephemeris/pull_requests
-   and make sure that the tests pass for all supported Python versions.
+2. The pull request should work for Python 3.9.
 
 .. _Tox: https://tox.readthedocs.org/en/latest/
 .. _nose: https://nose.readthedocs.org/en/latest/

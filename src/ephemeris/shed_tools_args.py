@@ -37,6 +37,7 @@ def parser():
         test_existing=False,
         parallel_tests=1,
         client_test_config=None,
+        skip_with_reference_data=False,
     )
 
     # SUBPARSERS
@@ -286,6 +287,13 @@ def parser():
         help="Run tests on all installed versions of tools.  This will only "
         "apply for tools where revisions have not been provided through "
         "the --revisions arg, --tool_file or --tool_yaml.",
+    )
+    test_command_parser.add_argument(
+        "--skip-with-reference-data",
+        "--skip_with_reference_data",
+        action="store_true",
+        dest="skip_with_reference_data",
+        help="Skip tests the Galaxy server believes use data tables or loc files.",
     )
     test_command_parser.add_argument(
         "--client-test-config",

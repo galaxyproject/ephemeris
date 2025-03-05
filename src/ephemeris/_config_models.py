@@ -31,8 +31,8 @@ class RepositoryInstallTarget(BaseModel):
 class RepositoryInstallTargets(BaseModel):
     """ """
 
-    api_key: Optional[str]
-    galaxy_instance: Optional[str]
+    api_key: Optional[str] = None
+    galaxy_instance: Optional[str] = None
     tools: List[RepositoryInstallTarget]
 
 

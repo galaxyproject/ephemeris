@@ -1,8 +1,5 @@
-from typing import (
-    Iterable,
-    List,
-    TYPE_CHECKING,
-)
+from collections.abc import Iterable
+from typing import TYPE_CHECKING
 
 from bioblend.toolshed import ToolShedInstance
 
@@ -86,7 +83,7 @@ def get_changeset_revisions(repository: "InstallRepoDict", force_latest_revision
 
 def flatten_repo_info(
     repositories: Iterable["InstallRepoDict"],
-) -> List["InstallRepoDict"]:
+) -> list["InstallRepoDict"]:
     """
     Flatten the dict containing info about what tools to install.
     The tool definition YAML file allows multiple revisions to be listed for
@@ -101,7 +98,7 @@ def flatten_repo_info(
              values, those will be returned as separate list items.
     """
 
-    flattened_list: List[InstallRepoDict] = []
+    flattened_list: list[InstallRepoDict] = []
     for repo_info in repositories:
         new_repo_info = repo_info.copy()
         if "revisions" in new_repo_info:

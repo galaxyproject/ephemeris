@@ -1,7 +1,5 @@
 from pathlib import Path
 from typing import (
-    Dict,
-    List,
     Optional,
     Union,
 )
@@ -22,7 +20,7 @@ class RepositoryInstallTarget(BaseModel):
     tool_shed_url: Optional[str] = None
     tool_panel_section_id: Optional[str] = None
     tool_panel_section_label: Optional[str] = None
-    revisions: Optional[List[str]] = None
+    revisions: Optional[list[str]] = None
     install_tool_dependencies: Optional[bool] = None
     install_repository_dependencies: Optional[bool] = None
     install_resolver_dependencies: Optional[bool] = None
@@ -31,18 +29,18 @@ class RepositoryInstallTarget(BaseModel):
 class RepositoryInstallTargets(BaseModel):
     """ """
 
-    api_key: Optional[str]
-    galaxy_instance: Optional[str]
-    tools: List[RepositoryInstallTarget]
+    api_key: Optional[str] = None
+    galaxy_instance: Optional[str] = None
+    tools: list[RepositoryInstallTarget]
 
 
 class DataManager(BaseModel, extra=Extra.forbid):
-    tags: List[str]
+    tags: list[str]
     tool_id: str
 
 
 class DataManagers(RootModel):
-    root: Dict[str, DataManager]
+    root: dict[str, DataManager]
 
 
 class Genome(BaseModel):
@@ -62,15 +60,15 @@ class Genome(BaseModel):
 
     # Description of actions (data managers) to run on target genome.
     indexers: Optional[
-        List[str]
+        list[str]
     ]  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
-    skiplist: Optional[List[str]] = (
+    skiplist: Optional[list[str]] = (
         None  # unimplemented: but if we implement classes of indexers, these will be ones to skip
     )
 
 
 class Genomes(BaseModel):
-    genomes: List[Genome]
+    genomes: list[Genome]
 
 
 def _read_yaml(path: StrOrPath):

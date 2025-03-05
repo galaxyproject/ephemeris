@@ -14,8 +14,6 @@ from copy import deepcopy
 from typing import (
     Any,
     Callable,
-    Dict,
-    List,
     Optional,
 )
 
@@ -71,7 +69,7 @@ class SplitOptions:
     filters: Filters = Filters()
 
 
-def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) -> str:
+def tool_id_for(indexer: str, data_managers: dict[str, DataManager], mode: str) -> str:
     data_manager = data_managers[indexer]
     assert data_manager, f"Could not find a target data manager for indexer name {indexer}"
     tool_shed_guid = data_manager.tool_id
@@ -88,22 +86,22 @@ def tool_id_for(indexer: str, data_managers: Dict[str, DataManager], mode: str) 
 
 class RunDataManager(BaseModel):
     id: str
-    items: Optional[List[Any]] = None
-    params: Optional[List[Any]] = None
-    data_table_reload: Optional[List[str]] = None
+    items: Optional[list[Any]] = None
+    params: Optional[list[Any]] = None
+    data_table_reload: Optional[list[str]] = None
 
 
 class RunDataManagers(BaseModel):
-    data_managers: List[RunDataManager]
+    data_managers: list[RunDataManager]
 
 
 class DataManager(BaseModel, extra=Extra.forbid):
-    tags: List[str]
+    tags: list[str]
     tool_id: str
 
 
 class DataManagers(RootModel):
-    root: Dict[str, DataManager]
+    root: dict[str, DataManager]
 
 
 class Genome(BaseModel):
@@ -111,7 +109,7 @@ class Genome(BaseModel):
 
 
 class Genomes(BaseModel):
-    genomes: List[Genome]
+    genomes: list[Genome]
 
 
 def ucsc_description_for_build(requested_build: str) -> str:
@@ -258,7 +256,7 @@ def split_genomes(split_options: SplitOptions) -> None:
 
 
 class GalaxyHistoryIsBuildComplete:
-    def __init__(self, history_names: List[str]):
+    def __init__(self, history_names: list[str]):
         self._history_names = history_names
 
     def __call__(self, build_id: str, indexer_name: str) -> bool:
@@ -267,7 +265,7 @@ class GalaxyHistoryIsBuildComplete:
 
 
 class CVMFSPublishIsComplete:
-    def __init__(self, records: Dict[str, List[str]]):
+    def __init__(self, records: dict[str, list[str]]):
         self.records = records
 
     def __call__(self, build_id: str, indexer_name: str) -> bool:
@@ -294,16 +292,16 @@ def _parser():
     return parser
 
 
-def get_galaxy_history_names(args) -> List[str]:
+def get_galaxy_history_names(args) -> list[str]:
     gi = get_galaxy_connection(args, login_required=True)
     return [h["name"] for h in gi.histories.get_histories()]
 
 
-def get_regular_files(dirname: str) -> List[str]:
+def get_regular_files(dirname: str) -> list[str]:
     return [f for f in os.listdir(dirname) if not f.startswith(".")]
 
 
-def get_cvmfs_publish_records(args) -> Dict[str, List[str]]:
+def get_cvmfs_publish_records(args) -> dict[str, list[str]]:
     records = {}
     records_dir = os.path.join(args.cvmfs_root, "record")
     for build_id in get_regular_files(records_dir):

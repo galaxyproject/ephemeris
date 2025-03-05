@@ -2,10 +2,7 @@
 """Tool to generate tools from workflows"""
 import json
 from argparse import ArgumentParser
-from typing import (
-    Iterable,
-    List,
-)
+from collections.abc import Iterable
 
 import yaml
 
@@ -60,9 +57,9 @@ def get_workflow_dictionary(json_file):
     return mydict
 
 
-def translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label: str) -> List[InstallRepoDict]:
+def translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label: str) -> list[InstallRepoDict]:
     starting_tool_list = extract_tool_shed_repositories_from_workflow_dict(workflow_dictionary)
-    tool_list: List[InstallRepoDict] = []
+    tool_list: list[InstallRepoDict] = []
     for tool in starting_tool_list:
         sub_dic: InstallRepoDict = {
             "name": tool["name"],
@@ -104,7 +101,7 @@ def print_yaml_tool_list(tool_dictionary, output_file):
     return
 
 
-def reduce_tool_list(tool_list: List[InstallRepoDict]) -> List[InstallRepoDict]:
+def reduce_tool_list(tool_list: list[InstallRepoDict]) -> list[InstallRepoDict]:
     for current_tool in tool_list:
         for tool in tool_list:
             if current_tool is tool:
@@ -121,8 +118,8 @@ def reduce_tool_list(tool_list: List[InstallRepoDict]) -> List[InstallRepoDict]:
     return tool_list
 
 
-def generate_repo_list_from_workflow(workflow_files: Iterable[str], panel_label: str) -> List[InstallRepoDict]:
-    intermediate_tool_list: List[InstallRepoDict] = []
+def generate_repo_list_from_workflow(workflow_files: Iterable[str], panel_label: str) -> list[InstallRepoDict]:
+    intermediate_tool_list: list[InstallRepoDict] = []
     for workflow in workflow_files:
         workflow_dictionary = get_workflow_dictionary(workflow)
         intermediate_tool_list += translate_workflow_dictionary_to_tool_list(workflow_dictionary, panel_label)

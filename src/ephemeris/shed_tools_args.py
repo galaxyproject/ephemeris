@@ -8,6 +8,23 @@ from .common_parser import (
 )
 
 
+class StoredTrue(argparse.Action):
+
+    _value = True
+
+    def __init__(self, option_strings, dest, nargs=0, **kwargs):
+        super().__init__(option_strings, dest, nargs=nargs, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest + '_set', True)
+        setattr(namespace, self.dest, self._value)
+
+
+class StoredFalse(StoredTrue):
+
+    _value = False
+
+
 def parser():
     """construct the parser object"""
     common_arguments = get_common_args(log_file=True)
@@ -120,7 +137,7 @@ def parser():
         command_parser.add_argument(
             "--skip-install-tool-dependencies",
             "--skip_install_tool_dependencies",
-            action="store_false",
+            action=StoredFalse,
             dest="install_tool_dependencies",
             default=False,  # Override True default for this function
             help=argparse.SUPPRESS,
@@ -128,7 +145,7 @@ def parser():
         command_parser.add_argument(
             "--install-tool-dependencies",
             "--install_tool_dependencies",
-            action="store_true",
+            action=StoredTrue,
             dest="install_tool_dependencies",
             help="Turn on installation of tool dependencies using classic toolshed packages. "
             "Can be overwritten on a per-tool basis in the tools file.",
@@ -136,7 +153,7 @@ def parser():
         command_parser.add_argument(
             "--install-resolver-dependencies",
             "--install_resolver_dependencies",
-            action="store_true",
+            action=StoredTrue,
             dest="install_resolver_dependencies",
             default=True,  # Override False default for this function
             help=argparse.SUPPRESS,
@@ -144,7 +161,7 @@ def parser():
         command_parser.add_argument(
             "--skip-install-resolver-dependencies",
             "--skip_install_resolver_dependencies",
-            action="store_false",
+            action=StoredFalse,
             dest="install_resolver_dependencies",
             help="Skip installing tool dependencies through resolver (e.g. conda). "
             "Will be ignored on galaxy releases older than 16.07. "
@@ -153,7 +170,7 @@ def parser():
         command_parser.add_argument(
             "--skip-install-repository-dependencies",
             "--skip_install_repository_dependencies",
-            action="store_false",
+            action=StoredFalse,
             dest="install_repository_dependencies",
             help="Skip installing the repository dependencies.",
         )

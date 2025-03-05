@@ -4,7 +4,6 @@
 import argparse
 import logging as log
 import sys
-from typing import List
 
 from bioblend import galaxy
 from rich.progress import Progress
@@ -17,7 +16,7 @@ from .common_parser import (
 # Print iterations progress
 
 
-def get_datasets(gi, library_id) -> List[str]:
+def get_datasets(gi, library_id) -> list[str]:
     objects = gi.libraries.show_dataset(library_id=library_id, dataset_id="")
     datasets = []
     for index in range(len(objects)):

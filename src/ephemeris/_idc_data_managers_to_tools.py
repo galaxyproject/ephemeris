@@ -7,11 +7,7 @@ a tools.yml file from it for use with shed_tools.
 """
 import argparse
 import logging
-from typing import (
-    Dict,
-    List,
-    NamedTuple,
-)
+from typing import NamedTuple
 
 import yaml
 
@@ -32,12 +28,12 @@ from .ephemeris_log import (
 class DataManager(NamedTuple):
     tool_id: str
     repository_name: str
-    tags: List[str]
+    tags: list[str]
 
 
-def read_data_managers_configuration(path: str) -> Dict[str, DataManager]:
+def read_data_managers_configuration(path: str) -> dict[str, DataManager]:
     raw_data_managers = read_data_managers(path)
-    data_managers: Dict[str, DataManager] = {}
+    data_managers: dict[str, DataManager] = {}
     for repository_name, data_manager_configuration in raw_data_managers.root.items():
         data_manager = DataManager(
             tool_id=data_manager_configuration.tool_id,

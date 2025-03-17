@@ -370,11 +370,7 @@ def main(argv=None):
     disable_external_library_logging()
     parser = _parser()
     args = parser.parse_args(argv)
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
+    log = setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
     gi = get_galaxy_connection(args, file=args.config, log=log, login_required=True)
     config = load_yaml_file(args.config)
     data_managers = DataManagers(gi, config)

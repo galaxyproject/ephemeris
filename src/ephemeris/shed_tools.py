@@ -246,7 +246,7 @@ class InstallRepositoryManager:
                     [(t["name"], t.get("changeset_revision")) for t in installed_repositories],
                 )
             )
-            log.info(
+            log.debug(
                 "Skipped repositories ({}): {}".format(
                     len(skipped_repositories),
                     [(t["name"], t.get("changeset_revision")) for t in skipped_repositories],

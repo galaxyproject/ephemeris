@@ -733,6 +733,9 @@ def main(argv=None):
                 client_test_config_path=args.client_test_config,
             )
 
+    if install_results:
+        if len(install_results.errored_repositories) > 0:
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

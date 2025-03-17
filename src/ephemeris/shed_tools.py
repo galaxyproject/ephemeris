@@ -490,6 +490,7 @@ class InstallRepositoryManager:
                 #  already been installed.'}
                 if log:
                     log.debug("\tRepository {} is already installed.".format(repository["name"]))
+                    return "skipped"
             if log:
                 log_repository_install_success(repository=repository, start=start, log=log)
             return "installed"

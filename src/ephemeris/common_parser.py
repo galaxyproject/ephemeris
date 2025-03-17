@@ -35,6 +35,14 @@ def add_log_file_argument(parser_or_group):
         help="Where the log file should be stored. " "Default is a file in your system's temp folder",
         default=None,
     )
+    parser_or_group.add_argument(
+        "--log-level",
+        "--log_level",
+        dest="log_level",
+        help="Log level",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR"],
+        default="DEBUG",
+    )
 
 
 def get_common_args(login_required=True, log_file=False):

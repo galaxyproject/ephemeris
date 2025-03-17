@@ -41,14 +41,14 @@ def disable_external_library_logging():
         pass
 
 
-def setup_global_logger(name, log_file=None):
+def setup_global_logger(name, log_file=None, log_level="DEBUG"):
     formatter = logging.Formatter("%(asctime)s %(levelname)-5s - %(message)s")
     progress = ProgressConsoleHandler()
     console = logging.StreamHandler()
     console.setFormatter(formatter)
 
     logger = logging.getLogger(name)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(getattr(logging, log_level))
     logger.addHandler(progress)
 
     if not log_file:

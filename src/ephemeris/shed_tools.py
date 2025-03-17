@@ -738,5 +738,6 @@ def main(argv=None):
         if len(install_results.errored_repositories) > 0:
             sys.exit(1)
 
+
 if __name__ == "__main__":
     main()

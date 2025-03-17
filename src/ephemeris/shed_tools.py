@@ -258,7 +258,6 @@ class InstallRepositoryManager:
                     [(t["name"], t.get("changeset_revision", "")) for t in errored_repositories],
                 )
             )
-            log.info("All repositories have been installed.")
             log.info(f"Total run time: {dt.datetime.now() - installation_start}")
         return InstallResults(
             installed_repositories=installed_repositories,

@@ -6,7 +6,6 @@ set of data managers the IDC configuration targets and builds a
 a tools.yml file from it for use with shed_tools.
 """
 import argparse
-import logging
 from typing import NamedTuple
 
 import yaml
@@ -89,11 +88,7 @@ def main():
     disable_external_library_logging()
     parser = _parser()
     args = parser.parse_args()
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
+    setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
     write_shed_install_conf(args.data_managers_conf, args.shed_install_output_conf)
 
 

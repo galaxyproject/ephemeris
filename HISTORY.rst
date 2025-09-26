@@ -6,6 +6,14 @@ History
 .. to_doc
 
 ---------------------
+0.10.11 (2025-09-26)
+---------------------
+
+* remove the duplicated argument for installing resolver deps (thanks to
+  `@martenson`_). `Pull Request 222`_
+* Test python 3.12 (thanks to `@mvdbeek`_). `Pull Request 220`_
+
+---------------------
 0.10.10 (2024-02-01)
 ---------------------
 
@@ -274,6 +282,8 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Pull Request 222: https://github.com/galaxyproject/ephemeris/pull/222
+.. _Pull Request 220: https://github.com/galaxyproject/ephemeris/pull/220
 .. _Pull Request 212: https://github.com/galaxyproject/ephemeris/pull/212
 .. _Pull Request 208: https://github.com/galaxyproject/ephemeris/pull/208
 .. _Pull Request 209: https://github.com/galaxyproject/ephemeris/pull/209

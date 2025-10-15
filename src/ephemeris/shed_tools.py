@@ -44,8 +44,8 @@ import time
 from collections import namedtuple
 from collections.abc import Iterable
 from concurrent.futures import (
-    ThreadPoolExecutor,
     thread,
+    ThreadPoolExecutor,
 )
 
 import requests
@@ -79,9 +79,9 @@ from .get_tool_list_from_galaxy import (
 )
 from .shed_tools_args import parser
 from .shed_tools_methods import (
-    VALID_KEYS,
     complete_repo_information,
     flatten_repo_info,
+    VALID_KEYS,
 )
 
 NON_TERMINAL_REPOSITORY_STATES = {

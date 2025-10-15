@@ -168,14 +168,11 @@ class InstallRepositoryManager:
             revision = repo.get("changeset_revision") if check_revision else None
             key = (name, owner, revision)
 
-            found = False
-            if key in installed_lookup:
-                for installed_repo in installed_lookup[key]:
-                    if the_same_repository(repo, installed_repo):
-                        already_installed_repos.append(repo)
-                        found = True
-                        break
-            if not found:  # This executes when the for loop completes and no match has been found.
+            for installed_repo in installed_lookup.get(key, []):
+                if the_same_repository(repo, installed_repo):
+                    already_installed_repos.append(repo)
+                    break
+            else:  # This executes when the for loop completes and no match has been found.
                 not_installed_repos.append(repo)
         return FilterResults(
             already_installed_repos=already_installed_repos,

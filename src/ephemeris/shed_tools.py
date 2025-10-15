@@ -74,6 +74,7 @@ from .ephemeris_log import (
 )
 from .get_tool_list_from_galaxy import (
     GiToToolYaml,
+    the_same_repository,
     tools_for_repository,
 )
 from .shed_tools_args import parser
@@ -155,9 +156,9 @@ class InstallRepositoryManager:
 
         installed_lookup = {}
         for installed_repo in installed_repos:
-            name = installed_repo.get("name", "")
-            owner = installed_repo.get("owner", "")
-            revision = installed_repo.get("changeset_revision", "") if check_revision else ""
+            name = installed_repo["name"]
+            owner = installed_repo["owner"]
+            revision = installed_repo.get("changeset_revision") if check_revision else None
             key = (name, owner, revision)
             installed_lookup.setdefault(key, []).append(installed_repo)
 
@@ -170,13 +171,13 @@ class InstallRepositoryManager:
             found = False
             if key in installed_lookup:
                 repo_tool_shed = repo.get("tool_shed_url") or repo.get("tool_shed")
+                if not repo_tool_shed:
+                    continue
                 for installed_repo in installed_lookup[key]:
-                    installed_tool_shed = installed_repo.get("tool_shed_url") or installed_repo.get("tool_shed", "")
-                    if (
-                        repo_tool_shed
-                        and installed_tool_shed
-                        and (repo_tool_shed in installed_tool_shed or installed_tool_shed in repo_tool_shed)
-                    ):
+                    installed_tool_shed = installed_repo.get("tool_shed_url") or installed_repo.get("tool_shed")
+                    if not installed_tool_shed:
+                        continue
+                    if repo_tool_shed in installed_tool_shed or installed_tool_shed in repo_tool_shed:
                         already_installed_repos.append(repo)
                         found = True
                         break

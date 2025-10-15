@@ -170,14 +170,8 @@ class InstallRepositoryManager:
 
             found = False
             if key in installed_lookup:
-                repo_tool_shed = repo.get("tool_shed_url") or repo.get("tool_shed")
-                if not repo_tool_shed:
-                    continue
                 for installed_repo in installed_lookup[key]:
-                    installed_tool_shed = installed_repo.get("tool_shed_url") or installed_repo.get("tool_shed")
-                    if not installed_tool_shed:
-                        continue
-                    if repo_tool_shed in installed_tool_shed or installed_tool_shed in repo_tool_shed:
+                    if the_same_repository(repo, installed_repo):
                         already_installed_repos.append(repo)
                         found = True
                         break

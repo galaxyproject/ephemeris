@@ -162,14 +162,14 @@ class InstallRepositoryManager:
             installed_lookup.setdefault(key, []).append(installed_repo)
 
         for repo in repos:
-            name = repo.get("name", "")
-            owner = repo.get("owner", "")
-            revision = repo.get("changeset_revision", "") if check_revision else ""
+            name = repo["name"]
+            owner = repo["owner"]
+            revision = repo.get("changeset_revision") if check_revision else None
             key = (name, owner, revision)
 
             found = False
             if key in installed_lookup:
-                repo_tool_shed = repo.get("tool_shed_url") or repo.get("tool_shed", "")
+                repo_tool_shed = repo.get("tool_shed_url") or repo.get("tool_shed")
                 for installed_repo in installed_lookup[key]:
                     installed_tool_shed = installed_repo.get("tool_shed_url") or installed_repo.get("tool_shed", "")
                     if (

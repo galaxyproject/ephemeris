@@ -44,8 +44,8 @@ import time
 from collections import namedtuple
 from collections.abc import Iterable
 from concurrent.futures import (
-    thread,
     ThreadPoolExecutor,
+    thread,
 )
 
 import requests
@@ -74,14 +74,13 @@ from .ephemeris_log import (
 )
 from .get_tool_list_from_galaxy import (
     GiToToolYaml,
-    the_same_repository,
     tools_for_repository,
 )
 from .shed_tools_args import parser
 from .shed_tools_methods import (
+    VALID_KEYS,
     complete_repo_information,
     flatten_repo_info,
-    VALID_KEYS,
 )
 
 NON_TERMINAL_REPOSITORY_STATES = {
@@ -154,12 +153,34 @@ class InstallRepositoryManager:
             # action to limit the number of comparisons.
             installed_repos = self.installed_repositories()
 
+        installed_lookup = {}
+        for installed_repo in installed_repos:
+            name = installed_repo.get("name", "")
+            owner = installed_repo.get("owner", "")
+            revision = installed_repo.get("changeset_revision", "") if check_revision else ""
+            key = (name, owner, revision)
+            installed_lookup.setdefault(key, []).append(installed_repo)
+
         for repo in repos:
-            for installed_repo in installed_repos:
-                if the_same_repository(installed_repo, repo, check_revision):
-                    already_installed_repos.append(repo)
-                    break
-            else:  # This executes when the for loop completes and no match has been found.
+            name = repo.get("name", "")
+            owner = repo.get("owner", "")
+            revision = repo.get("changeset_revision", "") if check_revision else ""
+            key = (name, owner, revision)
+
+            found = False
+            if key in installed_lookup:
+                repo_tool_shed = repo.get("tool_shed_url") or repo.get("tool_shed", "")
+                for installed_repo in installed_lookup[key]:
+                    installed_tool_shed = installed_repo.get("tool_shed_url") or installed_repo.get("tool_shed", "")
+                    if (
+                        repo_tool_shed
+                        and installed_tool_shed
+                        and (repo_tool_shed in installed_tool_shed or installed_tool_shed in repo_tool_shed)
+                    ):
+                        already_installed_repos.append(repo)
+                        found = True
+                        break
+            if not found:  # This executes when the for loop completes and no match has been found.
                 not_installed_repos.append(repo)
         return FilterResults(
             already_installed_repos=already_installed_repos,
@@ -471,7 +492,7 @@ class InstallRepositoryManager:
             executor.submit(run_test, test_index, test_id)
 
     def install_repository_revision(self, repository: InstallRepoDict, log):
-        default_err_msg = "All repositories that you are attempting to install " "have been previously installed."
+        default_err_msg = "All repositories that you are attempting to install have been previously installed."
         start = dt.datetime.now()
         try:
             response = self.tool_shed_client.install_repository_revision(
@@ -599,7 +620,7 @@ def log_repository_install_error(repository, start, msg, log):
     """
     end = dt.datetime.now()
     log.error(
-        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, " "revision: %s, error: %s",
+        "\t* Error installing a repository (after %s seconds)! Name: %s,owner: %s, revision: %s, error: %s",
         str(end - start),
         repository.get("name", ""),
         repository.get("owner", ""),

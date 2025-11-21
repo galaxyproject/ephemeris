@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tool to generate tools from workflows"""
 import json
-import urllib.request
 import os.path
+import urllib.request
 from argparse import ArgumentParser
 from collections.abc import Iterable
 

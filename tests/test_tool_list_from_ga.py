@@ -20,7 +20,7 @@ def test_workflows_to_tools_default():
             ]
         )
         print(tool_list_file.name)
-        with open(tool_list_file.name, "r") as file:
+        with open(tool_list_file.name) as file:
             result = yaml.safe_load(file)
     assert len(result["tools"]) == 2
     assert "jjohnson" in [t["owner"] for t in result["tools"]]
@@ -40,7 +40,7 @@ def test_workflows_to_tools_default_cat_json():
             ]
         )
         print(tool_list_file.name)
-        with open(tool_list_file.name, "r") as file:
+        with open(tool_list_file.name) as file:
             result = yaml.safe_load(file)
     assert len(result["tools"]) == 2
     assert "jjohnson" in [t["owner"] for t in result["tools"]]

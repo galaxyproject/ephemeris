@@ -81,7 +81,7 @@ def translate_workflow_dictionary_to_tool_list(
             "name": tool["name"],
             "owner": tool["owner"],
             "revisions": [tool["changeset_revision"]],
-            "tool_panel_section_label": default_tools_cat.get(f"{tool["owner"]}/{tool["name"]}", default_panel_label),
+            "tool_panel_section_label": default_tools_cat.get(tool["owner"] + "/" + tool["name"], default_panel_label),
             "tool_shed_url": format_tool_shed_url(tool["tool_shed"]),
         }
         tool_list.append(sub_dic)

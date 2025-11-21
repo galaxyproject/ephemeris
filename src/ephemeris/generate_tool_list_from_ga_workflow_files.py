@@ -102,19 +102,23 @@ def print_yaml_tool_list(tool_dictionary, output_file):
 
 
 def reduce_tool_list(tool_list: list[InstallRepoDict]) -> list[InstallRepoDict]:
-    for current_tool in tool_list:
-        for tool in tool_list:
-            if current_tool is tool:
-                continue
-            if (
-                tool["name"] == current_tool["name"]
-                and tool["owner"] == current_tool["owner"]
-                and tool["tool_panel_section_label"] == current_tool["tool_panel_section_label"]
-                and tool["tool_shed_url"] == current_tool["tool_shed_url"]
-            ):
-                current_tool["revisions"].extend(tool["revisions"])
-                tool_list.remove(tool)
-        current_tool["revisions"] = list(set(current_tool["revisions"]))
+    changes_in_tool_list = True
+    while changes_in_tool_list:
+        changes_in_tool_list = False
+        for current_tool in tool_list:
+            for tool in tool_list:
+                if current_tool is tool:
+                    continue
+                if (
+                    tool["name"] == current_tool["name"]
+                    and tool["owner"] == current_tool["owner"]
+                    and tool["tool_panel_section_label"] == current_tool["tool_panel_section_label"]
+                    and tool["tool_shed_url"] == current_tool["tool_shed_url"]
+                ):
+                    current_tool["revisions"].extend(tool["revisions"])
+                    tool_list.remove(tool)
+                    changes_in_tool_list = True
+            current_tool["revisions"] = list(set(current_tool["revisions"]))
     return tool_list
 
 

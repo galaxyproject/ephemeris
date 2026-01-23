@@ -46,7 +46,6 @@ from concurrent.futures import (
     thread,
     ThreadPoolExecutor,
 )
-from typing import Optional
 
 import requests
 import yaml
@@ -99,9 +98,9 @@ log = logging.getLogger(__name__)
 class InstallRepoDict(TypedDict):
     name: str
     owner: str
-    changeset_revision: NotRequired[Optional[str]]
-    tool_panel_section_id: NotRequired[Optional[str]]
-    tool_panel_section_label: NotRequired[Optional[str]]
+    changeset_revision: NotRequired[str | None]
+    tool_panel_section_id: NotRequired[str | None]
+    tool_panel_section_label: NotRequired[str | None]
     tool_shed_url: NotRequired[str]
     revisions: NotRequired[list[str]]
     install_repository_dependencies: NotRequired[bool]

@@ -14,9 +14,8 @@ import xml.etree.ElementTree as ElementTree
 from copy import deepcopy
 from typing import (
     Any,
-    Callable,
-    Optional,
 )
+from collections.abc import Callable
 
 import requests
 import yaml
@@ -47,9 +46,9 @@ log = logging.getLogger(__name__)
 
 
 class Filters:
-    stage: Optional[int] = None
-    data_manager: Optional[str] = None
-    build_id: Optional[str] = None
+    stage: int | None = None
+    data_manager: str | None = None
+    build_id: str | None = None
 
     def filter_out_data_manager(self, data_manager: str) -> bool:
         return bool(self.data_manager and data_manager != self.data_manager)
@@ -87,9 +86,9 @@ def tool_id_for(indexer: str, data_managers: dict[str, DataManager], mode: str) 
 
 class RunDataManager(BaseModel):
     id: str
-    items: Optional[list[Any]] = None
-    params: Optional[list[Any]] = None
-    data_table_reload: Optional[list[str]] = None
+    items: list[Any] | None = None
+    params: list[Any] | None = None
+    data_table_reload: list[str] | None = None
 
 
 class RunDataManagers(BaseModel):

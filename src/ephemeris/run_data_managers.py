@@ -29,12 +29,12 @@ import json
 import logging
 import time
 from collections import namedtuple
+from typing import Literal
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
-from typing import Literal
 
 from . import (
     get_galaxy_connection,

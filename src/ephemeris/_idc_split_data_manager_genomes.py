@@ -11,11 +11,11 @@ import logging
 import os
 import re
 import xml.etree.ElementTree as ElementTree
+from collections.abc import Callable
 from copy import deepcopy
 from typing import (
     Any,
 )
-from collections.abc import Callable
 
 import requests
 import yaml

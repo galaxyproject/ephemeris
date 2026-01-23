@@ -55,7 +55,9 @@ class Genome(BaseModel):
     version: str | None = None  # Any version information associated with the data
 
     # Description of actions (data managers) to run on target genome.
-    indexers: list[str] | None  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
+    indexers: (
+        list[str] | None
+    )  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
     skiplist: list[str] | None = (
         None  # unimplemented: but if we implement classes of indexers, these will be ones to skip
     )

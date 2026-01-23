@@ -41,8 +41,7 @@ def main(argv):
 %s.dev0
 ---------------------
 
-    """
-        % new_version,
+    """ % new_version,
     )
     with open(history_path, "w") as f:
         f.write(history)

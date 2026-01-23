@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tool to generate tools from workflows"""
+
 import json
 import os.path
 import urllib.request

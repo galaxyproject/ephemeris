@@ -23,6 +23,7 @@ It checks it in the following way:
     Value takes precedence over sequence_id which takes precedence over dbkey.
   * If none of the above input variables are specified the data manager will always run.
 """
+
 import argparse
 import json
 import logging

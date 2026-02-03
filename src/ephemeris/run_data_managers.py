@@ -23,18 +23,18 @@ It checks it in the following way:
     Value takes precedence over sequence_id which takes precedence over dbkey.
   * If none of the above input variables are specified the data manager will always run.
 """
+
 import argparse
 import json
 import logging
 import time
 from collections import namedtuple
-from typing import Optional
+from typing import Literal
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
 from bioblend.galaxy.tools import ToolClient
 from jinja2 import Template
-from typing_extensions import Literal
 
 from . import (
     get_galaxy_connection,
@@ -261,7 +261,7 @@ class DataManagers:
         ignore_errors=False,
         overwrite=False,
         data_manager_mode: DATA_MANAGER_MODES = "populate",
-        history_name: Optional[str] = None,
+        history_name: str | None = None,
     ):
         """
         Runs the data managers.
@@ -277,7 +277,7 @@ class DataManagers:
         if not log:
             log = logging.getLogger()
 
-        history_id: Optional[str] = None
+        history_id: str | None = None
         if history_name is not None:
             history_id = get_or_create_history(history_name, self.gi)["id"]
 

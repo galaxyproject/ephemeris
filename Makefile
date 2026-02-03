@@ -1,6 +1,6 @@
 # Default tests run with make test and make quick-tests
 # Default environment for make tox
-ENV?=py39
+ENV?=py310
 # Extra arguments supplied to tox command
 ARGS?=
 # Location of virtualenv used for development.
@@ -75,7 +75,7 @@ format:
 	$(IN_VENV) isort $(SOURCE_DIR) $(TEST_DIR) && black $(SOURCE_DIR) $(TEST_DIR) && ruff --fix $(SOURCE_DIR) $(TEST_DIR)
 
 lint:
-	$(IN_VENV) tox -e py39-lint
+	$(IN_VENV) tox -e py310-lint
 
 lint-readme:
 	$(IN_VENV) python setup.py check -r -s

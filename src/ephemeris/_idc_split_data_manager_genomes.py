@@ -22,8 +22,6 @@ import yaml
 from galaxy.util import safe_makedirs
 from pydantic import (
     BaseModel,
-    Extra,
-    RootModel,
 )
 
 from . import get_galaxy_connection
@@ -95,15 +93,6 @@ class RunDataManagers(BaseModel):
     data_managers: list[RunDataManager]
 
 
-class DataManager(BaseModel, extra=Extra.forbid):
-    tags: list[str]
-    tool_id: str
-
-
-class DataManagers(RootModel):
-    root: dict[str, DataManager]
-
-
 class Genome(BaseModel):
     pass
 
@@ -119,11 +108,15 @@ def ucsc_description_for_build(requested_build: str) -> str:
     tree = ElementTree.fromstring(text)
 
     for dsn in tree:
-        build = dsn.find("SOURCE").attrib["id"]
-        if build != requested_build:
+        SOURCE_el = dsn.find("SOURCE")
+        if SOURCE_el is None or SOURCE_el.attrib["id"] != requested_build:
             continue
 
-        description = dsn.find("DESCRIPTION").text.replace(" - Genome at UCSC", "").replace(" Genome at UCSC", "")
+        DESCRIPTION_el = dsn.find("DESCRIPTION")
+        assert DESCRIPTION_el is not None
+        description = DESCRIPTION_el.text
+        assert description is not None
+        description = description.replace(" - Genome at UCSC", "").replace(" Genome at UCSC", "")
 
         fields = description.split(" ")
         temp = fields[0]

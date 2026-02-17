@@ -113,8 +113,6 @@ def main(argv=None):
         log.basicConfig(level=log.ERROR)
     else:
         log.basicConfig(level=log.INFO)
-    if not args.library:
-        sys.exit("Specify library ID as positional argument and one or a list of roles like (--roles roleId1 roleId2)")
     log.info(
         "\nThis script uses bioblend to update ALL permissions of ALL datasets in a"
         "specified library to the given roles. Be careful and cancel if unsure\n"

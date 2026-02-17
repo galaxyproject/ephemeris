@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tool to setup data libraries on a galaxy instance"""
+
 import argparse
 import logging as log
 import sys

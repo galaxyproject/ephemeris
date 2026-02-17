@@ -5,6 +5,7 @@ This script takes a data_managers.yml configuration describing the
 set of data managers the IDC configuration targets and builds a
 a tools.yml file from it for use with shed_tools.
 """
+
 import argparse
 import logging
 from typing import NamedTuple

@@ -86,7 +86,7 @@ setup(
     install_requires=requirements,
     license="AFL",
     zip_safe=False,
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     keywords="galaxy",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -99,7 +99,6 @@ setup(
         "Topic :: Software Development :: Testing",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",

@@ -737,8 +737,11 @@ def main(argv=None):
 
     if install_results:
         if len(install_results.errored_repositories) > 0:
-            sys.exit(1)
+            log.error("There were errors for some repositories")
+            return 1
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    if exit_code:
+        sys.exit(exit_code)

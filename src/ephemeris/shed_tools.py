@@ -154,9 +154,22 @@ class InstallRepositoryManager:
             # action to limit the number of comparisons.
             installed_repos = self.installed_repositories()
 
+        installed_lookup = {}
+        for installed_repo in installed_repos:
+            name = installed_repo["name"]
+            owner = installed_repo["owner"]
+            revision = installed_repo.get("changeset_revision") if check_revision else None
+            key = (name, owner, revision)
+            installed_lookup.setdefault(key, []).append(installed_repo)
+
         for repo in repos:
-            for installed_repo in installed_repos:
-                if the_same_repository(installed_repo, repo, check_revision):
+            name = repo["name"]
+            owner = repo["owner"]
+            revision = repo.get("changeset_revision") if check_revision else None
+            key = (name, owner, revision)
+
+            for installed_repo in installed_lookup.get(key, []):
+                if the_same_repository(repo, installed_repo):
                     already_installed_repos.append(repo)
                     break
             else:  # This executes when the for loop completes and no match has been found.
@@ -471,7 +484,7 @@ class InstallRepositoryManager:
             executor.submit(run_test, test_index, test_id)
 
     def install_repository_revision(self, repository: InstallRepoDict, log):
-        default_err_msg = "All repositories that you are attempting to install " "have been previously installed."
+        default_err_msg = "All repositories that you are attempting to install have been previously installed."
         start = dt.datetime.now()
         try:
             response = self.tool_shed_client.install_repository_revision(
@@ -599,7 +612,7 @@ def log_repository_install_error(repository, start, msg, log):
     """
     end = dt.datetime.now()
     log.error(
-        "\t* Error installing a repository (after %s seconds)! Name: %s," "owner: %s, " "revision: %s, error: %s",
+        "\t* Error installing a repository (after %s seconds)! Name: %s,owner: %s, revision: %s, error: %s",
         str(end - start),
         repository.get("name", ""),
         repository.get("owner", ""),

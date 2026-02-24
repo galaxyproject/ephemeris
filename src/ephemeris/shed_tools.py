@@ -740,7 +740,7 @@ def main(argv=None):
             )
 
     if install_results and len(install_results.errored_repositories) > 0:
-        raise ToolInstallationException("There were errors for some repositories")
+        raise ToolInstallationException(f"There were errors for some repositories: {install_results.errored_repositories}")
 
 
 if __name__ == "__main__":

@@ -313,11 +313,7 @@ def main():
     disable_external_library_logging()
     parser = _parser()
     args = parser.parse_args()
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
+    setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
 
     if args.complete_check_cvmfs:
         is_build_complete = CVMFSPublishIsComplete(get_cvmfs_publish_records(args))

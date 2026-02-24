@@ -39,6 +39,7 @@ import json
 import logging
 import os
 import re
+import sys
 import time
 from collections import namedtuple
 from collections.abc import Iterable
@@ -93,6 +94,10 @@ NON_TERMINAL_REPOSITORY_STATES = {
 }
 
 log = logging.getLogger(__name__)
+
+
+class ToolInstallationException(Exception):
+    pass
 
 
 class InstallRepoDict(TypedDict):
@@ -245,7 +250,7 @@ class InstallRepositoryManager:
                     [(t["name"], t.get("changeset_revision")) for t in installed_repositories],
                 )
             )
-            log.info(
+            log.debug(
                 "Skipped repositories ({}): {}".format(
                     len(skipped_repositories),
                     [(t["name"], t.get("changeset_revision")) for t in skipped_repositories],
@@ -257,7 +262,6 @@ class InstallRepositoryManager:
                     [(t["name"], t.get("changeset_revision", "")) for t in errored_repositories],
                 )
             )
-            log.info("All repositories have been installed.")
             log.info(f"Total run time: {dt.datetime.now() - installation_start}")
         return InstallResults(
             installed_repositories=installed_repositories,
@@ -490,6 +494,7 @@ class InstallRepositoryManager:
                 #  already been installed.'}
                 if log:
                     log.debug("\tRepository {} is already installed.".format(repository["name"]))
+                    return "skipped"
             if log:
                 log_repository_install_success(repository=repository, start=start, log=log)
             return "installed"
@@ -672,7 +677,7 @@ def args_to_repos(args) -> list[InstallRepoDict]:
 def main(argv=None):
     disable_external_library_logging()
     args = parser().parse_args(argv)
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
+    log = setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_repository_manager = InstallRepositoryManager(gi)
 
@@ -733,6 +738,15 @@ def main(argv=None):
                 client_test_config_path=args.client_test_config,
             )
 
+    if install_results and len(install_results.errored_repositories) > 0:
+        raise ToolInstallationException(
+            f"There were errors for some repositories: {install_results.errored_repositories}"
+        )
+
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except ToolInstallationException as e:
+        log.error(str(e))
+        sys.exit(1)

@@ -97,6 +97,10 @@ NON_TERMINAL_REPOSITORY_STATES = {
 log = logging.getLogger(__name__)
 
 
+class ToolInstallationException(Exception):
+    pass
+
+
 class InstallRepoDict(TypedDict):
     name: str
     owner: str
@@ -735,13 +739,13 @@ def main(argv=None):
                 client_test_config_path=args.client_test_config,
             )
 
-    if install_results:
-        if len(install_results.errored_repositories) > 0:
-            log.error("There were errors for some repositories")
-            return 1
+    if install_results and len(install_results.errored_repositories) > 0:
+        raise ToolInstallationException("There were errors for some repositories")
 
 
 if __name__ == "__main__":
-    exit_code = main()
-    if exit_code:
-        sys.exit(exit_code)
+    try:
+        main()
+    except ToolInstallationException as e:
+        log.error(str(e))
+        sys.exit(1)

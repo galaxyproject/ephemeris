@@ -12,11 +12,6 @@ are fine.
 
 ::
 
-    [distutils]
-    index-servers =
-        pypi
-        test
-    
     [pypi]
     username:<username>
     password:<password>

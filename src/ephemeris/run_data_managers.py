@@ -29,7 +29,10 @@ import json
 import logging
 import time
 from collections import namedtuple
-from typing import Literal
+from typing import (
+    Any,
+    Literal,
+)
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.tool_data import ToolDataClient
@@ -127,10 +130,10 @@ class DataManagers:
         self.data_managers = self.config.get("data_managers")
         self.genomes = self.config.get("genomes", "")
         self.source_tables = DEFAULT_SOURCE_TABLES
-        self.fetch_jobs = []
-        self.skipped_fetch_jobs = []
-        self.index_jobs = []
-        self.skipped_index_jobs = []
+        self.fetch_jobs: list[dict[str, Any]] = []
+        self.skipped_fetch_jobs: list[dict[str, Any]] = []
+        self.index_jobs: list[dict[str, Any]] = []
+        self.skipped_index_jobs: list[dict[str, Any]] = []
 
     def initiate_job_lists(self):
         """
@@ -151,7 +154,7 @@ class DataManagers:
                 self.index_jobs.extend(jobs)
                 self.skipped_index_jobs.extend(skipped_jobs)
 
-    def get_dm_jobs(self, dm):
+    def get_dm_jobs(self, dm) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         """Gets the job entries for a single dm. Puts entries that already present in skipped_job_list.
         :returns job_list, skipped_job_list"""
         job_list = []

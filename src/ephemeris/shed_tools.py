@@ -154,7 +154,7 @@ class InstallRepositoryManager:
             # action to limit the number of comparisons.
             installed_repos = self.installed_repositories()
 
-        installed_lookup = {}
+        installed_lookup: dict[tuple[str, str, str | None], list[InstallRepoDict]] = {}
         for installed_repo in installed_repos:
             name = installed_repo["name"]
             owner = installed_repo["owner"]

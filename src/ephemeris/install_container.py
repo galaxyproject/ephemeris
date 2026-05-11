@@ -151,7 +151,7 @@ for tool in tool_list:
     logger.debug(f"Checking {tool}")
     res = container_resolution_client.resolve_toolbox(tool_ids=[tool])
     container = None
-    for i, r in enumerate(res):
+    for r in res:
         logger.debug(f"{r=}")
         tool_id = r["tool_id"]
         container = r["status"].get("environment_path")
@@ -166,7 +166,7 @@ for tool in tool_list:
         else:
             res = container_resolution_client.resolve_toolbox(tool_ids=[tool], index=args.index)
             container_uri = None
-            for i, r in enumerate(res):
+            for r in res:
                 logger.debug(f"{r=}")
                 tool_id = r["tool_id"]
                 container_uri = r["status"].get("environment_path")
@@ -178,7 +178,7 @@ for tool in tool_list:
             continue
 
         res = container_resolution_client.resolve_toolbox(tool_ids=[tool], install=args.install_container)
-        for i, r in enumerate(res):
+        for r in res:
             tool_id = r["tool_id"]
             new_container = r["status"].get("environment_path")
 

@@ -32,7 +32,6 @@ import os.path
 import re
 from typing import (
     Any,
-    List,
     TYPE_CHECKING,
 )
 
@@ -43,13 +42,11 @@ from galaxy.tool_util.version import parse_version
 from galaxy.util.tool_version import remove_version_from_guid
 
 if TYPE_CHECKING:
-    from packaging.version import (
-        LegacyVersion,
-        Version,
-    )
+    from galaxy.tool_util.version import LegacyVersion
+    from packaging.version import Version
 
 
-def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: List[str], latest: bool) -> list[str]:
+def get_tool_list(galaxy_instance: GalaxyInstance, include: list[str], exclude: list[str], latest: bool) -> list[str]:
     """
     get a list of tool IDs from a galaxy instance
 

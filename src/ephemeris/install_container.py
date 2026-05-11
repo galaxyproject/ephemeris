@@ -29,7 +29,10 @@ import logging
 import os
 import os.path
 import re
-from typing import Any, List
+from typing import (
+    Any,
+    List,
+)
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.container_resolution import ContainerResolutionClient

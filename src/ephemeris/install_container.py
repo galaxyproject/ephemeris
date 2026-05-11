@@ -38,7 +38,7 @@ from galaxy.tool_util.version import parse_version
 from galaxy.util.tool_version import remove_version_from_guid
 
 
-def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: List[str], latest: bool):
+def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: List[str], latest: bool) -> list[str]:
     """
     get a list of tool IDs from a galaxy instance
 
@@ -47,7 +47,7 @@ def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: 
     tool_client = ToolClient(galaxy_instance)
     tools = tool_client.get_tools()
 
-    tool_versions = {}
+    tool_versions: dict[str, list[tuple[str, str]]] = {}
     for tool in tools:
         tool_id = tool["id"]
         if include and not any([re.search(f, tool_id) for f in include]):
@@ -126,7 +126,6 @@ galaxy_instance = GalaxyInstance(url=args.url, key=key)
 # get tools (matching filters and latest arguments)
 tool_list = get_tool_list(galaxy_instance, args.include, args.exclude, args.latest)
 
-new_containers = set()
 container_resolution_client = ContainerResolutionClient(galaxy_instance=galaxy_instance)
 
 resolvers = container_resolution_client.get_container_resolvers()

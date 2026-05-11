@@ -1,8 +1,27 @@
 """
-install (i.e. cache) containers for a set of tools
+Install or tabulate (singularity) containers
 
-tools can be selected by basic string matching (--filter)
-or version (--latest)
+Use cases:
+
+1. run on the Galaxy machine itself and trigger caching of (singularity) containers
+2. determine a table that maps docker URIs and cached container image paths.
+   this table can then be used on machines that do not have access to CVMFS
+   to download container images.
+
+what the tool does:
+
+1. query the list of tools from an instance (optionaly filter by regexes on the tool_ids and latest version)
+2. for each tool:
+
+- resolve the container with the container resolvers that are configured at the target instance 
+  (for cached singularity containers with a configured cache directory this will yield a path)
+- if `--install_container` the resolver(s) will be called again with the install parameter set to `True`
+  (if the determined path does not exist)
+- if `--tabulate N` is used the `N`-th configured resolver is called and the result is printed together
+  with the tool_id and the path that was determined in the 1st step (tab separated).
+  The idea is that the instance configures a singularity container resolver (at index N) without a cache
+  directory defined. This resolver will yield the original container URI (docker://...). If this resolver
+  is defined after the cached / non-cached singularity container resolvers it should never be called in production.
 """
 
 import argparse
@@ -13,8 +32,8 @@ import re
 from typing import List
 
 from bioblend.galaxy import GalaxyInstance
-from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.container_resolution import ContainerResolutionClient
+from bioblend.galaxy.tools import ToolClient
 from galaxy.tool_util.version import parse_version
 from galaxy.util.tool_version import remove_version_from_guid
 

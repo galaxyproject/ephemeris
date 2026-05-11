@@ -64,7 +64,7 @@ def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: 
             tool_versions[tool_id] = []
         try:
             version = parse_version(tool["version"])
-        except:
+        except Exception:
             logger.error(f"could not parse version {version} of tool {tool}")
             continue
         tool_versions[tool_id].append((version, tool["id"]))

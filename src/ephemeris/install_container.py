@@ -13,7 +13,7 @@ what the tool does:
 1. query the list of tools from an instance (optionaly filter by regexes on the tool_ids and latest version)
 2. for each tool:
 
-- resolve the container with the container resolvers that are configured at the target instance 
+- resolve the container with the container resolvers that are configured at the target instance
   (for cached singularity containers with a configured cache directory this will yield a path)
 - if `--install_container` the resolver(s) will be called again with the install parameter set to `True`
   (if the determined path does not exist)
@@ -29,7 +29,7 @@ import logging
 import os
 import os.path
 import re
-from typing import List
+from typing import Any, List
 
 from bioblend.galaxy import GalaxyInstance
 from bioblend.galaxy.container_resolution import ContainerResolutionClient
@@ -47,7 +47,7 @@ def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: 
     tool_client = ToolClient(galaxy_instance)
     tools = tool_client.get_tools()
 
-    tool_versions: dict[str, list[tuple[str, str]]] = {}
+    tool_versions: dict[str, list[tuple[LegacyVersion | Version, Any]]] = {}
     for tool in tools:
         tool_id = tool["id"]
         if include and not any([re.search(f, tool_id) for f in include]):

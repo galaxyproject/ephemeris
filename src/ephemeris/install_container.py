@@ -17,11 +17,12 @@ what the tool does:
   (for cached singularity containers with a configured cache directory this will yield a path)
 - if `--install_container` the resolver(s) will be called again with the install parameter set to `True`
   (if the determined path does not exist)
-- if `--tabulate N` is used the `N`-th configured resolver is called and the result is printed together
-  with the tool_id and the path that was determined in the 1st step (tab separated).
-  The idea is that the instance configures a singularity container resolver (at index N) without a cache
+- if `--tabulate` is used the tool ids and the result of the container resolvers (the cached path)
+  will be printed comma separated
+  if in addition `--index N` is used the `N`-th configured resolver is called and the result is printed as additional
+  column. The idea is that the instance configures a singularity container resolver (at index N) without a cache
   directory defined. This resolver will yield the original container URI (docker://...). If this resolver
-  is defined after the cached / non-cached singularity container resolvers it should never be called in production.
+  is defined after the cached / non-cached singularity container resolvers it will never be called in production.
 """
 
 import argparse
@@ -100,7 +101,8 @@ parser.add_argument(
 )
 parser.add_argument("--latest", action="store_true", default=False, help="consider only the latest version of the tool")
 parser.add_argument("--install_container", action="store_true", default=False, help="install the container")
-parser.add_argument("--tabulate", type=int, action="store", required=False, default=None, help="resolver index")
+parser.add_argument("--tabulate", action="store_true", default=False, help="Tabulate tool_id and resolver results")
+parser.add_argument("--index", type=int, action="store", required=False, default=None, help="The index of an additional resolver to tabulate")
 parser.add_argument(
     "-log",
     "--loglevel",
@@ -131,10 +133,6 @@ tool_list = get_tool_list(galaxy_instance, args.include, args.exclude, args.late
 
 container_resolution_client = ContainerResolutionClient(galaxy_instance=galaxy_instance)
 
-resolvers = container_resolution_client.get_container_resolvers()
-for i, resolver in enumerate(resolvers):
-    logger.debug(f"{i=} {resolver=}")
-
 for tool in tool_list:
     logger.debug(f"Checking {tool}")
     res = container_resolution_client.resolve_toolbox(tool_ids=[tool])
@@ -149,13 +147,16 @@ for tool in tool_list:
         continue
 
     if args.tabulate:
-        res = container_resolution_client.resolve_toolbox(tool_ids=[tool], index=4)
-        container_uri = None
-        for i, r in enumerate(res):
-            logger.debug(f"{r=}")
-            tool_id = r["tool_id"]
-            container_uri = r["status"].get("environment_path")
-        print(f"{tool}\t{container}\t{container_uri}")
+        if args.index is None:
+            print(f"{tool}\t{container}")
+        else:
+            res = container_resolution_client.resolve_toolbox(tool_ids=[tool], index=args.index)
+            container_uri = None
+            for i, r in enumerate(res):
+                logger.debug(f"{r=}")
+                tool_id = r["tool_id"]
+                container_uri = r["status"].get("environment_path")
+            print(f"{tool}\t{container}\t{container_uri}")
 
     if args.install_container:
         if os.path.exists(container):

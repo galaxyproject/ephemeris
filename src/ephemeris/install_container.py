@@ -33,6 +33,7 @@ import re
 from typing import (
     Any,
     List,
+    TYPE_CHECKING,
 )
 
 from bioblend.galaxy import GalaxyInstance
@@ -40,6 +41,12 @@ from bioblend.galaxy.container_resolution import ContainerResolutionClient
 from bioblend.galaxy.tools import ToolClient
 from galaxy.tool_util.version import parse_version
 from galaxy.util.tool_version import remove_version_from_guid
+
+if TYPE_CHECKING:
+    from packaging.version import (
+        LegacyVersion,
+        Version,
+    )
 
 
 def get_tool_list(galaxy_instance: GalaxyInstance, include: List[str], exclude: List[str], latest: bool) -> list[str]:
@@ -102,7 +109,14 @@ parser.add_argument(
 parser.add_argument("--latest", action="store_true", default=False, help="consider only the latest version of the tool")
 parser.add_argument("--install_container", action="store_true", default=False, help="install the container")
 parser.add_argument("--tabulate", action="store_true", default=False, help="Tabulate tool_id and resolver results")
-parser.add_argument("--index", type=int, action="store", required=False, default=None, help="The index of an additional resolver to tabulate")
+parser.add_argument(
+    "--index",
+    type=int,
+    action="store",
+    required=False,
+    default=None,
+    help="The index of an additional resolver to tabulate",
+)
 parser.add_argument(
     "-log",
     "--loglevel",

@@ -6,6 +6,14 @@ History
 .. to_doc
 
 ---------------------
+0.10.12.dev0
+---------------------
+
+* Add ``shed-tools validate`` to check a tools file structurally and against a
+  Tool Shed (every pinned ``changeset_revision``) without installing into Galaxy.
+  `Issue 236`_
+
+---------------------
 0.10.11 (2025-09-26)
 ---------------------
 
@@ -282,6 +290,7 @@ History
   and adapt them for usage as a library.
 
 .. github_links
+.. _Issue 236: https://github.com/galaxyproject/ephemeris/issues/236
 .. _Pull Request 222: https://github.com/galaxyproject/ephemeris/pull/222
 .. _Pull Request 220: https://github.com/galaxyproject/ephemeris/pull/220
 .. _Pull Request 212: https://github.com/galaxyproject/ephemeris/pull/212

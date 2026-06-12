@@ -179,3 +179,36 @@ def test_cli_validate_missing_file(tmp_path):
 
 def test_cli_validate_no_input():
     assert shed_tools_cli(["validate"]) == 1
+
+
+def test_cli_validate_unknown_key_rejected(tmp_path):
+    # A typo'd key (revision -> revisions) must fail structurally rather than
+    # silently pass with the pin unchecked.
+    path = _write(
+        tmp_path,
+        """
+        tools:
+        - name: bwa
+          owner: devteam
+          revision:
+          - '051eba708f43'
+        """,
+    )
+    assert shed_tools_cli(["validate", path, "--structural-only"]) == 1
+
+
+def test_cli_validate_empty_file(tmp_path):
+    path = tmp_path / "empty.yaml"
+    path.write_text("")
+    assert shed_tools_cli(["validate", str(path), "--structural-only"]) == 1
+
+
+def test_cli_validate_non_mapping_root(tmp_path):
+    path = _write(
+        tmp_path,
+        """
+        - name: bwa
+          owner: devteam
+        """,
+    )
+    assert shed_tools_cli(["validate", str(path), "--structural-only"]) == 1

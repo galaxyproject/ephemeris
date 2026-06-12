@@ -705,7 +705,7 @@ def validate(args, log) -> int:
     Requires no Galaxy connection. Returns a process exit code (0 on success).
     """
     default_toolshed_url = args.tool_shed_url or DEFAULT_TOOL_SHED_URL
-    tool_file = getattr(args, "tools_file", None) or args.tool_list_file
+    tool_file = args.tools_file or args.tool_list_file
 
     # Structural validation: parse into the RepositoryInstallTargets pydantic model.
     try:
@@ -723,7 +723,9 @@ def validate(args, log) -> int:
             location = ".".join(str(part) for part in error["loc"])
             log.error(f"  {location}: {error['msg']}")
         return 1
-    except (OSError, yaml.YAMLError) as e:
+    except (OSError, yaml.YAMLError, ValueError) as e:
+        # ValueError covers a non-mapping / empty YAML root (see read_tools). Pydantic's
+        # ValidationError is a ValueError subclass but is handled by the clause above.
         log.error(f"Could not read tools file '{tool_file}': {unicodify(e)}")
         return 1
 

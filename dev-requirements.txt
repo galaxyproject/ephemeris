@@ -4,10 +4,8 @@ coverage
 pytest
 pytest-cov
 galaxy-test-driver
-# Pin galaxy-app to the same release line as the rest of the Galaxy stack.
-# It is only pulled in transitively (via galaxy-test-driver), so pip is free to
-# backtrack it to an older release than galaxy-data/galaxy-util, producing a
-# skewed install whose galaxy.model import fails during test collection.
+# Pulled in only transitively via galaxy-test-driver; pin it to keep the Galaxy
+# stack on one release line (otherwise pip can backtrack it, skewing the install).
 galaxy-app>=26
 
 #Building Docs

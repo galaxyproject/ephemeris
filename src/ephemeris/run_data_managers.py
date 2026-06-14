@@ -280,9 +280,10 @@ class DataManagers:
         if not log:
             log = logging.getLogger()
 
-        history_id: str | None = None
-        if history_name is not None:
-            history_id = get_or_create_history(history_name, self.gi)["id"]
+        # Galaxy 26.0 requires a valid history to execute tools, so always run the
+        # data managers in a (default-named) history rather than relying on Galaxy
+        # to supply one implicitly.
+        history_id = get_or_create_history(history_name or "Ephemeris Data Manager History", self.gi)["id"]
 
         def run_jobs(jobs, skipped_jobs):
             job_list = []

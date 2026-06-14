@@ -2,11 +2,15 @@
 A tool to automate installation of tool repositories from a Galaxy Tool Shed
 into an instance of Galaxy.
 
-Shed-tools has three commands: update, test and install.
+Shed-tools has four commands: update, test, install and validate.
 
 Update simply updates all the tools in a Galaxy given connection details on the command line.
 
 Test tests the specified tools in the Galaxy Instance.
+
+Validate checks a tools file structurally and, unless ``--structural-only`` is given,
+verifies every repository and pinned ``changeset_revision`` against a Tool Shed. It needs
+no Galaxy connection, so it is suitable for CI / pre-commit on revision-pinned lock files.
 
 Install allows installation of tools in multiple ways.
 Galaxy instance details and the installed tools can be provided in one of three
@@ -58,6 +62,7 @@ from galaxy.tool_util.verify.interactor import (
     verify_tool,
 )
 from galaxy.util import unicodify
+from pydantic import ValidationError
 from typing_extensions import (
     NamedTuple,
     NotRequired,
@@ -67,6 +72,10 @@ from typing_extensions import (
 from . import (
     get_galaxy_connection,
     load_yaml_file,
+)
+from ._config_models import (
+    read_tools,
+    RepositoryInstallTargets,
 )
 from .ephemeris_log import (
     disable_external_library_logging,
@@ -82,7 +91,10 @@ from .shed_tools_methods import (
     complete_repo_information,
     flatten_repo_info,
     VALID_KEYS,
+    validate_against_tool_shed,
 )
+
+DEFAULT_TOOL_SHED_URL = "https://toolshed.g2.bx.psu.edu/"
 
 NON_TERMINAL_REPOSITORY_STATES = {
     "New",
@@ -184,7 +196,7 @@ class InstallRepositoryManager:
         repositories: list[InstallRepoDict],
         log=log,
         force_latest_revision: bool = False,
-        default_toolshed: str = "https://toolshed.g2.bx.psu.edu/",
+        default_toolshed: str = DEFAULT_TOOL_SHED_URL,
         default_install_tool_dependencies: bool = False,
         default_install_resolver_dependencies: bool = True,
         default_install_repository_dependencies: bool = True,
@@ -687,10 +699,56 @@ def args_to_repos(args) -> list[InstallRepoDict]:
     return repos
 
 
+def validate(args, log) -> int:
+    """Validate a tools file structurally and (unless --structural-only) against a Tool Shed.
+
+    Requires no Galaxy connection. Returns a process exit code (0 on success).
+    """
+    default_toolshed_url = args.tool_shed_url or DEFAULT_TOOL_SHED_URL
+    tool_file = args.tools_file or args.tool_list_file
+
+    # Structural validation: parse into the RepositoryInstallTargets pydantic model.
+    try:
+        if tool_file:
+            targets = read_tools(tool_file)
+        else:
+            repos = args_to_repos(args)
+            if not repos:
+                log.error("No tools to validate. Provide a tools file, --yaml-tool, or --name/--owner.")
+                return 1
+            targets = RepositoryInstallTargets(tools=repos)  # type: ignore[arg-type]
+    except ValidationError as e:
+        log.error(f"Structural validation failed for '{tool_file or 'provided tools'}':")
+        for error in e.errors():
+            location = ".".join(str(part) for part in error["loc"])
+            log.error(f"  {location}: {error['msg']}")
+        return 1
+    except (OSError, yaml.YAMLError, ValueError) as e:
+        # ValueError covers a non-mapping / empty YAML root (see read_tools). Pydantic's
+        # ValidationError is a ValueError subclass but is handled by the clause above.
+        log.error(f"Could not read tools file '{tool_file}': {unicodify(e)}")
+        return 1
+
+    repo_dicts = [target.model_dump(exclude_none=True) for target in targets.tools]
+    count = len(repo_dicts)
+    if args.structural_only:
+        log.info(f"Structure valid: {count} repositor{'y' if count == 1 else 'ies'}.")
+        return 0
+
+    errors = validate_against_tool_shed(repo_dicts, default_toolshed_url, log=log)
+    if errors:
+        log.error(f"Validation failed with {len(errors)} error(s).")
+        return 1
+    log.info(f"Validated {count} repositor{'y' if count == 1 else 'ies'} successfully.")
+    return 0
+
+
 def main(argv=None):
     disable_external_library_logging()
     args = parser().parse_args(argv)
     log = setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
+    if args.action == "validate":
+        return validate(args, log)
     gi = get_galaxy_connection(args, file=args.tool_list_file, log=log, login_required=True)
     install_repository_manager = InstallRepositoryManager(gi)
 
@@ -759,7 +817,7 @@ def main(argv=None):
 
 if __name__ == "__main__":
     try:
-        main()
+        sys.exit(main())
     except ToolInstallationException as e:
         log.error(str(e))
         sys.exit(1)

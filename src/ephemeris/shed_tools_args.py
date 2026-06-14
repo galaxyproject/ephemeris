@@ -3,6 +3,8 @@
 import argparse
 
 from .common_parser import (
+    add_log_file_argument,
+    add_verbosity_argument,
     get_common_args,
     HideUnderscoresHelpFormatter,
 )
@@ -37,6 +39,8 @@ def parser():
         test_existing=False,
         parallel_tests=1,
         client_test_config=None,
+        tools_file=None,
+        structural_only=False,
     )
 
     # SUBPARSERS
@@ -61,17 +65,33 @@ def parser():
         parents=[common_arguments],
     )
 
+    # The validate subparser deliberately does not inherit the Galaxy connection
+    # arguments: it talks only to the Tool Shed (or nothing, with --structural-only).
+    validate_arguments = argparse.ArgumentParser(add_help=False)
+    validate_general_group = validate_arguments.add_argument_group("General options")
+    add_verbosity_argument(validate_general_group)
+    add_log_file_argument(validate_general_group)
+    validate_command_parser = subparsers.add_parser(
+        "validate",
+        help="Validate a tools file against a Tool Shed without installing into Galaxy. "
+        "Use shed-tools validate --help for more information",
+        formatter_class=HideUnderscoresHelpFormatter,
+        parents=[validate_arguments],
+    )
+
     # SUBPARSER DEFAULTS
     update_command_parser.set_defaults(action="update")
 
     test_command_parser.set_defaults(action="test")
     install_command_parser.set_defaults(action="install")
+    validate_command_parser.set_defaults(action="validate")
 
     # COMMON OPTIONS
     for command_parser in [
         update_command_parser,
         install_command_parser,
         test_command_parser,
+        validate_command_parser,
     ]:
         command_parser.add_argument(
             "-t",
@@ -279,6 +299,21 @@ def parser():
         "--client_test_config",
         dest="client_test_config",
         help="Annotate expectations about tools in client testing YAML " "configuration file.",
+    )
+
+    # OPTIONS UNIQUE TO VALIDATE
+    validate_command_parser.add_argument(
+        "tools_file",
+        nargs="?",
+        default=None,
+        help="Path to the tools YAML / .yml.lock file to validate " "(equivalent to passing it with --tools-file).",
+    )
+    validate_command_parser.add_argument(
+        "--structural-only",
+        "--structural_only",
+        action="store_true",
+        dest="structural_only",
+        help="Only validate the structure of the tools file; do not query the Tool Shed.",
     )
 
     return shed_parser

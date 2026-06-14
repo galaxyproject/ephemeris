@@ -60,6 +60,16 @@ def format_tool_shed_url(tool_shed_url: str) -> str:
     return formatted_tool_shed_url
 
 
+def get_installable_revisions(repository: "InstallRepoDict") -> list[str]:
+    """Query the tool shed for the ordered list of installable revisions of a repository.
+
+    ``repository`` must have ``tool_shed_url`` already formatted (see
+    :func:`format_tool_shed_url`). Talks only to the Tool Shed, no Galaxy connection.
+    """
+    ts = ToolShedInstance(url=repository["tool_shed_url"])
+    return ts.repositories.get_ordered_installable_revisions(repository["name"], repository["owner"])
+
+
 def get_changeset_revisions(repository: "InstallRepoDict", force_latest_revision: bool = False):
     """
     Select the correct changeset revision for a repository,
@@ -69,16 +79,57 @@ def get_changeset_revisions(repository: "InstallRepoDict", force_latest_revision
     """
     # Do not connect to the internet when not necessary
     if repository.get("changeset_revision") is None or force_latest_revision:
-        ts = ToolShedInstance(url=repository["tool_shed_url"])
         # Get the set revision or set it to the latest installable revision
-        installable_revisions = ts.repositories.get_ordered_installable_revisions(
-            repository["name"], repository["owner"]
-        )
+        installable_revisions = get_installable_revisions(repository)
         if not installable_revisions:  #
             raise LookupError(f"Repo does not exist in tool shed: {repository}")
         repository["changeset_revision"] = installable_revisions[-1]
 
     return repository
+
+
+def validate_against_tool_shed(
+    repositories: Iterable[dict],
+    default_toolshed_url: str,
+    log=None,
+) -> list[str]:
+    """Check each repository (and every pinned changeset revision) against the Tool Shed.
+
+    Requires no Galaxy connection. Returns a list of human-readable error messages,
+    empty when every repository exists and all pinned revisions are installable. Each
+    repository is queried once; both ``revisions`` (list) and a single
+    ``changeset_revision`` are checked for membership in the installable revisions.
+    """
+    errors: list[str] = []
+    for repo_info in repositories:
+        repo: InstallRepoDict = dict(repo_info)  # type: ignore[assignment]
+        tool_shed_url = format_tool_shed_url(repo.get("tool_shed_url") or default_toolshed_url)
+        repo["tool_shed_url"] = tool_shed_url
+        name = repo["name"]
+        owner = repo["owner"]
+        label = f"{owner}/{name}"
+        pinned_revisions = list(repo.get("revisions") or [])
+        changeset_revision = repo.get("changeset_revision")
+        if changeset_revision:
+            pinned_revisions.append(changeset_revision)
+        try:
+            installable_revisions = get_installable_revisions(repo)
+        except Exception as e:
+            errors.append(f"{label}: failed to query tool shed {tool_shed_url}: {e}")
+            continue
+        if not installable_revisions:
+            errors.append(f"{label}: repository does not exist on tool shed {tool_shed_url}")
+            continue
+        for revision in pinned_revisions:
+            if revision not in installable_revisions:
+                errors.append(
+                    f"{label}: changeset_revision '{revision}' is not installable on {tool_shed_url} "
+                    f"(installable revisions: {', '.join(installable_revisions)})"
+                )
+    if log:
+        for error in errors:
+            log.error(error)
+    return errors
 
 
 def flatten_repo_info(

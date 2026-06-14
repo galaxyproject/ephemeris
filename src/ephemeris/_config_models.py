@@ -10,7 +10,7 @@ from pydantic import (
 StrOrPath = Path | str
 
 
-class RepositoryInstallTarget(BaseModel):
+class RepositoryInstallTarget(BaseModel, extra=Extra.forbid):
     name: str
     owner: str
     tool_shed_url: str | None = None
@@ -22,7 +22,7 @@ class RepositoryInstallTarget(BaseModel):
     install_resolver_dependencies: bool | None = None
 
 
-class RepositoryInstallTargets(BaseModel):
+class RepositoryInstallTargets(BaseModel, extra=Extra.forbid):
     """ """
 
     api_key: str | None = None
@@ -72,6 +72,14 @@ def _read_yaml(path: StrOrPath):
         return yaml.safe_load(f)
 
 
+def _read_yaml_mapping(path: StrOrPath) -> dict:
+    data = _read_yaml(path)
+    if not isinstance(data, dict):
+        kind = "empty file" if data is None else f"a {type(data).__name__}"
+        raise ValueError(f"Expected a YAML mapping at the top level of '{path}', got {kind}.")
+    return data
+
+
 def read_data_managers(path: StrOrPath) -> DataManagers:
     return DataManagers(root=_read_yaml(path))
 
@@ -81,4 +89,4 @@ def read_genomes(path: StrOrPath) -> Genomes:
 
 
 def read_tools(path: StrOrPath) -> RepositoryInstallTargets:
-    return RepositoryInstallTargets(**_read_yaml(path))
+    return RepositoryInstallTargets(**_read_yaml_mapping(path))

@@ -132,7 +132,7 @@ def test_split_genomes_with_params(tmp_path):
     assert len(run.data_managers) == 1
     data_manager = run.data_managers[0]
     # genome config overwrites data manager config
-    assert data_manager.params.json() == '{"conditional": {"param_c": "c"}}'
+    assert data_manager.params.json() == '{"conditional":{"param_c":"c"}}'
 
 
 def test_split_genomes_short_ids(tmp_path: Path):

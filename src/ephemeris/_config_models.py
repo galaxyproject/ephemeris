@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import yaml
@@ -31,7 +33,7 @@ class RepositoryInstallTargets(BaseModel):
 
 
 class DictOrValue(RootModel):
-    root: dict[str, str | int | float | bool | "DictOrValue"] | str | int | float | bool
+    root: dict[str, str | int | float | bool | DictOrValue] | str | int | float | bool
 
 
 class Parameters(BaseModel):

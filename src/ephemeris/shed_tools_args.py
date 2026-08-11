@@ -118,34 +118,20 @@ def parser():
 
     for command_parser in [update_command_parser, install_command_parser]:
         command_parser.add_argument(
-            "--skip-install-tool-dependencies",
-            "--skip_install_tool_dependencies",
-            action="store_false",
-            dest="install_tool_dependencies",
-            default=False,  # Override True default for this function
-            help=argparse.SUPPRESS,
-        )  # Deprecated function. Leave for backwards compatibility.
-        command_parser.add_argument(
             "--install-tool-dependencies",
             "--install_tool_dependencies",
             action="store_true",
             dest="install_tool_dependencies",
+            default=False,
             help="Turn on installation of tool dependencies using classic toolshed packages. "
             "Can be overwritten on a per-tool basis in the tools file.",
         )
-        command_parser.add_argument(
-            "--install-resolver-dependencies",
-            "--install_resolver_dependencies",
-            action="store_true",
-            dest="install_resolver_dependencies",
-            default=True,  # Override False default for this function
-            help=argparse.SUPPRESS,
-        )  # Deprecated function. Leave for backwards compatibility.
         command_parser.add_argument(
             "--skip-install-resolver-dependencies",
             "--skip_install_resolver_dependencies",
             action="store_false",
             dest="install_resolver_dependencies",
+            default=False,
             help="Skip installing tool dependencies through resolver (e.g. conda). "
             "Will be ignored on galaxy releases older than 16.07. "
             "Can be overwritten on a per-tool basis in the tools file",
@@ -155,6 +141,7 @@ def parser():
             "--skip_install_repository_dependencies",
             action="store_false",
             dest="install_repository_dependencies",
+            default=False,
             help="Skip installing the repository dependencies.",
         )
         command_parser.add_argument(

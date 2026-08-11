@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tool to install workflows on a Galaxy instance."""
+
 import argparse
 import json
 import os

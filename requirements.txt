@@ -4,5 +4,8 @@ bioblend>=0.10.0
 Jinja2
 galaxy-tool-util>=20.9.1
 galaxy-util>=20.9.0
+packaging
 pysam
 rich
+setuptools
+pydantic>=2.0

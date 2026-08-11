@@ -2,11 +2,11 @@
 """Tool to extract a tool list from galaxy."""
 
 from argparse import ArgumentParser
-from distutils.version import StrictVersion
 
 import yaml
 from bioblend.galaxy.tools import ToolClient
 from bioblend.galaxy.toolshed import ToolShedClient
+from packaging.version import Version
 
 from . import get_galaxy_connection
 from .common_parser import (
@@ -296,7 +296,7 @@ def get_repo_from_tool(tool):
 
 def check_galaxy_version(gi):
     version = gi.config.get_version()
-    if StrictVersion(version["version_major"]) < StrictVersion("16.04"):
+    if Version(version["version_major"]) < Version("16.04"):
         raise Exception("This script needs galaxy version 16.04 or newer")
 
 

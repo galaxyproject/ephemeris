@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Tool to install tool dependencies on a Galaxy instance."""
+
 import argparse
 import logging as log
 import os

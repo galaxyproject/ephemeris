@@ -4,7 +4,6 @@
 import argparse
 import logging as log
 import sys
-from typing import List
 
 from bioblend import galaxy
 from rich.progress import Progress
@@ -17,7 +16,7 @@ from .common_parser import (
 # Print iterations progress
 
 
-def get_datasets(gi, library_id) -> List[str]:
+def get_datasets(gi, library_id) -> list[str]:
     objects = gi.libraries.show_dataset(library_id=library_id, dataset_id="")
     datasets = []
     for index in range(len(objects)):
@@ -114,16 +113,11 @@ def main(argv=None):
         log.basicConfig(level=log.ERROR)
     else:
         log.basicConfig(level=log.INFO)
-
-    if args.roles and args.library:
-        args.roles = [r.strip() for r in args.roles.split(",")]
-    else:
-        sys.exit("Specify library ID (--library myLibraryID) and (list of) role(s) (--roles roleId1,roleId2)")
-    set_permissions(gi, library_id=args.library, role_ids=args.roles, auto=args.yes)
     log.info(
         "\nThis script uses bioblend to update ALL permissions of ALL datasets in a"
         "specified library to the given roles. Be careful and cancel if unsure\n"
     )
+    set_permissions(gi, library_id=args.library, role_ids=args.roles, auto=args.yes)
 
 
 if __name__ == "__main__":

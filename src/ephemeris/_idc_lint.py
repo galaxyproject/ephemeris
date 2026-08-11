@@ -19,7 +19,7 @@ def lint_idc_directory(directory: Path):
     data_managers_path = directory / "data_managers.yml"
     assert genomes_path.exists()
     assert data_managers_path.exists()
-    data_managers = read_data_managers(data_managers_path).__root__
+    data_managers = read_data_managers(data_managers_path).root
     genomes = read_genomes(genomes_path)
 
     for data_manager in data_managers.values():

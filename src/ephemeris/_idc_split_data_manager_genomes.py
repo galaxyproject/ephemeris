@@ -11,29 +11,18 @@ import logging
 import os
 import re
 import xml.etree.ElementTree as ElementTree
+from collections.abc import Callable
 from copy import deepcopy
 from typing import (
     Any,
-    Callable,
-    Dict,
-    List,
-    Optional,
 )
 
 import requests
 import yaml
 from galaxy.util import safe_makedirs
-
-try:
-    from pydantic.v1 import (
-        BaseModel,
-        Extra,
-    )
-except ImportError:
-    from pydantic import (
-        BaseModel,
-        Extra,
-    )
+from pydantic import (
+    BaseModel,
+)
 
 from . import get_galaxy_connection
 from ._config_models import (
@@ -57,9 +46,9 @@ log = logging.getLogger(__name__)
 
 
 class Filters:
-    stage: Optional[int] = None
-    data_manager: Optional[str] = None
-    build_id: Optional[str] = None
+    stage: int | None = None
+    data_manager: str | None = None
+    build_id: str | None = None
 
     def filter_out_data_manager(self, data_manager: str) -> bool:
         return bool(self.data_manager and data_manager != self.data_manager)
@@ -97,12 +86,12 @@ def tool_id_for(indexer: str, data_managers: DataManagers, mode: str) -> str:
 
 class RunDataManager(BaseModel):
     id: str
-    items: Optional[List[Any]] = None
-    params: Optional[DictOrValue] = None
+    items: list[Any] | None = None
+    params: DictOrValue | None = None
 
 
 class RunDataManagers(BaseModel):
-    data_managers: List[RunDataManager]
+    data_managers: list[RunDataManager]
 
 
 class DataManagers(BaseModel, extra=Extra.forbid):
@@ -114,7 +103,7 @@ class Genome(BaseModel):
 
 
 class Genomes(BaseModel):
-    genomes: List[Genome]
+    genomes: list[Genome]
 
 
 def ucsc_description_for_build(requested_build: str) -> str:
@@ -124,11 +113,15 @@ def ucsc_description_for_build(requested_build: str) -> str:
     tree = ElementTree.fromstring(text)
 
     for dsn in tree:
-        build = dsn.find("SOURCE").attrib["id"]
-        if build != requested_build:
+        SOURCE_el = dsn.find("SOURCE")
+        if SOURCE_el is None or SOURCE_el.attrib["id"] != requested_build:
             continue
 
-        description = dsn.find("DESCRIPTION").text.replace(" - Genome at UCSC", "").replace(" Genome at UCSC", "")
+        DESCRIPTION_el = dsn.find("DESCRIPTION")
+        assert DESCRIPTION_el is not None
+        description = DESCRIPTION_el.text
+        assert description is not None
+        description = description.replace(" - Genome at UCSC", "").replace(" Genome at UCSC", "")
 
         fields = description.split(" ")
         temp = fields[0]
@@ -266,7 +259,7 @@ def split_genomes(split_options: SplitOptions) -> None:
 
 
 class GalaxyHistoryIsBuildComplete:
-    def __init__(self, history_names: List[str]):
+    def __init__(self, history_names: list[str]):
         self._history_names = history_names
 
     def __call__(self, build_id: str, indexer_name: str) -> bool:
@@ -275,7 +268,7 @@ class GalaxyHistoryIsBuildComplete:
 
 
 class CVMFSPublishIsComplete:
-    def __init__(self, records: Dict[str, List[str]]):
+    def __init__(self, records: dict[str, list[str]]):
         self.records = records
 
     def __call__(self, build_id: str, indexer_name: str) -> bool:
@@ -302,16 +295,16 @@ def _parser():
     return parser
 
 
-def get_galaxy_history_names(args) -> List[str]:
+def get_galaxy_history_names(args) -> list[str]:
     gi = get_galaxy_connection(args, login_required=True)
     return [h["name"] for h in gi.histories.get_histories()]
 
 
-def get_regular_files(dirname: str) -> List[str]:
+def get_regular_files(dirname: str) -> list[str]:
     return [f for f in os.listdir(dirname) if not f.startswith(".")]
 
 
-def get_cvmfs_publish_records(args) -> Dict[str, List[str]]:
+def get_cvmfs_publish_records(args) -> dict[str, list[str]]:
     records = {}
     records_dir = os.path.join(args.cvmfs_root, "record")
     for build_id in get_regular_files(records_dir):
@@ -323,11 +316,7 @@ def main():
     disable_external_library_logging()
     parser = _parser()
     args = parser.parse_args()
-    log = setup_global_logger(name=__name__, log_file=args.log_file)
-    if args.verbose:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
+    setup_global_logger(name=__name__, log_file=args.log_file, verbose=args.verbose)
 
     if args.complete_check_cvmfs:
         is_build_complete = CVMFSPublishIsComplete(get_cvmfs_publish_records(args))

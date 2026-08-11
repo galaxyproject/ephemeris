@@ -13,7 +13,7 @@ def main(argv):
     source_dir = argv[1]
     version = argv[2]
     history_path = os.path.join(PROJECT_DIRECTORY, "HISTORY.rst")
-    with open(history_path, "r") as f:
+    with open(history_path) as f:
         history = f.read()
     today = datetime.datetime.today()
     today_str = today.strftime("%Y-%m-%d")
@@ -22,21 +22,12 @@ def main(argv):
         f.write(history)
 
     source_mod_path = os.path.join(PROJECT_DIRECTORY, source_dir, "__init__.py")
-    with open(source_mod_path, "r") as f:
+    with open(source_mod_path) as f:
         mod = f.read()
-    mod = re.sub("__version__ = '[\d\.]*\.dev0'", "__version__ = '%s'" % version, mod)
+    mod = re.sub(r'__version__ = "[\d\.]*\.dev0"', f'__version__ = "{version}"', mod)
     with open(source_mod_path, "w") as f:
         mod = f.write(mod)
-    shell(
-        [
-            "git",
-            "commit",
-            "-m",
-            "Version %s" % version,
-            "HISTORY.rst",
-            "%s/__init__.py" % source_dir,
-        ]
-    )
+    shell(["git", "commit", "-m", f"Version {version}", "HISTORY.rst", f"{source_dir}/__init__.py"])
     shell(["git", "tag", version])
 
 

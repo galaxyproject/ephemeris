@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from pathlib import Path
 
 import yaml
@@ -30,7 +32,18 @@ class RepositoryInstallTargets(BaseModel):
     tools: list[RepositoryInstallTarget]
 
 
-class DataManager(BaseModel, extra=Extra.forbid):
+class DictOrValue(RootModel):
+    root: dict[str, str | int | float | bool | DictOrValue] | str | int | float | bool
+
+
+class Parameters(BaseModel):
+    parameters: DictOrValue | None = None
+
+
+DictOrValue.update_forward_refs()
+
+
+class DataManager(Parameters, extra=Extra.forbid):
     tags: list[str]
     tool_id: str
 
@@ -56,7 +69,7 @@ class Genome(BaseModel):
 
     # Description of actions (data managers) to run on target genome.
     indexers: (
-        list[str] | None
+        list[str | dict[str, Parameters]] | None
     )  # indexers to run - keyed on repository name - see data_managers.yml for how to resolve these to tools
     skiplist: list[str] | None = (
         None  # unimplemented: but if we implement classes of indexers, these will be ones to skip

@@ -7,7 +7,6 @@ a tools.yml file from it for use with shed_tools.
 """
 
 import argparse
-from typing import NamedTuple
 
 import yaml
 
@@ -25,29 +24,10 @@ from .ephemeris_log import (
 )
 
 
-class DataManager(NamedTuple):
-    tool_id: str
-    repository_name: str
-    tags: list[str]
-
-
-def read_data_managers_configuration(path: str) -> dict[str, DataManager]:
-    raw_data_managers = read_data_managers(path)
-    data_managers: dict[str, DataManager] = {}
-    for repository_name, data_manager_configuration in raw_data_managers.root.items():
-        data_manager = DataManager(
-            tool_id=data_manager_configuration.tool_id,
-            repository_name=repository_name,
-            tags=data_manager_configuration.tags or [],
-        )
-        data_managers[repository_name] = data_manager
-    return data_managers
-
-
 def build_shed_install_conf(path: str) -> dict:
-    data_managers = read_data_managers_configuration(path)
+    data_managers = read_data_managers(path)
     tools = []
-    for data_manager in data_managers.values():
+    for data_manager in data_managers.root.values():
         tool_id = data_manager.tool_id
         tool_id_parts = tool_id.split("/")
         repo_owner = tool_id_parts[2]

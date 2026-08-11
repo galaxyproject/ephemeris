@@ -7,7 +7,6 @@ a tools.yml file from it for use with shed_tools.
 """
 
 import argparse
-import logging
 
 import yaml
 
@@ -28,7 +27,7 @@ from .ephemeris_log import (
 def build_shed_install_conf(path: str) -> dict:
     data_managers = read_data_managers(path)
     tools = []
-    for data_manager in data_managers.__root__.values():
+    for data_manager in data_managers.root.values():
         tool_id = data_manager.tool_id
         tool_id_parts = tool_id.split("/")
         repo_owner = tool_id_parts[2]

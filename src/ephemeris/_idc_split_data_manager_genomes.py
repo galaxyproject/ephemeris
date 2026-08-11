@@ -6,6 +6,7 @@ run_data_managers.py - while excluding data managers executions specified
 by genomes.yml that have already been executed and appear in the target
 installed data table configuration.
 """
+
 import json
 import logging
 import os
@@ -26,7 +27,6 @@ from pydantic import (
 
 from . import get_galaxy_connection
 from ._config_models import (
-    DataManager,
     DataManagers,
     DictOrValue,
     read_data_managers,
@@ -70,7 +70,7 @@ class SplitOptions:
 
 
 def tool_id_for(indexer: str, data_managers: DataManagers, mode: str) -> str:
-    data_manager = data_managers.__root__[indexer]
+    data_manager = data_managers.root[indexer]
     assert data_manager, f"Could not find a target data manager for indexer name {indexer}"
     tool_shed_guid = data_manager.tool_id
     if mode == "short":
@@ -92,10 +92,6 @@ class RunDataManager(BaseModel):
 
 class RunDataManagers(BaseModel):
     data_managers: list[RunDataManager]
-
-
-class DataManagers(BaseModel, extra=Extra.forbid):
-    __root__: Dict[str, DataManager]
 
 
 class Genome(BaseModel):
@@ -193,7 +189,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             fetch_run_data_manager = RunDataManager(
                 id=fetch_tool_id,
-                params=fetch_params,
+                params=DictOrValue(root=fetch_params),
             )
             yield (build_id, fetch_indexer, fetch_run_data_manager)
         else:
@@ -220,8 +216,8 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
             log.info(f"Building: {build_id} {indexer_name}")
 
             tool_id = tool_id_for(indexer_name, data_managers, split_options.tool_id_mode)
-            data_manager = data_managers.__root__[indexer_name]
-            data_manager_parameters = {}
+            data_manager = data_managers.root[indexer_name]
+            data_manager_parameters: dict[str, Any] = {}
             if data_manager.parameters:
                 data_manager_parameters = json.loads(data_manager.parameters.json()) or {}
             data_manager_parameters.update(indexer_parameters)
@@ -238,7 +234,7 @@ def walk_over_incomplete_runs(split_options: SplitOptions):
 
             run_data_manager = RunDataManager(
                 id=tool_id,
-                params=data_manager_parameters,
+                params=DictOrValue(root=data_manager_parameters),
                 items=[item],
             )
             yield (build_id, indexer_name, run_data_manager)

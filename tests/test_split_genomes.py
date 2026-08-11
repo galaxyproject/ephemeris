@@ -47,6 +47,12 @@ data_manager_star_index_builder:
   tool_id: 'toolshed.g2.bx.psu.edu/repos/iuc/data_manager_star_index_builder/rna_star_index_builder_data_manager/0.0.5'
   tags:
   - genome
+data_manager_bwa_mem_index_builder:
+  tool_id: 'toolshed.g2.bx.psu.edu/repos/devteam/data_manager_bwa_mem_index_builder/bwa_mem_index_builder_data_manager/0.0.3'
+  tags:
+    - genome
+  parameters:
+    index_algorithm: bwtsw
 """
 
 DATA_MANAGER_YAML_WITH_PARAMS = """

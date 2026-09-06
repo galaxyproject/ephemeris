@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-"""Tool to setup data libraries on a galaxy instance"""
+"""Tool to setup data libraries on a galaxy instance."""
 
 import argparse
 import logging as log
+import os
 import sys
 import time
+from urllib.parse import urlparse
 
 import yaml
 from bioblend import galaxy
@@ -15,20 +17,167 @@ from .common_parser import (
     HideUnderscoresHelpFormatter,
 )
 
+HISTORY_NAME = "data library upload (automatic)"
 
-def create_legacy(gi, desc):
+
+def _basename(url):
+    path = urlparse(url).path
+    return os.path.basename(path) or url
+
+
+def _desired_name(item):
+    return item.get("name") or _basename(item["url"])
+
+
+def _hash_fields(item):
+    """Extract hash fields from the YAML item for the fetch payload.
+
+    Accepts lowercase keys (`md5`, `sha256`, etc.) and normalizes them to
+    the case expected by Galaxy's fetch API (`MD5`, `SHA-256`, etc.).
+    """
+    out = {}
+    hash_keys = {
+        "md5": "MD5",
+        "sha1": "SHA-1",
+        "sha-1": "SHA-1",
+        "sha256": "SHA-256",
+        "sha-256": "SHA-256",
+        "sha512": "SHA-512",
+        "sha-512": "SHA-512",
+    }
+    for key, value in item.items():
+        canonical_key = hash_keys.get(key.lower())
+        if canonical_key:
+            out[canonical_key] = str(value)
+    if "hashes" in item:
+        out["hashes"] = item["hashes"]
+    return out
+
+
+def _strip_folder_prefix(folder_id):
+    """Galaxy's fetch API expects library_folder_id WITHOUT the 'F' prefix."""
+    return folder_id.removeprefix("F")
+
+
+def _existing_dataset_names(gi, lib_id, folder_path, cache):
+    """Return {dataset_name: dataset_id} for non-deleted files in the folder.
+
+    The full library contents are fetched once and cached for the lifetime of the process.
+    """
+    if lib_id not in cache:
+        names_by_folder = {}
+        try:
+            contents = gi.libraries.show_library(lib_id, contents=True)
+            if isinstance(contents, list):
+                for item in contents:
+                    if item.get("type") == "file" and not item.get("deleted", False):
+                        full_name = item.get("name", "")
+                        # name is like "/Small Files/README.txt"
+                        parts = full_name.rsplit("/", 1)
+                        if len(parts) == 2:
+                            fpath, ds_name = parts
+                            fpath = fpath or "/"
+                            names_by_folder.setdefault(fpath, {})[ds_name] = item["id"]
+        except Exception:
+            pass
+        cache[lib_id] = names_by_folder
+    return cache[lib_id].setdefault(folder_path, {})
+
+
+def _fetch_upload(gi, history_id, folder_id, items, deferred=False):
+    """Upload a list of file items into a library folder via /api/tools/fetch.
+
+    Uses the modern fetch API with ``library_folder`` destinations, which
+    supports setting the dataset ``name`` at upload time and hashsum
+    verification (MD5, SHA-256, etc.).
+    """
+    elements = []
+    for item in items:
+        if item.get("src", "url") != "url":
+            raise Exception("Only URL source items are supported.")
+        elem = {
+            "src": "url",
+            "url": item["url"],
+            "name": _desired_name(item),
+            "ext": item.get("ext") or "auto",
+        }
+        if item.get("info"):
+            elem["info"] = item["info"]
+        if item.get("dbkey"):
+            elem["dbkey"] = item["dbkey"]
+        if deferred or item.get("deferred"):
+            elem["deferred"] = True
+        elem.update(_hash_fields(item))
+        elements.append(elem)
+
+    payload = {
+        "history_id": history_id,
+        "targets": [
+            {
+                "destination": {
+                    "type": "library_folder",
+                    "library_folder_id": _strip_folder_prefix(folder_id),
+                },
+                "elements": elements,
+            }
+        ],
+    }
+
+    try:
+        result = gi.tools._post(payload=payload, id="fetch")
+    except Exception as exc:
+        body = str(exc)
+        # If the error is about an unknown extension, retry with "auto".
+        if "unknown" in body.lower() and "extension" in body.lower():
+            log.warning("Unknown extension(s); retrying with ext='auto'")
+            for elem in elements:
+                elem["ext"] = "auto"
+            result = gi.tools._post(payload=payload, id="fetch")
+        else:
+            log.error("Fetch API error: %s", body[:500])
+            raise
+    return result
+
+
+def _get_or_create_history(gi):
+    """Get or create a named history for library uploads.
+
+    The fetch API requires a history_id.
+    We reuse a single history across runs. No datasets are stored in it (they go to the library).
+    """
+    existing = gi.histories.get_histories(name=HISTORY_NAME)
+    if existing:
+        return existing[0]["id"]
+    return gi.histories.create_history(name=HISTORY_NAME)["id"]
+
+
+def _set_public_permissions(gi, lib_id, folder_id=None):
+    """Set library and optionally folder permissions to public.
+
+    When datasets are uploaded to a library folder via the fetch API, they
+    inherit the folder's permissions. By setting LIBRARY_ACCESS_in to [],
+    the library becomes accessible to everyone.
+    """
+    gi.libraries._post({"LIBRARY_ACCESS_in": []}, url=f"{gi.libraries._make_url(lib_id)}/permissions")
+    if folder_id:
+        gi.folders._post(
+            {"action": "set_permissions", "add_ids[]": []}, url=f"{gi.folders._make_url(folder_id)}/permissions"
+        )
+
+
+def create_library(gi, desc, make_public=False, force_public=False, deferred=False):
     destination = desc["destination"]
     if destination["type"] != "library":
-        raise Exception("Only libraries may be created with pre-18.05 Galaxies using this script.")
+        raise Exception("Only libraries may be created with this script.")
     library_name = destination.get("name")
     library_description = destination.get("description")
     library_synopsis = destination.get("synopsis")
 
-    # Check to see if the library already exists. If it does, do not recreate it. If it doesn't, create it.
+    # Check to see if the library already exists. If it does, do not recreate it.
+    # If it doesn't, create it.
     lib_id = None
     print("Library name: " + str(library_name))
     rmt_lib_list = gi.libraries.get_libraries(name=library_name, deleted=False)
-    # Now we need to check if the library has been deleted since deleted=False still returns the deleted libraries!
     not_deleted_rmt_lib_list = []
     folder_id = None
 
@@ -45,83 +194,101 @@ def create_legacy(gi, desc):
         lib_id = lib["id"]
         folder_id = lib["root_folder_id"]
 
-    def populate_items(base_folder_id, has_items):
+    if make_public:
+        _set_public_permissions(gi, lib_id)
+
+    history_id = _get_or_create_history(gi)
+    jobs = []
+    existing_dataset_cache = {}
+
+    def populate_items(base_folder_id, has_items, parent_path="/"):
         if "items" in has_items:
+            item_list = has_items["items"]
+            # Skip creating folders for nodes that have no files or sub-folders.
+            # Many GTN tutorials have empty data-library.yaml files; we don't want
+            # thousands of empty folders in the library.
+            if not item_list:
+                return None
             name = has_items.get("name")
             description = has_items.get("description")
+            gtn_url = has_items.get("gtn_url")
+            if gtn_url:
+                desc_parts = [description, f"See: {gtn_url}"] if description else [gtn_url]
+                description = "\n".join(desc_parts)
             folder_id = base_folder_id
             if name:
-                # Check to see if the folder already exists, if it doesn't create it.
-                rmt_folder_list = []
-                folder = gi.libraries.get_folders(lib_id)
-                new_folder_name = "/" + name
-                if folder and not folder[0]["name"] == "/":
-                    new_folder_name = folder[0]["name"] + "/" + name
-                rmt_folder_list = gi.libraries.get_folders(lib_id, name=new_folder_name)
+                full_path = parent_path.rstrip("/") + "/" + name
+                rmt_folder_list = gi.libraries.get_folders(lib_id, name=full_path)
                 if rmt_folder_list:
                     folder_id = rmt_folder_list[0]["id"]
+                    if force_public:
+                        _set_public_permissions(gi, lib_id, folder_id)
                 else:
                     folder = gi.libraries.create_folder(lib_id, name, description, base_folder_id=base_folder_id)
                     folder_id = folder[0]["id"]
-            for item in has_items["items"]:
-                populate_items(folder_id, item)
+                    if make_public or force_public:
+                        _set_public_permissions(gi, lib_id, folder_id)
+                for item in item_list:
+                    populate_items(folder_id, item, full_path)
+            else:
+                for item in item_list:
+                    populate_items(folder_id, item, parent_path)
         else:
-            src = has_items["src"]
-            if src != "url":
-                raise Exception("For pre-18.05 Galaxies only support URLs src items are supported.")
-            rmt_library_files = gi.folders.show_folder(base_folder_id, contents=True)["folder_contents"]
-            file_names = []
-            for item in rmt_library_files:
-                if item["type"] == "file":
-                    file_names.append(item["name"])
-            if has_items["url"] not in file_names:
-                try:
-                    gi.libraries.upload_file_from_url(
-                        lib_id,
-                        has_items["url"],
-                        folder_id=base_folder_id,
-                        file_type=has_items["ext"],
-                    )
-                except Exception:
-                    log.exception(
-                        "Could not upload %s to %s/%s",
-                        has_items["url"],
-                        lib_id,
-                        base_folder_id,
-                    )
+            desired = _desired_name(has_items)
+            url = has_items["url"]
+            existing = _existing_dataset_names(gi, lib_id, parent_path, existing_dataset_cache)
+            if desired in existing or url in existing:
+                url_id = existing.get(url)
+                if url_id and desired != url and desired not in existing:
+                    try:
+                        gi.libraries.update_library_dataset(url_id, name=desired)
+                        existing[desired] = url_id
+                        existing.pop(url, None)
+                        log.info("Renamed legacy dataset %s -> %s", url, desired)
+                    except Exception as exc:
+                        log.warning("Could not rename %s: %s", url, exc)
+                else:
+                    log.debug("Skipping existing %r", desired)
+                return None
+            try:
+                job = _fetch_upload(gi, history_id, base_folder_id, [has_items], deferred=deferred)
+                jobs.append(job)
+                existing[desired] = None
+            except Exception:
+                log.exception(
+                    "Could not upload %s to %s/%s",
+                    has_items["url"],
+                    lib_id,
+                    base_folder_id,
+                )
         return None
 
-    populate_items(folder_id, desc)
-    return []
+    populate_items(folder_id, desc, "/")
+    return jobs
 
 
-def create_batch_api(gi, desc):
-    hc = galaxy.histories.HistoryClient(gi)
-    tc = galaxy.tools.ToolClient(gi)
-
-    history = hc.create_history()
-    url = f"{gi.url}/tools/fetch"
-    payload = {"targets": [desc], "history_id": history["id"]}
-    yield tc._post(payload=payload, url=url)
-
-
-def setup_data_libraries(gi, data, training=False, legacy=False):
+def setup_data_libraries(gi, data, training=False, make_public=False, force_public=False, deferred=False):
     """
     Load files into a Galaxy data library.
-    By default all test-data tools from all installed tools
-    will be linked into a data library.
+
+    Uses Galaxy's fetch API (``POST /api/tools/fetch``) with ``library_folder``
+    destinations for file uploads.  The fetch API supports setting the dataset
+    ``name`` at upload time and hashsum verification (MD5, SHA-256, etc.).
+    Existing datasets are looked up by name and skipped, making this idempotent.
+
+    When ``make_public`` is True, library and folder permissions are set to
+    public (no role restrictions) for newly created items, making all uploaded
+    datasets accessible to everyone.
+
+    When ``force_public`` is True, permissions are also re-set on existing
+    folders (useful for fixing permission regressions). Implies ``make_public``.
+
+    When ``deferred`` is True, datasets are uploaded as deferred, they are
+    not fetched at upload time but materialized on first use. This is useful
+    for fast testing of library layout and titles without downloading all files.
     """
 
     log.info("Importing data libraries.")
-    jc = galaxy.jobs.JobsClient(gi)
-    config = galaxy.config.ConfigClient(gi)
-    version = config.get_version()
-
-    if legacy:
-        create_func = create_legacy
-    else:
-        version_major = version.get("version_major", "16.01")
-        create_func = create_batch_api if version_major >= "18.05" else create_legacy
 
     library_def = yaml.safe_load(data)
 
@@ -162,23 +329,14 @@ def setup_data_libraries(gi, data, training=False, legacy=False):
     normalize_items(library_def)
 
     if library_def:
-        jobs = list(create_func(gi, library_def))
-
+        jobs = create_library(gi, library_def, make_public=make_public, force_public=force_public, deferred=deferred)
         job_ids = []
-        if legacy:
-            for job in jc.get_jobs():
-                # Fetch all upload job IDs, ignoring complete ones.
-                if job["tool_id"] == "upload1" and job["state"] not in ("ok", "error"):
-                    job_ids.append(job["id"])
+        for job in jobs:
+            if "jobs" in job:
+                for subjob in job["jobs"]:
+                    job_ids.append(subjob["id"])
 
-            # Just have to check that all upload1 jobs are termianl.
-        else:
-            # Otherwise get back an actual list of jobs
-            for job in jobs:
-                if "jobs" in job:
-                    for subjob in job["jobs"]:
-                        job_ids.append(subjob["id"])
-
+        jc = galaxy.jobs.JobsClient(gi)
         while True:
             job_states = [jc.get_state(job) in ("ok", "error", "deleted") for job in job_ids]
             log.debug(
@@ -208,10 +366,22 @@ def _parser():
         help="Set defaults that make sense for training data.",
     )
     parser.add_argument(
-        "--legacy",
+        "--make-public",
         default=False,
         action="store_true",
-        help="Use legacy APIs even for newer Galaxies that should have a batch upload API enabled.",
+        help="Make library, folders, and datasets publicly accessible.",
+    )
+    parser.add_argument(
+        "--force-public",
+        default=False,
+        action="store_true",
+        help="Re-set permissions on all existing folders to public (implies --make-public).",
+    )
+    parser.add_argument(
+        "--deferred",
+        default=False,
+        action="store_true",
+        help="Upload datasets as deferred (materialized on first use, not at upload time).",
     )
     return parser
 
@@ -228,7 +398,11 @@ def main(argv=None):
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 
-    setup_data_libraries(gi, args.infile, training=args.training, legacy=args.legacy)
+    make_public = args.make_public or args.force_public
+    setup_data_libraries(
+        gi, args.infile, training=args.training, make_public=make_public,
+        force_public=args.force_public, deferred=args.deferred,
+    )
 
 
 if __name__ == "__main__":

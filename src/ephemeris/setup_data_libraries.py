@@ -153,7 +153,7 @@ def _set_public_permissions(gi, lib_id, folder_id=None):
         )
 
 
-def create_library(gi, desc, make_public=False, deferred=False):
+def create_library(gi, desc, make_public=False, force_public=False, deferred=False):
     destination = desc["destination"]
     if destination["type"] != "library":
         raise Exception("Only libraries may be created with this script.")
@@ -187,6 +187,7 @@ def create_library(gi, desc, make_public=False, deferred=False):
 
     history_id = _get_or_create_history(gi)
     jobs = []
+    _folder_cache = {}
 
     def populate_items(base_folder_id, has_items, parent_path="/"):
         if "items" in has_items:
@@ -200,20 +201,20 @@ def create_library(gi, desc, make_public=False, deferred=False):
             description = has_items.get("description")
             gtn_url = has_items.get("gtn_url")
             if gtn_url:
-                desc_parts = [description, gtn_url] if description else [gtn_url]
-                description = "  ".join(desc_parts)
+                desc_parts = [description, f"See: {gtn_url}"] if description else [gtn_url]
+                description = "\n".join(desc_parts)
             folder_id = base_folder_id
             if name:
                 full_path = parent_path.rstrip("/") + "/" + name
                 rmt_folder_list = gi.libraries.get_folders(lib_id, name=full_path)
                 if rmt_folder_list:
                     folder_id = rmt_folder_list[0]["id"]
-                    if make_public:
+                    if force_public:
                         _set_public_permissions(gi, lib_id, folder_id)
                 else:
                     folder = gi.libraries.create_folder(lib_id, name, description, base_folder_id=base_folder_id)
                     folder_id = folder[0]["id"]
-                    if make_public:
+                    if make_public or force_public:
                         _set_public_permissions(gi, lib_id, folder_id)
                 for item in item_list:
                     populate_items(folder_id, item, full_path)
@@ -223,7 +224,9 @@ def create_library(gi, desc, make_public=False, deferred=False):
         else:
             desired = _desired_name(has_items)
             url = has_items["url"]
-            existing = _existing_dataset_names(gi, base_folder_id)
+            if base_folder_id not in _folder_cache:
+                _folder_cache[base_folder_id] = _existing_dataset_names(gi, base_folder_id)
+            existing = _folder_cache[base_folder_id]
             if desired in existing or url in existing:
                 url_id = existing.get(url)
                 if url_id and desired != url and desired not in existing:
@@ -250,7 +253,7 @@ def create_library(gi, desc, make_public=False, deferred=False):
     return jobs
 
 
-def setup_data_libraries(gi, data, training=False, make_public=False, deferred=False):
+def setup_data_libraries(gi, data, training=False, make_public=False, force_public=False, deferred=False):
     """
     Load files into a Galaxy data library.
 
@@ -260,7 +263,11 @@ def setup_data_libraries(gi, data, training=False, make_public=False, deferred=F
     Existing datasets are looked up by name and skipped, making this idempotent.
 
     When ``make_public`` is True, library and folder permissions are set to
-    public (no role restrictions), making all datasets accessible to everyone.
+    public (no role restrictions) for newly created items, making all uploaded
+    datasets accessible to everyone.
+
+    When ``force_public`` is True, permissions are also re-set on existing
+    folders (useful for fixing permission regressions). Implies ``make_public``.
 
     When ``deferred`` is True, datasets are uploaded as deferred, they are
     not fetched at upload time but materialized on first use. This is useful
@@ -308,7 +315,7 @@ def setup_data_libraries(gi, data, training=False, make_public=False, deferred=F
     normalize_items(library_def)
 
     if library_def:
-        jobs = create_library(gi, library_def, make_public=make_public, deferred=deferred)
+        jobs = create_library(gi, library_def, make_public=make_public, force_public=force_public, deferred=deferred)
         job_ids = []
         for job in jobs:
             if "jobs" in job:
@@ -345,16 +352,16 @@ def _parser():
         help="Set defaults that make sense for training data.",
     )
     parser.add_argument(
-        "--legacy",
-        default=False,
-        action="store_true",
-        help=argparse.SUPPRESS,
-    )
-    parser.add_argument(
         "--make-public",
         default=False,
         action="store_true",
         help="Make library, folders, and datasets publicly accessible.",
+    )
+    parser.add_argument(
+        "--force-public",
+        default=False,
+        action="store_true",
+        help="Re-set permissions on all existing folders to public (implies --make-public).",
     )
     parser.add_argument(
         "--deferred",
@@ -377,7 +384,11 @@ def main(argv=None):
     if args.verbose:
         log.basicConfig(level=log.DEBUG)
 
-    setup_data_libraries(gi, args.infile, training=args.training, make_public=args.make_public, deferred=args.deferred)
+    make_public = args.make_public or args.force_public
+    setup_data_libraries(
+        gi, args.infile, training=args.training, make_public=make_public,
+        force_public=args.force_public, deferred=args.deferred,
+    )
 
 
 if __name__ == "__main__":

@@ -116,7 +116,7 @@ def test_setup_data_libraries_waits_for_fetch_jobs(monkeypatch):
             assert job_id == "job-id"
             return states.pop(0)
 
-    def mock_create_library(gi, library_def, make_public=False, deferred=False):
+    def mock_create_library(gi, library_def, make_public=False, force_public=False, deferred=False):
         assert library_def["items"][0]["ext"] == "fasta"
         assert make_public is True
         assert deferred is True
@@ -144,22 +144,6 @@ items:
 
     assert sleeps == [0]
     assert states == []
-
-
-def test_parser_accepts_deprecated_legacy_flag():
-    args = setup_data_libraries._parser().parse_args(
-        [
-            "-a",
-            "api-key",
-            "-g",
-            "https://example.org",
-            "-i",
-            str(LIBRARY_DATA_EXAMPLE),
-            "--legacy",
-        ]
-    )
-
-    assert args.legacy is True
 
 
 def test_setup_data_libraries_with_username_and_password(

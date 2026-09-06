@@ -59,17 +59,29 @@ def _strip_folder_prefix(folder_id):
     return folder_id.removeprefix("F")
 
 
-def _existing_dataset_names(gi, folder_id):
-    """Return {dataset_name: dataset_id} for non-deleted files in the folder."""
-    names = {}
-    try:
-        contents = gi.folders.show_folder(folder_id, contents=True, include_deleted=False)["folder_contents"]
-    except Exception:
-        return names
-    for item in contents:
-        if item.get("type") == "file" and not item.get("deleted", False):
-            names[item["name"]] = item["id"]
-    return names
+def _existing_dataset_names(gi, lib_id, folder_path, cache):
+    """Return {dataset_name: dataset_id} for non-deleted files in the folder.
+
+    The full library contents are fetched once and cached for the lifetime of the process.
+    """
+    if lib_id not in cache:
+        names_by_folder = {}
+        try:
+            contents = gi.libraries.show_library(lib_id, contents=True)
+            if isinstance(contents, list):
+                for item in contents:
+                    if item.get("type") == "file" and not item.get("deleted", False):
+                        full_name = item.get("name", "")
+                        # name is like "/Small Files/README.txt"
+                        parts = full_name.rsplit("/", 1)
+                        if len(parts) == 2:
+                            fpath, ds_name = parts
+                            fpath = fpath or "/"
+                            names_by_folder.setdefault(fpath, {})[ds_name] = item["id"]
+        except Exception:
+            pass
+        cache[lib_id] = names_by_folder
+    return cache[lib_id].setdefault(folder_path, {})
 
 
 def _fetch_upload(gi, history_id, folder_id, items, deferred=False):
@@ -187,7 +199,7 @@ def create_library(gi, desc, make_public=False, force_public=False, deferred=Fal
 
     history_id = _get_or_create_history(gi)
     jobs = []
-    _folder_cache = {}
+    existing_dataset_cache = {}
 
     def populate_items(base_folder_id, has_items, parent_path="/"):
         if "items" in has_items:
@@ -224,14 +236,14 @@ def create_library(gi, desc, make_public=False, force_public=False, deferred=Fal
         else:
             desired = _desired_name(has_items)
             url = has_items["url"]
-            if base_folder_id not in _folder_cache:
-                _folder_cache[base_folder_id] = _existing_dataset_names(gi, base_folder_id)
-            existing = _folder_cache[base_folder_id]
+            existing = _existing_dataset_names(gi, lib_id, parent_path, existing_dataset_cache)
             if desired in existing or url in existing:
                 url_id = existing.get(url)
                 if url_id and desired != url and desired not in existing:
                     try:
                         gi.libraries.update_library_dataset(url_id, name=desired)
+                        existing[desired] = url_id
+                        existing.pop(url, None)
                         log.info("Renamed legacy dataset %s -> %s", url, desired)
                     except Exception as exc:
                         log.warning("Could not rename %s: %s", url, exc)
@@ -239,7 +251,9 @@ def create_library(gi, desc, make_public=False, force_public=False, deferred=Fal
                     log.debug("Skipping existing %r", desired)
                 return None
             try:
-                jobs.append(_fetch_upload(gi, history_id, base_folder_id, [has_items], deferred=deferred))
+                job = _fetch_upload(gi, history_id, base_folder_id, [has_items], deferred=deferred)
+                jobs.append(job)
+                existing[desired] = None
             except Exception:
                 log.exception(
                     "Could not upload %s to %s/%s",

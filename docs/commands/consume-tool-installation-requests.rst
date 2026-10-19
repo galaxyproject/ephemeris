@@ -78,7 +78,9 @@ The script labels the issues and pull requests it opens with ``REQUEST_LABEL``
 and finds those of earlier runs by that label, so a run that stops halfway,
 for example because Galaxy limits how many notifications an account may send
 per minute (``send_notification_rate_limit``), is picked up by the next one
-without opening duplicates.
+without opening duplicates. The requester may be told twice, though: if a run
+tells them but then fails to mark their request as seen, the next run tells
+them again, rather than risk not telling them at all.
 
 ``EPHEMERIS_API_KEY`` must belong to an account in Galaxy's ``admin_users``
 that keeps tool installation requests turned on in its notification
@@ -105,7 +107,9 @@ that they are installed, or that the request was closed without installing
 them. It then adds ``ANSWERED_LABEL``. It waits for the tools of a merged pull
 request to be installed, by an install job like the one below or by hand, and
 gives up on those closed more than 30 days ago, without telling the requester.
-So close an issue once its tools are installed, not before.
+For merged pull requests it gives up on, it prints a warning on every run
+until you add ``ANSWERED_LABEL`` to them. So close an issue once its tools are
+installed, not before.
 
 Request pull requests all start from the same base branch, so merging one can
 make others that change the same tool list conflict. Resolve those like any

@@ -282,6 +282,7 @@ esac
     start = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=checkout, capture_output=True, text=True)
     result = subprocess.run(["bash", SCRIPT], cwd=checkout, env=script_env, capture_output=True, text=True)
     assert result.returncode == 0, result.stderr
+    (tmp_path / "stderr").write_text(result.stderr)
     # Cron runs the script again in the same checkout, so it ends where it started.
     end = subprocess.run(["git", "rev-parse", "--abbrev-ref", "HEAD"], cwd=checkout, capture_output=True, text=True)
     assert end.stdout == start.stdout
@@ -376,6 +377,9 @@ def test_script_tells_requesters_how_their_request_ended(tmp_path, forge_server,
     forge.add("issue", _body("c3"), state="closed", closed_at=_ago(1))
     # Labelled by hand with other capitals, which GitHub's label names ignore.
     forge.add("issue", _body("c9"), labels=[LABEL, ANSWERED.title()], state="closed", closed_at=_ago(1))
+    # Merged too long ago to wait for, once told and once not.
+    forge.add("change", _body("c10"), labels=[LABEL, ANSWERED], state="merged", closed_at=_ago(40), branch="b10")
+    expired = forge.add("change", _body("c11"), state="merged", closed_at=_ago(40), branch="tool-request/c11")
 
     env = dict(_ci(kind, api, tmp_path), TOOLS_FILE="tools.yaml")
     calls = _run(tmp_path, [], env, gitlab_ci=kind == "gitlab", installed=["c2"])
@@ -387,7 +391,11 @@ def test_script_tells_requesters_how_their_request_ended(tmp_path, forge_server,
         "c8": (duplicate["url"], "closed"),
     }
     answered = [i["url"] for i in forge.items if ANSWERED in i["labels"]]
-    assert answered == [rejected["url"], merged["url"], forge.items[3]["url"], duplicate["url"]]
+    assert answered == [rejected["url"], merged["url"], forge.items[3]["url"], duplicate["url"], forge.items[-2]["url"]]
+    # Only the merged pull request that nobody told about gets a warning, not the closed issue c5.
+    warnings = [line for line in (tmp_path / "stderr").read_text().splitlines() if "30 days" in line]
+    assert len(warnings) == 1
+    assert warnings[0].endswith(f": {expired['url']}")
 
 
 def test_script_opens_only_issues_without_a_tool_list(tmp_path, forge_server):

@@ -308,16 +308,23 @@ while read -r line <&3; do
 done 3< "$work/requests.jsonl"
 
 # Tell each request's outcome once, from a merged pull request if it has one, else from what was closed last.
-# A request that still has an open issue or pull request is not over yet. Only look at what was closed in the
-# last 30 days, so that pull requests whose tools never get installed are not looked up forever. GitHub's label
-# names ignore case.
-jq -c -s --arg answered "$ANSWERED_LABEL" --arg since "$(jq -rn 'now - 30 * 86400 | todate')" '
+# A request that still has an open issue or pull request is not over yet. GitHub's label names ignore case.
+jq -c -s --arg answered "$ANSWERED_LABEL" '
     group_by(.id)[]
     | select(.[0].id and all(.[]; .state != "open")
         and ([.[].labels[] | ascii_downcase] | index($answered | ascii_downcase) | not))
-    | (map(select(.state == "merged")) | max_by(.closed_at)) // max_by(.closed_at)
-    | select((.closed_at // "") >= $since)' \
-    "$work/artifacts.jsonl" > "$work/closed.jsonl"
+    | (map(select(.state == "merged")) | max_by(.closed_at)) // max_by(.closed_at)' \
+    "$work/artifacts.jsonl" > "$work/over.jsonl"
+# Only look at what was closed in the last 30 days, so that pull requests whose tools never get installed are
+# not looked up forever.
+cutoff=$(jq -rn 'now - 30 * 86400 | todate')
+jq -c --arg cutoff "$cutoff" 'select((.closed_at // "") >= $cutoff)' "$work/over.jsonl" > "$work/closed.jsonl"
+expired=$(jq -r --arg cutoff "$cutoff" 'select(.state == "merged" and (.closed_at // "") < $cutoff) | .url' \
+    "$work/over.jsonl" | tr '\n' ' ')
+if [ -n "$expired" ]; then
+    echo "Stopped waiting for the tools of these pull requests, merged over 30 days ago, so their requesters were" \
+        "not told. Add the label \"$ANSWERED_LABEL\" to them to stop this warning: ${expired% }" >&2
+fi
 while read -r line <&3; do
     printf '%s\n' "$line" > "$work/artifact.json"
     if ! tell_outcome; then

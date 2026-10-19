@@ -91,6 +91,12 @@ class FakeToolShed:
         ),
         "j1": ("jjohnson", "regex_find_replace", [(0, "9ea374bb0350", {"regexColumn1": "0.1.0"})]),
         "k1": ("kellrott", "regex_replace", [(0, "9a77d5fca67c", {"regex_replace": "1.0.0"})]),
+        # A suite, with no tool named like the repository.
+        "t1": (
+            "iuc",
+            "bedtools",
+            [(0, "a1b2c3d4e5f6", {"bedtools_intersectbed": "2.31.1+galaxy0", "bedtools_sortbed": "2.31.1+galaxy0"})],
+        ),
     }
 
     def __init__(self, error=None):
@@ -238,6 +244,15 @@ def test_emit_keeps_user_text_out_of_markdown(fake_tool_shed):
     for body in (referencing["body"], emit_item(referencing_request, SHED, LABEL)["body"]):
         assert not re.search(r"#\d", body)
 
+    # Galaxy replaces the workflow id with its own, but older or other servers may pass on what users sent.
+    workflow_request = _request("0aab0e4c25198ad8")
+    assert "Needed by workflow `33b43b4e7093c91f`." in emit_item(workflow_request, SHED, LABEL)["body"]
+    workflow_request["content"] = dict(workflow_request["content"], workflow_id="x` @octocat fixes #1 <b>x</b> `")
+    workflow_body = emit_item(workflow_request, SHED, LABEL)["body"]
+    assert "@octocat" not in _outside_code(workflow_body)
+    assert "<b>" not in _outside_code(workflow_body)
+    assert not re.search(r"#\d", workflow_body)
+
     # GitLab rejects titles over 255 characters, and GitHub bodies over 65536.
     long_names = _emit("b2486a20bc56b90f", tools=[{"name": "x" * 255}, {"name": "y" * 255}])
     assert len(long_names["title"]) <= 255
@@ -319,6 +334,35 @@ def test_emit_pins_tools_without_a_version_to_the_newest_revision(fake_tool_shed
     workflow_tool = {"name": "fastp", "tool_shed_id": "toolshed.g2.bx.psu.edu/repos/iuc/fastp"}
     by_id = emit_item(_request("0aab0e4c25198ad8", [workflow_tool]), SHED, LABEL, pin_latest=True)
     assert by_id["title"] == "Install fastp 1.3.6+galaxy0"
+
+
+def test_emit_leaves_versions_of_suites_to_the_admins(fake_tool_shed):
+    fake_tool_shed()
+    # Any tool of the suite could have the requested version.
+    suite = _emit("b2486a20bc56b90f", tools=[{"name": "bedtools", "requested_version": "2.31.1+galaxy0"}])
+    assert suite["action"] == "issue"
+    assert "bedtools has several tools" in suite["body"]
+    nameless_tool = {
+        "name": None,
+        "tool_shed_id": "toolshed.g2.bx.psu.edu/repos/iuc/bedtools",
+        "requested_version": "2.31.1+galaxy0",
+    }
+    assert _emit("0aab0e4c25198ad8", tools=[nameless_tool])["action"] == "issue"
+
+    # A workflow names the tool.
+    workflow_tool = {
+        "name": "bedtools_sortbed",
+        "tool_shed_id": "toolshed.g2.bx.psu.edu/repos/iuc/bedtools",
+        "requested_version": "2.31.1+galaxy0",
+    }
+    assert _emit("0aab0e4c25198ad8", tools=[workflow_tool])["action"] == "pr"
+    # A repository with one tool, named otherwise, leaves no doubt.
+    single = _emit("b2486a20bc56b90f", tools=[{"name": "regex_find_replace", "requested_version": "0.1.0"}])
+    assert single["action"] == "pr"
+    assert single["tools"][0]["revisions"] == ["9ea374bb0350"]
+    # Without a version, the newest revision has every tool of the suite.
+    latest = emit_item(_request("b2486a20bc56b90f", [{"name": "bedtools"}]), SHED, LABEL, pin_latest=True)
+    assert latest["action"] == "pr"
 
 
 def test_emit_gives_unpinned_tools_their_own_entry(fake_tool_shed):

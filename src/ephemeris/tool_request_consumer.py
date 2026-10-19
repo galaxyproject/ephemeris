@@ -204,9 +204,14 @@ def _find_revision(shed_url: str, repository: dict, version: str | None, tool_id
         key=lambda r: -1 if r["numeric_revision"] is None else r["numeric_revision"],
         reverse=True,
     )
-    if tool_id is None and version is not None and repository["name"] in _tool_ids(revisions):
-        # A free-text request names the repository, so its version is that of the tool named like it.
-        tool_id = repository["name"]
+    if tool_id is None and version is not None:
+        # A free-text request names the repository, so its version is that of the tool named like it, or of its
+        # only tool. Several tools could each have that version.
+        tool_ids = _tool_ids(revisions)
+        if repository["name"] in tool_ids:
+            tool_id = repository["name"]
+        elif len(tool_ids) > 1:
+            raise Unresolved(f"{repository['name']} has several tools, so the version does not tell which one")
     for revision in revisions:
         if version is None and tool_id is None:
             return revision["changeset_revision"], None
@@ -384,7 +389,7 @@ def emit_item(
         *rows,
     ]
     if content.get("workflow_id"):
-        body += ["", f"Needed by workflow `{content['workflow_id']}`."]
+        body += ["", f"Needed by workflow {_code(content['workflow_id'])}."]
     tool_list = []
     if entries:
         tool_list = [

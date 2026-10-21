@@ -13,3 +13,4 @@ Commands
    commands/install-tool-deps
    commands/workflow-install
    commands/workflow-to-tools
+   commands/consume-tool-installation-requests

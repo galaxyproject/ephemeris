@@ -1,6 +1,6 @@
 six>=1.9.0
 PyYAML
-bioblend>=0.10.0
+bioblend>=1.0.0
 Jinja2
 galaxy-tool-util>=20.9.1
 galaxy-util>=20.9.0

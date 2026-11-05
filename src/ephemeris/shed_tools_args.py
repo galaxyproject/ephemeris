@@ -131,7 +131,6 @@ def parser():
             "--skip_install_resolver_dependencies",
             action="store_false",
             dest="install_resolver_dependencies",
-            default=False,
             help="Skip installing tool dependencies through resolver (e.g. conda). "
             "Will be ignored on galaxy releases older than 16.07. "
             "Can be overwritten on a per-tool basis in the tools file",
@@ -141,7 +140,6 @@ def parser():
             "--skip_install_repository_dependencies",
             action="store_false",
             dest="install_repository_dependencies",
-            default=False,
             help="Skip installing the repository dependencies.",
         )
         command_parser.add_argument(

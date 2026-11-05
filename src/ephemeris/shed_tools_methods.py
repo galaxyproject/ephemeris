@@ -35,11 +35,12 @@ def complete_repo_information(
         owner=tool["owner"],
         tool_shed_url=tool["tool_shed_url"],
         changeset_revision=tool.get("changeset_revision"),
-        install_repository_dependencies=tool.get("install_repository_dependencies")
-        or default_install_repository_dependencies,
-        install_resolver_dependencies=tool.get("install_resolver_dependencies")
-        or default_install_resolver_dependencies,
-        install_tool_dependencies=tool.get("install_tool_dependencies") or default_install_tool_dependencies,
+        # A tool's own setting wins, also to turn an installation off.
+        install_repository_dependencies=tool.get(
+            "install_repository_dependencies", default_install_repository_dependencies
+        ),
+        install_resolver_dependencies=tool.get("install_resolver_dependencies", default_install_resolver_dependencies),
+        install_tool_dependencies=tool.get("install_tool_dependencies", default_install_tool_dependencies),
     )
     # We need those values. Throw a KeyError when not present
     tool_panel_section_label = tool.get("tool_panel_section_label")

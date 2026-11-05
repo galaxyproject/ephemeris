@@ -5,6 +5,7 @@ Commands
 .. toctree::
    :maxdepth: 0
 
+   commands/galaxy-history-eval
    commands/galaxy-wait
    commands/get-tool-list
    commands/run-data-managers

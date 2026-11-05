@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Galaxy History Evaluator report</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    </head>
+    <body>
+        {% macro status(same, missing_icon="fa-ban", missing_color="has-text-danger") -%}
+            {% if same %}
+                <span class="icon has-text-success"><i class="fas fa-check-square"></i></span>
+            {% else %}
+                <span class="icon {{ missing_color }}"><i class="fas {{ missing_icon }}"></i></span>
+            {% endif %}
+        {%- endmacro %}
+        {% macro step_tables(step_num, step_res, prefix) -%}
+            <table id="table_{{ prefix }}_{{ step_num }}" class="table is-fullwidth">
+                <tr class="th">
+                    <th></th>
+                    <th>In reference</th>
+                    <th>In history</th>
+                    <th>Status</th>
+                </tr>
+                <tr {% if step_res.tool.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                    <td class="has-text-left">Tool</td>
+                    <td class="has-text-left">{{ step_res.tool.workflow }}</td>
+                    <td class="has-text-left">{{ step_res.tool.history }}</td>
+                    <td class="has-text-left">{{ status(step_res.tool.same) }}</td>
+                </tr>
+                <tr {% if step_res.version.same %} class="correct" {% else %} class="missed" {% endif %}>
+                    <td class="has-text-left">Tool version</td>
+                    <td class="has-text-left">{{ step_res.version.workflow }}</td>
+                    <td class="has-text-left">{{ step_res.version.history }}</td>
+                    <td class="has-text-left">{{ status(step_res.version.same, "fa-exclamation-triangle", "has-text-warning") }}</td>
+                </tr>
+                <tr {% if step_res.order.same %} class="correct" {% else %} class="missed" {% endif %}>
+                    <td class="has-text-left">Step</td>
+                    <td class="has-text-left">{{ step_res.order.workflow }}</td>
+                    <td class="has-text-left">{{ step_res.order.history }}</td>
+                    <td class="has-text-left">{{ status(step_res.order.same, "fa-exclamation-triangle", "has-text-warning") }}</td>
+                </tr>
+                <tr {% if step_res.inputs_connection.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                    <td class="has-text-left">Inputs from steps</td>
+                    <td class="has-text-left">{{ step_res.inputs_connection.workflow | join(", ") }}</td>
+                    <td class="has-text-left">{{ (step_res.inputs_connection.history or []) | join(", ") }}</td>
+                    <td class="has-text-left">{{ status(step_res.inputs_connection.same) }}</td>
+                </tr>
+                {% if step_res.output_formats %}
+                <tr {% if step_res.output_formats.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                    <td class="has-text-left">Output formats</td>
+                    <td class="has-text-left">{{ step_res.output_formats.workflow | join(", ") }}</td>
+                    <td class="has-text-left">{{ step_res.output_formats.history | join(", ") }}</td>
+                    <td class="has-text-left">{{ status(step_res.output_formats.same) }}</td>
+                </tr>
+                {% endif %}
+                {% if step_res.status == "matched" and (step_res.cached or step_res.cached_reference) %}
+                {% set same_cache = step_res.cached == step_res.cached_reference %}
+                <tr {% if same_cache %} class="correct" {% else %} class="missed" {% endif %}>
+                    <td class="has-text-left">Result reused from an earlier job (job cache)</td>
+                    <td class="has-text-left">{{ "yes" if step_res.cached_reference else "no" }}</td>
+                    <td class="has-text-left">{{ "yes" if step_res.cached else "no" }}</td>
+                    <td class="has-text-left">{{ status(same_cache, "fa-exclamation-triangle", "has-text-warning") }}</td>
+                </tr>
+                {% endif %}
+                {% if step_res.failed_elements %}
+                <tr class="missed">
+                    <td class="has-text-left">Failed collection elements</td>
+                    <td class="has-text-left"></td>
+                    <td class="has-text-left">{{ step_res.failed_elements }} of {{ step_res.elements }}</td>
+                    <td class="has-text-left">{{ status(false) }}</td>
+                </tr>
+                {% endif %}
+                {% if step_res.copied_from_history %}
+                <tr class="wrong">
+                    <td class="has-text-left">Copied</td>
+                    <td class="has-text-left"></td>
+                    <td class="has-text-left">Job ran in history {{ step_res.copied_from_history }}{% if step_res.copied_by %} ({{ step_res.copied_by }}){% endif %}</td>
+                    <td class="has-text-left">{{ status(false) }}</td>
+                </tr>
+                {% endif %}
+            </table>
+            <table id="table_{{ prefix }}_{{ step_num }}_params" class="table is-fullwidth">
+                <tr class="th">
+                    <th>Parameters</th>
+                    <th>In reference</th>
+                    <th>In history</th>
+                    <th>Status</th>
+                </tr>
+                {% for key, value in step_res.parameters.details.items() %}
+                <tr {% if value.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                    <td class="has-text-left">{{ key }}</td>
+                    <td class="has-text-left">{{ value.workflow }}</td>
+                    <td class="has-text-left">{{ value.history }}</td>
+                    <td class="has-text-left">{{ status(value.same) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        {%- endmacro %}
+        <div class="container">
+            <div class="content">
+                <h1>Galaxy History Evaluator report</h1>
+
+                <h2>Inputs</h2>
+
+                    <ul>
+                        <li>Galaxy history: <a href="{{ report.inputs.history }}">{{ report.inputs.history }}</a></li>
+                        <li>Reference {{ report.inputs.reference_type or "workflow" }}: <a href="{{ report.inputs.workflow }}">{{ report.inputs.workflow }}</a></li>
+                    </ul>
+
+                {% if report.all_steps_from_history %}
+                <div class="notification is-warning">No step of this history ran in it, most steps ran in history {{ report.all_steps_from_history }}: the history is a copy of a whole history{% if report.all_steps_by %} ({{ report.all_steps_by }}){% endif %}. This is expected for a history imported by a tutor, not for a history shared by a student.</div>
+                {% endif %}
+
+                {% if report.in_short %}
+                <h2>In short</h2>
+                    <ul>
+                    {% for sentence in report.in_short %}
+                        <li>{{ sentence }}</li>
+                    {% endfor %}
+                    </ul>
+                {% endif %}
+
+                {% if report.score %}
+                <h2>Summary</h2>
+                    <table class="table is-fullwidth">
+                        <tr><td class="has-text-left">Step score</td><td class="has-text-left">{{ report.score.steps }} %</td></tr>
+                        {% if report.score.final_output is not none %}
+                        <tr><td class="has-text-left">Final output similarity</td><td class="has-text-left">{{ report.score.final_output }} %</td></tr>
+                        {% endif %}
+                        <tr><td class="has-text-left">Missing steps</td><td class="has-text-left">{{ report.score.missing_steps }}</td></tr>
+                        <tr><td class="has-text-left">Extra steps (not deleted)</td><td class="has-text-left">{{ report.score.extra_steps }}</td></tr>
+                        <tr><td class="has-text-left">Deleted steps</td><td class="has-text-left">{{ report.score.deleted_steps }}</td></tr>
+                        <tr><td class="has-text-left">Failed or not finished steps</td><td class="has-text-left">{{ report.score.failed_steps }}</td></tr>
+                        <tr><td class="has-text-left">Steps copied from another or a private history</td><td class="has-text-left">{{ report.score.copied_steps }}</td></tr>
+                        <tr><td class="has-text-left">Steps from the job cache</td><td class="has-text-left">{{ report.score.cached_steps }}</td></tr>
+                    </table>
+                    <p>{{ score_explanation }}</p>
+                    <p>In the tables:
+                        <span class="icon has-text-success"><i class="fas fa-check-square"></i></span> same as the reference,
+                        <span class="icon has-text-danger"><i class="fas fa-ban"></i></span> different from the reference or missing,
+                        <span class="icon has-text-warning"><i class="fas fa-exclamation-triangle"></i></span> different, but it does not lower the score (e.g. another tool version, another step number, or another number of inputs or steps).</p>
+                {% endif %}
+
+                <h2>Report</h2>
+                    <table class="table is-fullwidth">
+                        <tr class="th">
+                            <th></th>
+                            <th>In reference</th>
+                            <th>In history</th>
+                            <th>Status</th>
+                        </tr>
+                        <tr {% if report.data_inputs.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                            <td class="has-text-left">Data inputs</td>
+                            <td class="has-text-left">{{ report.data_inputs.workflow }}</td>
+                            <td class="has-text-left">{{ report.data_inputs.history }}</td>
+                            <td class="has-text-left">{{ status(report.data_inputs.same, "fa-exclamation-triangle", "has-text-warning") }}</td>
+                        </tr>
+                        <tr {% if report.steps.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                            <td class="has-text-left">Steps</td>
+                            <td class="has-text-left">{{ report.steps.workflow }}</td>
+                            <td class="has-text-left">{{ report.steps.history }}</td>
+                            <td class="has-text-left">{{ status(report.steps.same, "fa-exclamation-triangle", "has-text-warning") }}</td>
+                        </tr>
+                    </table>
+
+                {% if report.final_outputs %}
+                    <h3>Final output</h3>
+                    <p>Last step of the reference: step {{ report.final_outputs.reference_step.order }}, {{ report.final_outputs.reference_step.tool }} ({{ report.final_outputs.reference_step.formats | join(", ") }}), compared to the last steps of the history.{% if report.final_outputs.note %} Note: {{ report.final_outputs.note }}.{% endif %}</p>
+                    <table class="table is-fullwidth">
+                        <tr class="th">
+                            <th>Step</th>
+                            <th>Tool</th>
+                            <th>Same tool</th>
+                            <th>Same output formats</th>
+                            <th>Content similarity</th>
+                        </tr>
+                        {% for c in report.final_outputs.candidates %}
+                        <tr>
+                            <td class="has-text-left">{{ c.order }}</td>
+                            <td class="has-text-left">{{ c.tool }}</td>
+                            <td class="has-text-left">{{ status(c.same_tool) }}</td>
+                            <td class="has-text-left">{{ status(c.formats.same) }}</td>
+                            <td class="has-text-left">{% if c.content_similarity is not none %}{{ (100 * c.content_similarity) | round(1) }} %{% else %}not compared{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+
+                    <h3>Comparison given the reference order</h3>
+                        {% for step_num, step_res in report.comparison_given_reference_workflow_order.items() %}
+                        <h5 id="step_{{ step_num }}">Step {{ step_num }}: {{ step_res.tool.workflow }}{% if step_res.status == "missing" %} (missing){% endif %}</h5>
+                            {{ step_tables(step_num, step_res, "step") }}
+                        {% endfor %}
+
+                {% if report.extra_steps %}
+                    <h3>Steps not in the reference</h3>
+                    <table class="table is-fullwidth">
+                        <tr class="th"><th>Step</th><th>Tool</th><th>Version</th><th>Job cache</th><th>Deleted</th><th>Failed</th></tr>
+                        {% for s in report.extra_steps %}
+                        <tr><td class="has-text-left">{{ s.order }}</td><td class="has-text-left">{{ s.tool }}</td><td class="has-text-left">{{ s.version }}</td><td class="has-text-left">{% if s.cached %}yes{% endif %}</td><td class="has-text-left">{% if s.deleted %}yes{% endif %}</td><td class="has-text-left">{% if s.failed %}yes{% endif %}</td></tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+
+                {% if report.copied_steps %}
+                    <h3>Steps copied from another history</h3>
+                    <table class="table is-fullwidth">
+                        <tr class="th"><th>Step</th><th>Tool</th><th>History where the job ran</th><th>Run by</th></tr>
+                        {% for s in report.copied_steps %}
+                        <tr><td class="has-text-left">{{ s.order }}</td><td class="has-text-left">{{ s.tool }}</td><td class="has-text-left">{{ s.history }}</td><td class="has-text-left">{{ s.by or "unknown" }}</td></tr>
+                        {% endfor %}
+                    </table>
+                {% endif %}
+
+                    <h3>Comparison by reference tools</h3>
+                        {% for tool_name, tool in report.comparison_by_reference_workflow_tools.items() %}
+                        <h4 id="tool_{{ tool_name }}">{{ tool_name }} </h4>
+                            <table id="table_tool_{{ tool_name }}" class="table is-fullwidth">
+                                <tr class="th">
+                                    <th></th>
+                                    <th>In reference</th>
+                                    <th>In history</th>
+                                    <th>Status</th>
+                                </tr>
+                                <tr {% if tool.number.same %} class="correct" {% else %} class="wrong" {% endif %}>
+                                    <td class="has-text-left">Occurrences</td>
+                                    <td class="has-text-left">{{ tool.number.workflow }}</td>
+                                    <td class="has-text-left">{{ tool.number.history }}</td>
+                                    <td class="has-text-left">{{ status(tool.number.same) }}</td>
+                                </tr>
+                            </table>
+                            {% for step_num, step_res in tool.details.items() %}
+                            <h5 id="tool_{{ tool_name }}_{{ step_num }}">Occurrence {{ step_num }} </h5>
+                                {{ step_tables(step_num, step_res, "tool_" ~ tool_name) }}
+                            {% endfor %}
+                        {% endfor %}
+            </div>
+        </div>
+  </body>
+</html>

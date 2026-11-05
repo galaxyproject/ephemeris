@@ -1,0 +1,338 @@
+{
+ "collections": {},
+ "contents": [
+  {
+   "create_time": "2023-03-29T09:17:05.641649",
+   "dataset_id": "4838ba20a6d8676590faa220391fccb8",
+   "deleted": true,
+   "extension": "fastqsanger",
+   "file_size": 4137809,
+   "genome_build": "?",
+   "hid": 1,
+   "history_content_type": "dataset",
+   "history_id": "19b7e0ced2125767",
+   "id": "4838ba20a6d867657a6ee0f348e21a6a",
+   "name": "mutant_R1.fastq",
+   "object_store_id": "files18",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-4838ba20a6d867657a6ee0f348e21a6a",
+   "update_time": "2024-08-30T07:48:54.318133",
+   "url": "/api/histories/19b7e0ced2125767/contents/datasets/4838ba20a6d867657a6ee0f348e21a6a",
+   "uuid": "06137a67-c4fa-49ac-b341-e592a15c23d7",
+   "visible": true
+  },
+  {
+   "create_time": "2023-03-29T09:19:28.315369",
+   "dataset_id": "4838ba20a6d86765610b2a66abd62a10",
+   "deleted": true,
+   "extension": "html",
+   "file_size": 0,
+   "genome_build": "?",
+   "hid": 2,
+   "history_content_type": "dataset",
+   "history_id": "19b7e0ced2125767",
+   "id": "4838ba20a6d867651665f126125054b6",
+   "name": "FastQC on data 1: Webpage",
+   "object_store_id": "files18",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-4838ba20a6d867651665f126125054b6",
+   "update_time": "2024-08-30T07:48:59.938591",
+   "url": "/api/histories/19b7e0ced2125767/contents/datasets/4838ba20a6d867651665f126125054b6",
+   "uuid": "982a7343-62c3-4824-9790-9b8d8c8c2b3e",
+   "visible": true
+  },
+  {
+   "create_time": "2023-03-29T09:19:28.315380",
+   "dataset_id": "4838ba20a6d86765f045bfe48f5a0f9b",
+   "deleted": true,
+   "extension": "txt",
+   "file_size": 0,
+   "genome_build": "?",
+   "hid": 3,
+   "history_content_type": "dataset",
+   "history_id": "19b7e0ced2125767",
+   "id": "4838ba20a6d86765142430b6635b7699",
+   "name": "FastQC on data 1: RawData",
+   "object_store_id": "files18",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-4838ba20a6d86765142430b6635b7699",
+   "update_time": "2024-08-30T07:48:54.895317",
+   "url": "/api/histories/19b7e0ced2125767/contents/datasets/4838ba20a6d86765142430b6635b7699",
+   "uuid": "19f8152e-f017-4152-a2bf-df97b53d1d91",
+   "visible": true
+  },
+  {
+   "create_time": "2023-03-29T09:20:40.092484",
+   "dataset_id": "4838ba20a6d86765c1e5b574ed52e58a",
+   "deleted": true,
+   "extension": "fastqsanger",
+   "file_size": 0,
+   "genome_build": "?",
+   "hid": 4,
+   "history_content_type": "dataset",
+   "history_id": "19b7e0ced2125767",
+   "id": "4838ba20a6d86765421aa5e528a39951",
+   "name": "Filter by quality on data 1",
+   "object_store_id": "files18",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-4838ba20a6d86765421aa5e528a39951",
+   "update_time": "2024-08-30T07:48:59.952718",
+   "url": "/api/histories/19b7e0ced2125767/contents/datasets/4838ba20a6d86765421aa5e528a39951",
+   "uuid": "e9451e29-e4e7-46d5-bac0-ae341beea660",
+   "visible": true
+  },
+  {
+   "create_time": "2023-03-29T09:21:03.582400",
+   "dataset_id": "4838ba20a6d86765c1f46d928c6ea63c",
+   "deleted": true,
+   "extension": "fastqsanger",
+   "file_size": 0,
+   "genome_build": "?",
+   "hid": 5,
+   "history_content_type": "dataset",
+   "history_id": "19b7e0ced2125767",
+   "id": "4838ba20a6d867657c9eb09b569f6e5c",
+   "name": "Filter by quality on data 1",
+   "object_store_id": "files18",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-4838ba20a6d867657c9eb09b569f6e5c",
+   "update_time": "2024-08-30T07:48:54.809744",
+   "url": "/api/histories/19b7e0ced2125767/contents/datasets/4838ba20a6d867657c9eb09b569f6e5c",
+   "uuid": "f06043a7-3ae1-493e-9346-ca75cfb2a0ff",
+   "visible": true
+  }
+ ],
+ "galaxy_url": "https://usegalaxy.eu",
+ "history_id": "19b7e0ced2125767",
+ "history_name": "Short Introduction for ghevaluator",
+ "history_url": "https://usegalaxy.eu/histories/view?id=19b7e0ced2125767",
+ "jobs": {
+  "11ac94870d0bb33a51e9798be17d0152": {
+   "copied_from_job_id": null,
+   "create_time": "2023-03-29T09:19:28.306087",
+   "history_id": "19b7e0ced2125767",
+   "id": "11ac94870d0bb33a51e9798be17d0152",
+   "inputs": {
+    "input_file": {
+     "id": "4838ba20a6d867657a6ee0f348e21a6a",
+     "src": "hda",
+     "uuid": "06137a67-c4fa-49ac-b341-e592a15c23d7"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "html_file": {
+     "id": "4838ba20a6d867651665f126125054b6",
+     "src": "hda",
+     "uuid": "982a7343-62c3-4824-9790-9b8d8c8c2b3e"
+    },
+    "text_file": {
+     "id": "4838ba20a6d86765142430b6635b7699",
+     "src": "hda",
+     "uuid": "19f8152e-f017-4152-a2bf-df97b53d1d91"
+    }
+   },
+   "params": {
+    "__input_ext": "\"fastqsanger\"",
+    "adapters": null,
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/?.len\"",
+    "contaminants": null,
+    "dbkey": "\"?\"",
+    "kmers": "\"7\"",
+    "limits": null,
+    "min_length": "\"\"",
+    "nogroup": "false"
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.73+galaxy0",
+   "tool_version": null,
+   "update_time": "2023-03-29T09:20:06.985661"
+  },
+  "11ac94870d0bb33a5fc21d5d0651534f": {
+   "copied_from_job_id": null,
+   "create_time": "2023-03-29T09:20:40.083839",
+   "history_id": "19b7e0ced2125767",
+   "id": "11ac94870d0bb33a5fc21d5d0651534f",
+   "inputs": {
+    "input": {
+     "id": "4838ba20a6d867657a6ee0f348e21a6a",
+     "src": "hda",
+     "uuid": "06137a67-c4fa-49ac-b341-e592a15c23d7"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "output": {
+     "id": "4838ba20a6d86765421aa5e528a39951",
+     "src": "hda",
+     "uuid": "e9451e29-e4e7-46d5-bac0-ae341beea660"
+    }
+   },
+   "params": {
+    "__input_ext": "\"fastqsanger\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/?.len\"",
+    "dbkey": "\"?\"",
+    "percent": "\"80\"",
+    "quality": "\"35\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastq_quality_filter/cshl_fastq_quality_filter/1.0.2+galaxy0",
+   "tool_version": null,
+   "update_time": "2023-03-29T09:21:39.127426"
+  },
+  "11ac94870d0bb33a6ffe14b8497feba3": {
+   "copied_from_job_id": null,
+   "create_time": "2023-03-29T09:21:03.571870",
+   "history_id": "19b7e0ced2125767",
+   "id": "11ac94870d0bb33a6ffe14b8497feba3",
+   "inputs": {
+    "input": {
+     "id": "4838ba20a6d867657a6ee0f348e21a6a",
+     "src": "hda",
+     "uuid": "06137a67-c4fa-49ac-b341-e592a15c23d7"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "output": {
+     "id": "4838ba20a6d867657c9eb09b569f6e5c",
+     "src": "hda",
+     "uuid": "f06043a7-3ae1-493e-9346-ca75cfb2a0ff"
+    }
+   },
+   "params": {
+    "__input_ext": "\"fastqsanger\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/?.len\"",
+    "dbkey": "\"?\"",
+    "percent": "\"80\"",
+    "quality": "\"36\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastq_quality_filter/cshl_fastq_quality_filter/1.0.2+galaxy0",
+   "tool_version": null,
+   "update_time": "2023-03-29T09:21:50.910540"
+  }
+ },
+ "summary": {
+  "history_id": "19b7e0ced2125767",
+  "jobs": [
+   {
+    "checked": false,
+    "id": null,
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 1,
+      "history_content_type": "dataset",
+      "id": "4838ba20a6d867657a6ee0f348e21a6a",
+      "name": "mutant_R1.fastq",
+      "state": "ok"
+     }
+    ],
+    "step_type": "input_dataset",
+    "tool_id": null,
+    "tool_name": "Data Fetch",
+    "tool_version": null,
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33a51e9798be17d0152",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 2,
+      "history_content_type": "dataset",
+      "id": "4838ba20a6d867651665f126125054b6",
+      "name": "FastQC on data 1: Webpage",
+      "state": "ok"
+     },
+     {
+      "deleted": true,
+      "hid": 3,
+      "history_content_type": "dataset",
+      "id": "4838ba20a6d86765142430b6635b7699",
+      "name": "FastQC on data 1: RawData",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastqc/fastqc/0.73+galaxy0",
+    "tool_name": "FastQC",
+    "tool_version": "0.73+galaxy0",
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33a5fc21d5d0651534f",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 4,
+      "history_content_type": "dataset",
+      "id": "4838ba20a6d86765421aa5e528a39951",
+      "name": "Filter by quality on data 1",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastq_quality_filter/cshl_fastq_quality_filter/1.0.2+galaxy0",
+    "tool_name": "Filter by quality",
+    "tool_version": "1.0.2+galaxy0",
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33a6ffe14b8497feba3",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 5,
+      "history_content_type": "dataset",
+      "id": "4838ba20a6d867657c9eb09b569f6e5c",
+      "name": "Filter by quality on data 1",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/fastq_quality_filter/cshl_fastq_quality_filter/1.0.2+galaxy0",
+    "tool_name": "Filter by quality",
+    "tool_version": "1.0.2+galaxy0",
+    "tool_version_warning": null
+   }
+  ],
+  "warnings": []
+ }
+}

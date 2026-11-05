@@ -1,0 +1,1052 @@
+{
+ "collections": {},
+ "contents": [
+  {
+   "create_time": "2025-06-30T08:09:21.826865",
+   "dataset_id": "4838ba20a6d86765e7d6a6980c932bd7",
+   "deleted": false,
+   "extension": "interval",
+   "file_size": 2914805,
+   "genome_build": "mm9",
+   "hid": 1,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac82d606765ed5df4af",
+   "name": "GSE37268_mof3.out.hpeak.txt.gz",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac82d606765ed5df4af",
+   "update_time": "2025-06-30T08:18:18.235577",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac82d606765ed5df4af",
+   "uuid": "8c54d1b7-6edf-4b8a-8b9f-36b0ae7f866b",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:24:31.346523",
+   "dataset_id": "4838ba20a6d86765e09b8cf0da9d894c",
+   "deleted": false,
+   "extension": "bed",
+   "file_size": 7109450,
+   "genome_build": "mm9",
+   "hid": 2,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8da7472b3cc630325",
+   "name": "UCSC Main on Mouse: refGene (genome)",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:gene"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8da7472b3cc630325",
+   "update_time": "2025-06-30T08:29:10.963105",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8da7472b3cc630325",
+   "uuid": "1c1c391d-68a8-4444-a2b0-cd0e38f52274",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:28:01.515021",
+   "dataset_id": "4838ba20a6d867659e8217ce3496d6f2",
+   "deleted": true,
+   "extension": "bed",
+   "file_size": 7109450,
+   "genome_build": "mm9",
+   "hid": 3,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8b705977efda3d149",
+   "name": "UCSC Main on Mouse: refGene (genome)",
+   "object_store_id": "files29",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8b705977efda3d149",
+   "update_time": "2025-06-30T08:29:17.260693",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8b705977efda3d149",
+   "uuid": "df6fa0b2-0832-4997-abc2-ab18dfd2ba2f",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:47:14.311686",
+   "dataset_id": "4838ba20a6d8676510a8d7de48b81334",
+   "deleted": false,
+   "extension": "interval",
+   "file_size": 5993,
+   "genome_build": "mm9",
+   "hid": 4,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac881df48dc736b2415",
+   "name": "Select last on data 1",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac881df48dc736b2415",
+   "update_time": "2025-06-30T08:47:43.907038",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac881df48dc736b2415",
+   "uuid": "3b541d84-b0aa-45a4-bfc8-9b6c0102d76c",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:51:10.669646",
+   "dataset_id": "4838ba20a6d867651b4b7d7f83dc98b4",
+   "deleted": false,
+   "extension": "interval",
+   "file_size": 3060746,
+   "genome_build": "mm9",
+   "hid": 5,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8e8c775fd62d9db6b",
+   "name": "chr prefix added",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8e8c775fd62d9db6b",
+   "update_time": "2025-06-30T09:00:41.223404",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8e8c775fd62d9db6b",
+   "uuid": "ef316d48-e3c5-416c-9f33-5511038ca96a",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:54:01.467722",
+   "dataset_id": "4838ba20a6d8676506e4bf83bef32ccc",
+   "deleted": true,
+   "extension": "interval",
+   "file_size": 3060746,
+   "genome_build": "mm9",
+   "hid": 6,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac86d51b198c793be2e",
+   "name": "Replace Text on data 1",
+   "object_store_id": "files29",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac86d51b198c793be2e",
+   "update_time": "2025-06-30T08:55:03.863574",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac86d51b198c793be2e",
+   "uuid": "9fc390c5-04a1-46fa-8b82-36e4112a3131",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T08:59:38.686600",
+   "dataset_id": "4838ba20a6d8676555cf05fd1fe00ba4",
+   "deleted": false,
+   "extension": "interval",
+   "file_size": 3060180,
+   "genome_build": "mm9",
+   "hid": 7,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8ea3155b53d619ca4",
+   "name": "Peak regions",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8ea3155b53d619ca4",
+   "update_time": "2025-06-30T09:03:50.323657",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8ea3155b53d619ca4",
+   "uuid": "0d8ab9f2-e7f6-4134-9961-2483c609a1d6",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:03:14.970528",
+   "dataset_id": "4838ba20a6d867658e8da56edf0747d2",
+   "deleted": false,
+   "extension": "interval",
+   "file_size": 6193,
+   "genome_build": "mm9",
+   "hid": 8,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8145d37b9d20d0780",
+   "name": "Select last on data 7",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8145d37b9d20d0780",
+   "update_time": "2025-06-30T09:04:06.449307",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8145d37b9d20d0780",
+   "uuid": "782fc173-1d93-49e7-bbe4-0b22da169ee6",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:11:43.955823",
+   "dataset_id": "4838ba20a6d86765bfd66b5a1b92a0cd",
+   "deleted": false,
+   "extension": "bed",
+   "file_size": 7109373,
+   "genome_build": "mm9",
+   "hid": 9,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8f5ba61d920d84400",
+   "name": "Promoter regions",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:gene"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8f5ba61d920d84400",
+   "update_time": "2025-06-30T09:18:03.739279",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8f5ba61d920d84400",
+   "uuid": "02c47001-2a7a-4753-92ae-cb3d54b2dd1f",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:20:09.612436",
+   "dataset_id": "4838ba20a6d867650ce6dbe524b5a109",
+   "deleted": false,
+   "extension": "bed",
+   "file_size": 1987589,
+   "genome_build": "mm9",
+   "hid": 10,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac817826f51a8c987ca",
+   "name": "Peak regions BED",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac817826f51a8c987ca",
+   "update_time": "2025-06-30T09:21:55.288391",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac817826f51a8c987ca",
+   "uuid": "396ab3c1-f550-4fbc-afb3-ba11bfe02828",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:23:51.248142",
+   "dataset_id": "4838ba20a6d867650d5ecf9ef580dfa9",
+   "deleted": false,
+   "extension": "bed",
+   "file_size": 3864752,
+   "genome_build": "mm9",
+   "hid": 11,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac89c52db663f41b4a8",
+   "name": "Intersect on data 10 and data 9",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:gene",
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac89c52db663f41b4a8",
+   "update_time": "2025-06-30T09:24:45.576073",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac89c52db663f41b4a8",
+   "uuid": "3b193d8e-530e-442e-accd-214ee82cec85",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:42:45.099900",
+   "dataset_id": "4838ba20a6d86765bb03ff9d7b199c6b",
+   "deleted": true,
+   "extension": "tabular",
+   "file_size": 0,
+   "genome_build": "mm9",
+   "hid": 12,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8c4a6ed0b0a8e2c87",
+   "name": "Group on data 11",
+   "object_store_id": "files29",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "discarded",
+   "tags": [
+    "name:gene",
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8c4a6ed0b0a8e2c87",
+   "update_time": "2025-06-30T09:51:11.562406",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8c4a6ed0b0a8e2c87",
+   "uuid": "0e270687-29c6-4782-bb67-b7fdb2ccf3c4",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:44:38.329852",
+   "dataset_id": "4838ba20a6d86765341519a17f7c003f",
+   "deleted": true,
+   "extension": "tabular",
+   "file_size": 0,
+   "genome_build": "mm9",
+   "hid": 13,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac8bdcc147c1167fec8",
+   "name": "Group on data 11",
+   "object_store_id": "files29",
+   "purged": true,
+   "quota_source_label": null,
+   "state": "discarded",
+   "tags": [
+    "name:gene",
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac8bdcc147c1167fec8",
+   "update_time": "2025-06-30T09:51:10.882666",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac8bdcc147c1167fec8",
+   "uuid": "d98e72c7-dc4b-4f5b-ac21-50f89db52d3a",
+   "visible": true
+  },
+  {
+   "create_time": "2025-06-30T09:50:35.123745",
+   "dataset_id": "4838ba20a6d86765a6c60380d56bac4a",
+   "deleted": false,
+   "extension": "tabular",
+   "file_size": 209,
+   "genome_build": "mm9",
+   "hid": 14,
+   "history_content_type": "dataset",
+   "history_id": "892319be4e2b6ca2",
+   "id": "26c75dcccb616ac82828c28d99ab0bf3",
+   "name": "Group on data 11",
+   "object_store_id": "files29",
+   "purged": false,
+   "quota_source_label": null,
+   "state": "ok",
+   "tags": [
+    "name:gene",
+    "name:peaks"
+   ],
+   "type": "file",
+   "type_id": "dataset-26c75dcccb616ac82828c28d99ab0bf3",
+   "update_time": "2025-07-03T14:40:30.133208",
+   "url": "/api/histories/892319be4e2b6ca2/contents/datasets/26c75dcccb616ac82828c28d99ab0bf3",
+   "uuid": "8b4c345e-befa-4d1b-bb52-4300bea75ec4",
+   "visible": true
+  }
+ ],
+ "galaxy_url": "https://usegalaxy.eu",
+ "history_id": "892319be4e2b6ca2",
+ "history_name": "GTN From Peaks to Genes 30/06/2025",
+ "history_url": "https://usegalaxy.eu/histories/view?id=892319be4e2b6ca2",
+ "jobs": {
+  "11ac94870d0bb33a03eaa1d84b8e3267": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:20:09.599876",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33a03eaa1d84b8e3267",
+   "inputs": {
+    "input1": {
+     "id": "26c75dcccb616ac8ea3155b53d619ca4",
+     "src": "hda",
+     "uuid": "0d8ab9f2-e7f6-4134-9961-2483c609a1d6"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "output1": {
+     "id": "26c75dcccb616ac817826f51a8c987ca",
+     "src": "hda",
+     "uuid": "396ab3c1-f550-4fbc-afb3-ba11bfe02828"
+    }
+   },
+   "params": {
+    "__input_ext": "\"input\"",
+    "__target_datatype__": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\""
+   },
+   "state": "ok",
+   "tool_id": "CONVERTER_interval_to_bed_0",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:21:13.573208"
+  },
+  "11ac94870d0bb33a427f52a1a205dbca": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:44:38.320323",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33a427f52a1a205dbca",
+   "inputs": {
+    "input1": {
+     "id": "26c75dcccb616ac89c52db663f41b4a8",
+     "src": "hda",
+     "uuid": "3b193d8e-530e-442e-accd-214ee82cec85"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "out_file1": {
+     "id": "26c75dcccb616ac8bdcc147c1167fec8",
+     "src": "hda",
+     "uuid": "d98e72c7-dc4b-4f5b-ac21-50f89db52d3a"
+    }
+   },
+   "params": {
+    "__input_ext": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "groupcol": "\"1\"",
+    "ignorecase": "false",
+    "ignorelines": null,
+    "operations": "[{\"__index__\": 0, \"opcol\": \"1\", \"opdefault\": \"\", \"opround\": \"no\", \"optype\": \"length\"}]"
+   },
+   "state": "deleted",
+   "tool_id": "Grouping1",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:51:11.374116"
+  },
+  "11ac94870d0bb33a5bb8a0451c0b4e34": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:03:14.954155",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33a5bb8a0451c0b4e34",
+   "inputs": {
+    "infile": {
+     "id": "26c75dcccb616ac8ea3155b53d619ca4",
+     "src": "hda",
+     "uuid": "0d8ab9f2-e7f6-4134-9961-2483c609a1d6"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "outfile": {
+     "id": "26c75dcccb616ac8145d37b9d20d0780",
+     "src": "hda",
+     "uuid": "782fc173-1d93-49e7-bbe4-0b22da169ee6"
+    }
+   },
+   "params": {
+    "__input_ext": "\"input\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "complement": "\"\"",
+    "dbkey": "\"mm9\"",
+    "num_lines": "\"100\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_tail_tool/9.3+galaxy1",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:04:06.499912"
+  },
+  "11ac94870d0bb33a6be918be301d1495": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T08:54:01.455636",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33a6be918be301d1495",
+   "inputs": {
+    "infile": {
+     "id": "26c75dcccb616ac82d606765ed5df4af",
+     "src": "hda",
+     "uuid": "8c54d1b7-6edf-4b8a-8b9f-36b0ae7f866b"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "outfile": {
+     "id": "26c75dcccb616ac86d51b198c793be2e",
+     "src": "hda",
+     "uuid": "9fc390c5-04a1-46fa-8b82-36e4112a3131"
+    }
+   },
+   "params": {
+    "__input_ext": "\"interval\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "replacements": "[{\"__index__\": 0, \"column\": \"1\", \"find_pattern\": \"[0-9]+\", \"replace_pattern\": \"chr&\"}]"
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+   "tool_version": null,
+   "update_time": "2025-06-30T08:54:38.925828"
+  },
+  "11ac94870d0bb33a8e0e0d7061f261c3": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T08:47:14.293287",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33a8e0e0d7061f261c3",
+   "inputs": {
+    "infile": {
+     "id": "26c75dcccb616ac82d606765ed5df4af",
+     "src": "hda",
+     "uuid": "8c54d1b7-6edf-4b8a-8b9f-36b0ae7f866b"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "outfile": {
+     "id": "26c75dcccb616ac881df48dc736b2415",
+     "src": "hda",
+     "uuid": "3b541d84-b0aa-45a4-bfc8-9b6c0102d76c"
+    }
+   },
+   "params": {
+    "__input_ext": "\"input\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "complement": "\"\"",
+    "dbkey": "\"mm9\"",
+    "num_lines": "\"100\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_tail_tool/9.3+galaxy1",
+   "tool_version": null,
+   "update_time": "2025-06-30T08:47:43.941825"
+  },
+  "11ac94870d0bb33aa4e15b4f37225195": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:50:35.115615",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33aa4e15b4f37225195",
+   "inputs": {
+    "input1": {
+     "id": "26c75dcccb616ac89c52db663f41b4a8",
+     "src": "hda",
+     "uuid": "3b193d8e-530e-442e-accd-214ee82cec85"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "out_file1": {
+     "id": "26c75dcccb616ac82828c28d99ab0bf3",
+     "src": "hda",
+     "uuid": "8b4c345e-befa-4d1b-bb52-4300bea75ec4"
+    }
+   },
+   "params": {
+    "__input_ext": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "groupcol": "\"1\"",
+    "ignorecase": "false",
+    "ignorelines": null,
+    "operations": "[{\"__index__\": 0, \"opcol\": \"1\", \"opdefault\": \"\", \"opround\": \"no\", \"optype\": \"length\"}]"
+   },
+   "state": "ok",
+   "tool_id": "Grouping1",
+   "tool_version": null,
+   "update_time": "2025-07-03T14:40:30.301087"
+  },
+  "11ac94870d0bb33ab1770c1f7db32a9f": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T08:59:38.674679",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33ab1770c1f7db32a9f",
+   "inputs": {
+    "infile": {
+     "id": "26c75dcccb616ac8e8c775fd62d9db6b",
+     "src": "hda",
+     "uuid": "ef316d48-e3c5-416c-9f33-5511038ca96a"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "outfile": {
+     "id": "26c75dcccb616ac8ea3155b53d619ca4",
+     "src": "hda",
+     "uuid": "0d8ab9f2-e7f6-4134-9961-2483c609a1d6"
+    }
+   },
+   "params": {
+    "__input_ext": "\"interval\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "replacements": "[{\"__index__\": 0, \"column\": \"1\", \"find_pattern\": \"chr20\", \"replace_pattern\": \"chrX\"}, {\"__index__\": 1, \"column\": \"1\", \"find_pattern\": \"chr21\", \"replace_pattern\": \"chrY\"}]"
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:00:15.047671"
+  },
+  "11ac94870d0bb33abfe7fcdcb0043483": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:23:51.234559",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33abfe7fcdcb0043483",
+   "inputs": {
+    "input1": {
+     "id": "26c75dcccb616ac8f5ba61d920d84400",
+     "src": "hda",
+     "uuid": "02c47001-2a7a-4753-92ae-cb3d54b2dd1f"
+    },
+    "input2": {
+     "id": "26c75dcccb616ac817826f51a8c987ca",
+     "src": "hda",
+     "uuid": "396ab3c1-f550-4fbc-afb3-ba11bfe02828"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "output": {
+     "id": "26c75dcccb616ac89c52db663f41b4a8",
+     "src": "hda",
+     "uuid": "3b193d8e-530e-442e-accd-214ee82cec85"
+    }
+   },
+   "params": {
+    "__input_ext": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "min": "\"1\"",
+    "returntype": "\"\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/intersect/gops_intersect_1/1.0.0",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:24:45.733624"
+  },
+  "11ac94870d0bb33adaa3650390561b2f": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:11:43.946166",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33adaa3650390561b2f",
+   "inputs": {
+    "input": {
+     "id": "26c75dcccb616ac8da7472b3cc630325",
+     "src": "hda",
+     "uuid": "1c1c391d-68a8-4444-a2b0-cd0e38f52274"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "out_file1": {
+     "id": "26c75dcccb616ac8f5ba61d920d84400",
+     "src": "hda",
+     "uuid": "02c47001-2a7a-4753-92ae-cb3d54b2dd1f"
+    }
+   },
+   "params": {
+    "__input_ext": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "direction": "\"Upstream\"",
+    "offset": "\"10000\"",
+    "region": "\"start\"",
+    "size": "\"12000\""
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/get_flanks/get_flanks1/1.0.0",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:12:21.966281"
+  },
+  "11ac94870d0bb33add60eedbe97c1482": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T09:42:45.085726",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33add60eedbe97c1482",
+   "inputs": {
+    "input1": {
+     "id": "26c75dcccb616ac89c52db663f41b4a8",
+     "src": "hda",
+     "uuid": "3b193d8e-530e-442e-accd-214ee82cec85"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "out_file1": {
+     "id": "26c75dcccb616ac8c4a6ed0b0a8e2c87",
+     "src": "hda",
+     "uuid": "0e270687-29c6-4782-bb67-b7fdb2ccf3c4"
+    }
+   },
+   "params": {
+    "__input_ext": "\"bed\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "groupcol": "\"1\"",
+    "ignorecase": "false",
+    "ignorelines": null,
+    "operations": "[{\"__index__\": 0, \"opcol\": \"1\", \"opdefault\": \"\", \"opround\": \"no\", \"optype\": \"length\"}]"
+   },
+   "state": "deleted",
+   "tool_id": "Grouping1",
+   "tool_version": null,
+   "update_time": "2025-06-30T09:51:12.709190"
+  },
+  "11ac94870d0bb33af50a83e19d6b475b": {
+   "copied_from_job_id": null,
+   "create_time": "2025-06-30T08:51:10.662158",
+   "history_id": "892319be4e2b6ca2",
+   "id": "11ac94870d0bb33af50a83e19d6b475b",
+   "inputs": {
+    "infile": {
+     "id": "26c75dcccb616ac82d606765ed5df4af",
+     "src": "hda",
+     "uuid": "8c54d1b7-6edf-4b8a-8b9f-36b0ae7f866b"
+    }
+   },
+   "output_collections": {},
+   "outputs": {
+    "outfile": {
+     "id": "26c75dcccb616ac8e8c775fd62d9db6b",
+     "src": "hda",
+     "uuid": "ef316d48-e3c5-416c-9f33-5511038ca96a"
+    }
+   },
+   "params": {
+    "__input_ext": "\"interval\"",
+    "chromInfo": "\"/opt/galaxy/tool-data/shared/ucsc/chrom/mm9.len\"",
+    "dbkey": "\"mm9\"",
+    "replacements": "[{\"__index__\": 0, \"column\": \"1\", \"find_pattern\": \"[0-9]+\", \"replace_pattern\": \"chr&\"}]"
+   },
+   "state": "ok",
+   "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+   "tool_version": null,
+   "update_time": "2025-06-30T08:51:54.667176"
+  }
+ },
+ "summary": {
+  "history_id": "892319be4e2b6ca2",
+  "jobs": [
+   {
+    "checked": true,
+    "id": null,
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 1,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac82d606765ed5df4af",
+      "name": "GSE37268_mof3.out.hpeak.txt.gz",
+      "state": "ok"
+     }
+    ],
+    "step_type": "input_dataset",
+    "tool_id": null,
+    "tool_name": "Data Fetch",
+    "tool_version": null,
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": null,
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 2,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8da7472b3cc630325",
+      "name": "UCSC Main on Mouse: refGene (genome)",
+      "state": "ok"
+     }
+    ],
+    "step_type": "input_dataset",
+    "tool_id": null,
+    "tool_name": "UCSC Main",
+    "tool_version": null,
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": null,
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 3,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8b705977efda3d149",
+      "name": "UCSC Main on Mouse: refGene (genome)",
+      "state": "ok"
+     }
+    ],
+    "step_type": "input_dataset",
+    "tool_id": null,
+    "tool_name": "UCSC Main",
+    "tool_version": null,
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33a8e0e0d7061f261c3",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 4,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac881df48dc736b2415",
+      "name": "Select last on data 1",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_tail_tool/9.3+galaxy1",
+    "tool_name": "Select last",
+    "tool_version": "9.3+galaxy1",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33af50a83e19d6b475b",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 5,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8e8c775fd62d9db6b",
+      "name": "chr prefix added",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+    "tool_name": "Replace Text",
+    "tool_version": "1.1.3",
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33a6be918be301d1495",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 6,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac86d51b198c793be2e",
+      "name": "Replace Text on data 1",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+    "tool_name": "Replace Text",
+    "tool_version": "1.1.3",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33ab1770c1f7db32a9f",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 7,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8ea3155b53d619ca4",
+      "name": "Peak regions",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_replace_in_column/1.1.3",
+    "tool_name": "Replace Text",
+    "tool_version": "1.1.3",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33a5bb8a0451c0b4e34",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 8,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8145d37b9d20d0780",
+      "name": "Select last on data 7",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/bgruening/text_processing/tp_tail_tool/9.3+galaxy1",
+    "tool_name": "Select last",
+    "tool_version": "9.3+galaxy1",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33adaa3650390561b2f",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 9,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8f5ba61d920d84400",
+      "name": "Promoter regions",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/get_flanks/get_flanks1/1.0.0",
+    "tool_name": "Get flanks",
+    "tool_version": "1.0.0",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33a03eaa1d84b8e3267",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 10,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac817826f51a8c987ca",
+      "name": "Peak regions BED",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "CONVERTER_interval_to_bed_0",
+    "tool_name": "Convert Genomic Intervals To BED",
+    "tool_version": "1.0.0",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33abfe7fcdcb0043483",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 11,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac89c52db663f41b4a8",
+      "name": "Intersect on data 10 and data 9",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "toolshed.g2.bx.psu.edu/repos/devteam/intersect/gops_intersect_1/1.0.0",
+    "tool_name": "Intersect",
+    "tool_version": "1.0.0",
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33add60eedbe97c1482",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 12,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8c4a6ed0b0a8e2c87",
+      "name": "Group on data 11",
+      "state": "discarded"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "Grouping1",
+    "tool_name": "Group",
+    "tool_version": "2.1.4",
+    "tool_version_warning": null
+   },
+   {
+    "checked": false,
+    "id": "11ac94870d0bb33a427f52a1a205dbca",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": true,
+      "hid": 13,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac8bdcc147c1167fec8",
+      "name": "Group on data 11",
+      "state": "discarded"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "Grouping1",
+    "tool_name": "Group",
+    "tool_version": "2.1.4",
+    "tool_version_warning": null
+   },
+   {
+    "checked": true,
+    "id": "11ac94870d0bb33aa4e15b4f37225195",
+    "implicit_collection_jobs_id": null,
+    "implicit_collection_jobs_size": null,
+    "invalid": null,
+    "outputs": [
+     {
+      "deleted": false,
+      "hid": 14,
+      "history_content_type": "dataset",
+      "id": "26c75dcccb616ac82828c28d99ab0bf3",
+      "name": "Group on data 11",
+      "state": "ok"
+     }
+    ],
+    "step_type": "tool",
+    "tool_id": "Grouping1",
+    "tool_name": "Group",
+    "tool_version": "2.1.4",
+    "tool_version_warning": null
+   }
+  ],
+  "warnings": []
+ }
+}
